@@ -25,6 +25,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@koa/router": "^12.0.1",
     "@types/koa": "^2.15.0",
+    "antd": "^5.18.1",
     "axios": "^1.7.2",
     "electron-updater": "^6.1.7",
     "koa": "^2.15.3",
