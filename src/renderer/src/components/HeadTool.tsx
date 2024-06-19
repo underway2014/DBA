@@ -24,8 +24,16 @@ const HeaderTool: React.FC<selfProps> = (props) => {
         setData({ isModalOpen: false })
     };
 
-    function addOk (val) {
+    async function addOk (val) {
         console.log('add ok.>>>', val)
+        setData({ isModalOpen: false })
+
+        window.api.setStore(val)
+
+        let storeVal = await window.api.getStore('age')
+        console.log('storeVal: ', storeVal)
+
+
     }
 
     return (
@@ -40,7 +48,9 @@ const HeaderTool: React.FC<selfProps> = (props) => {
                     Add Connection
                 </Button>
             </Header>
-            <Modal title="Basic Modal" open={data.isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <Modal title="Basic Modal" open={data.isModalOpen}
+                onOk={handleOk} onCancel={handleCancel}
+                footer={[]}>
                 <ConnectionForm addConnection={addOk}></ConnectionForm>
             </Modal>
         </div>

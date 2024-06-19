@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, Radio } from 'antd';
-import SubMenu from 'antd/es/menu/SubMenu';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
@@ -10,8 +9,8 @@ type selfProps = {
 const ConnectionForm: React.FC<selfProps> = (props) => {
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
-const {addConnection} = props
-     const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
+  const { addConnection } = props
+  const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
     setFormLayout(layout);
   };
 
@@ -21,11 +20,11 @@ const {addConnection} = props
   const buttonItemLayout =
     formLayout === 'horizontal' ? { wrapperCol: { span: 14, offset: 4 } } : null;
 
-    function submit(val) {
-      console.log('submit: ', form.getFieldsValue())
+  function submit (val) {
+    console.log('submit: ', form.getFieldsValue())
 
-      addConnection({name: 11, age: 22})
-    }
+    addConnection(form.getFieldsValue())
+  }
   return (
     <Form
       {...formItemLayout}
@@ -35,13 +34,13 @@ const {addConnection} = props
       onValuesChange={onFormLayoutChange}
       style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
     >
-      <Form.Item label="Form Layout" name="layout">
+      {/* <Form.Item label="Form Layout" name="layout">
         <Radio.Group value={formLayout}>
           <Radio.Button value="horizontal">Horizontal</Radio.Button>
           <Radio.Button value="vertical">Vertical</Radio.Button>
           <Radio.Button value="inline">Inline</Radio.Button>
         </Radio.Group>
-      </Form.Item>
+      </Form.Item> */}
       <Form.Item label="Field A" name="host">
         <Input placeholder="input placeholder" />
       </Form.Item>

@@ -27,6 +27,7 @@
     "@types/koa": "^2.15.0",
     "antd": "^5.18.1",
     "axios": "^1.7.2",
+    "electron-store": "^10.0.0",
     "electron-updater": "^6.1.7",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",

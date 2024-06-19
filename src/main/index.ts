@@ -58,6 +58,19 @@ app.whenReady().then(() => {
   }
   )
 
+  ipcMain.handle('store:get', (event, val) => {
+    console.log('store:get', val)
+
+    return {name: 1, age: 3333}
+  })
+  ipcMain.handle('store:set', (event, val) => {
+    // console.log('store:set', event)
+    console.log('store:set val', val)
+
+    // return {name: 1, age: 3333}
+  })
+
+
   createWindow()
 
   app.on('activate', function () {

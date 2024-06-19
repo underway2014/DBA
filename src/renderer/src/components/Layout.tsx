@@ -4,7 +4,6 @@ import { Layout, Menu, theme } from 'antd';
 import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
-import ConnectionWindow from './ConectionWindow';
 
 const { Header, Content, Sider } = Layout;
 
@@ -29,13 +28,13 @@ const CLayout: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const [data, setData] = useState({showForm: false, connections: []})
+  const [data, setData] = useState({ showForm: false, connections: [] })
 
-  function getAddCon() {
+  function getAddCon () {
     console.log('getAddCon', data.showForm)
     let connections = data.connections
-    connections.push({url: 1})
-    setData({showForm: !data.showForm, connections})
+    connections.push({ url: 1 })
+    setData({ showForm: !data.showForm, connections })
     console.log('22 getAddCon', data.showForm)
 
 
@@ -43,32 +42,32 @@ const CLayout: React.FC = () => {
 
   return (
     <div>
-    <HeaderTool showForm={getAddCon}></HeaderTool>
-    <Layout>
-      <Sider
-        breakpoint="lg"
-        collapsedWidth="0"
-        onBreakpoint={(broken) => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
-      >
-        {
-          data.connections.map(el => {
-            return <ConnectionItem></ConnectionItem>
-          })
-        }
-      </Sider>
+      <HeaderTool showForm={getAddCon}></HeaderTool>
       <Layout>
-        <Content style={{ margin: '24px 16px 0'  }}>
+        <Sider
+          breakpoint="lg"
+          collapsedWidth="0"
+          onBreakpoint={(broken) => {
+            console.log(broken);
+          }}
+          onCollapse={(collapsed, type) => {
+            console.log(collapsed, type);
+          }}
+        >
+          {
+            data.connections.map(el => {
+              return <ConnectionItem></ConnectionItem>
+            })
+          }
+        </Sider>
+        <Layout>
+          <Content style={{ margin: '24px 16px 0' }}>
             {
-               <DataList></DataList>
+              <DataList></DataList>
             }
-        </Content>
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
     </div>
   );
 };
