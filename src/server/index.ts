@@ -19,7 +19,7 @@ const app: Koa = new Koa();
 
   app.use(bodyParse())
 
-router.get('/list', async (ctx, next) => {
+router.get('/list', async (ctx, _) => {
         console.log('get client request!!!')
         let sql = `
         select * from active limit 2

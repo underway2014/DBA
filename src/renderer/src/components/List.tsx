@@ -55,8 +55,7 @@ const DataList: React.FC = () => {
         key: 'odd',
         text: 'Select Odd Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
-          newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
+          let newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
               return false;
             }
@@ -69,8 +68,7 @@ const DataList: React.FC = () => {
         key: 'even',
         text: 'Select Even Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
-          newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
+          let newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
               return true;
             }

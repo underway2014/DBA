@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import server from '../server'
+import { addConnections, getConnections } from '../server/lib/wrjson'
 
 function createWindow(): void {
   // Create the browser window.
@@ -26,6 +27,8 @@ function createWindow(): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+
+  mainWindow.webContents.openDevTools()
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
@@ -58,16 +61,21 @@ app.whenReady().then(() => {
   }
   )
 
-  ipcMain.handle('store:get', (event, val) => {
+  ipcMain.handle('store:get', (_, val) => {
     console.log('store:get', val)
 
-    return {name: 1, age: 3333}
+    let data = getConnections()
+    console.log('connection data: ', data)
+
+    return data
   })
-  ipcMain.handle('store:set', (event, val) => {
+  ipcMain.handle('store:set', (_, val) => {
     // console.log('store:set', event)
     console.log('store:set val', val)
 
     // return {name: 1, age: 3333}
+
+    addConnections(val)
   })
 
 

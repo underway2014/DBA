@@ -7,12 +7,13 @@ import ConnectionForm from "./ConnectionForm";
 
 type selfProps = {
     showForm: Function
+    updateSlider: Function
 }
 
 const HeaderTool: React.FC<selfProps> = (props) => {
     const [data, setData] = useState({ isModalOpen: false })
 
-    const { showForm } = props
+    // const { showForm } = props
     function addConnection () {
         console.log('add connection')
         setData({ isModalOpen: true })
@@ -28,11 +29,21 @@ const HeaderTool: React.FC<selfProps> = (props) => {
         console.log('add ok.>>>', val)
         setData({ isModalOpen: false })
 
-        window.api.setStore(val)
+        window.api.setStore({
+            "name": "local-pg",
+            "config": {
+                "host": "127.0.0.1",
+                "port": 5432,
+                "username": "postgres",
+                "password": "postgres",
+                "dialect": "postgres",
+                "database": "jogo_gaming_dev"
+            }
+        })
 
-        let storeVal = await window.api.getStore('age')
-        console.log('storeVal: ', storeVal)
-
+        // let storeVal = await window.api.getStore('age')
+        // console.log('storeVal: ', storeVal)
+        props.updateSlider()
 
     }
 

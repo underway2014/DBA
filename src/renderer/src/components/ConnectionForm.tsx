@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, Radio } from 'antd';
+import { Button, Form, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
@@ -21,7 +21,7 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
     formLayout === 'horizontal' ? { wrapperCol: { span: 14, offset: 4 } } : null;
 
   function submit (val) {
-    console.log('submit: ', form.getFieldsValue())
+    console.log('submit: ', form.getFieldsValue(), val)
 
     addConnection(form.getFieldsValue())
   }

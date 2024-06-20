@@ -8,6 +8,6 @@ const sequelize = new Sequelize({
     dialect: 'postgres',
     database: 'jogo_gaming_dev'
 })
-
+// await sequelize.authenticate();
 
 export default sequelize
