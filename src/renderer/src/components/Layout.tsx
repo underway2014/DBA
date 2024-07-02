@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 // import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import { Layout } from 'antd';
 import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
+import SqlContent from './SqlContent';
+import SqlToolBar from './SqlToolBar';
 
 const { Content, Sider } = Layout;
 
@@ -24,6 +26,9 @@ const { Content, Sider } = Layout;
 //   backgroundColor: '#4096ff',
 // };
 
+type SqlRef = {
+
+}
 const CLayout: React.FC = () => {
   // const {
   //   token: { colorBgContainer, borderRadiusLG },
@@ -43,6 +48,8 @@ const CLayout: React.FC = () => {
       // }
     ]
   })
+
+  const sqlTxtRef = useRef<any>()
 
   function getAddCon () {
     console.log('getAddCon', data.showForm)
@@ -66,6 +73,15 @@ const CLayout: React.FC = () => {
     })
   }
 
+  function sqlHandler (val) {
+    console.log('sqlHandler: ', val)
+
+    // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
+
+    console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
+    // }
+  }
+
   return (
     <div>
       <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool>
@@ -76,18 +92,25 @@ const CLayout: React.FC = () => {
           onBreakpoint={(broken) => {
             console.log(broken);
           }}
+          width={300}
           onCollapse={(collapsed, type) => {
             console.log(collapsed, type);
           }}
         >
           {
             data.connections.map((el, index) => {
-              return <ConnectionItem key={index} connection={el}></ConnectionItem>
+              return <ConnectionItem cid={index} key={index} connection={el}></ConnectionItem>
             })
           }
         </Sider>
         <Layout>
           <Content style={{ margin: '24px 16px 0' }}>
+            {
+              <SqlToolBar sqlToolHandler={sqlHandler} ></SqlToolBar>
+            }
+            {
+              <SqlContent ref={sqlTxtRef}></SqlContent>
+            }
             {
               <DataList></DataList>
             }

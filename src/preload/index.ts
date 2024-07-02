@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { getTables } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -10,6 +11,17 @@ const api = {
   getStore: async (val) => {
     console.log('getStore', val)
     return ipcRenderer.invoke('store:get', val)
+  },
+  getTables: async(val) => {
+    console.log('getTables: ', val)
+    return getTables({name: 'test1', config: {
+      host: '127.0.0.1',
+      port: 5432,
+      username: 'postgres',
+      password: 'postgres',
+      dialect: 'postgres',
+      database: 'jogo_gaming_dev'
+  }})
   }
 }
 

@@ -4,6 +4,7 @@ import { Interface } from 'readline'
 interface ApiFunction {
   setStore: Function
   getStore: Function
+  getTables: Function
 }
 
 declare global {

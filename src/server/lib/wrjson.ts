@@ -1,8 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { app } from 'electron'
 
 
-const filePath = path.join(__dirname, './config.json')
+const filePath = path.join(app.getPath('userData'), './config.json')
 // const filePath = path.join(__dirname, './config.json')
 console.log('now dir: ', __dirname, filePath)
 
