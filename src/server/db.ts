@@ -35,6 +35,22 @@ function initDb({name, config}) {
     return db
 }
 
+async function getColums(tableName) {
+    let sql = `
+    SELECT
+        table_name,
+        column_name,
+        data_type,
+        column_default
+    FROM
+    information_schema.columns
+    WHERE
+    table_name = '${tableName}' LIMIT 1000
+    `
+
+    return query({sql})
+}
+
 
 async function getTables({name, config}) {
     await initDb({name, config})
@@ -49,8 +65,29 @@ async function query({sql}) {
     console.log('query: ',  sql)
     let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
 
-
     return data
 }
 
-export {getTables, query}
+async function getTableData({sql}) {
+    let tableName = getTableName(sql)
+
+    let columns = await getColums(tableName)
+
+    console.log('getTableData22: ', sql)
+    let rows = await query({sql})
+
+    return {columns, rows}
+}
+
+function getTableName(sql) {
+    if(!sql){
+        throw new Error(`${sql} error`)
+    }
+
+    let a = sql.split('from')
+    let b = a[1].split(' ')
+
+    return b.find(el => !!el)
+}
+
+export {getTables, query, getColums, getTableData}

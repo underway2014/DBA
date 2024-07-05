@@ -11,20 +11,20 @@ interface DataType {
   address: string;
 }
 
-const columns: TableColumnsType<DataType> = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-  },
-  {
-    title: 'Age',
-    dataIndex: 'age',
-  },
-  {
-    title: 'Address',
-    dataIndex: 'address',
-  },
-];
+// const columns: TableColumnsType<DataType> = [
+//   {
+//     title: 'Name',
+//     dataIndex: 'name',
+//   },
+//   {
+//     title: 'Age',
+//     dataIndex: 'age',
+//   },
+//   {
+//     title: 'Address',
+//     dataIndex: 'address',
+//   },
+// ];
 
 // const data: DataType[] = [];
 // for (let i = 0; i < 46; i++) {
@@ -35,17 +35,36 @@ const columns: TableColumnsType<DataType> = [
 //     address: `London, Park Lane no. ${i}`,
 //   });
 // }
-
+const scroll = {
+  x: '100vw', y: 240
+}
 const DataList: React.FC = (props, parentRef) => {
   const inputRef = useRef(null);
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [data, setData] = useState<React.Key[]>([]);
+  const [columns, setColumns] = useState<React.Key[]>([]);
 
   useImperativeHandle(parentRef, () => {
     return {
       updateList (listData) {
-        return setData(listData)
+        let rows = listData.rows.map((el, index) => {
+          // el.key = 
+          return {
+            key: index,
+            name: el.user_name || el.name,
+            address: el.id,
+            age: el.id
+          }
+
+        })
+        setData(listData.rows)
+        setColumns(listData.columns.map(el => {
+          return {
+            title: el.column_name,
+            dataIndex: el.column_name
+          }
+        }))
       }
     }
   })
@@ -91,7 +110,7 @@ const DataList: React.FC = (props, parentRef) => {
     ],
   };
 
-  return <Table rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
+  return <Table scroll={{ x: 'max-content' }} rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
 };
 
 // export default DataList;

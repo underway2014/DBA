@@ -81,18 +81,10 @@ const CLayout: React.FC = () => {
 
     console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
 
-    window.api.querySql(sqlTxtRef.current.getTxt()).then(data => {
+    window.api.getTableData(sqlTxtRef.current.getTxt()).then(data => {
 
       console.log('query sql res: ', data)
-      listRef.current.updateList(data.map((el, index) => {
-        return {
-          key: index,
-          name: el.user_name || el.name,
-          address: el.id,
-          age: el.id
-        }
-
-      }))
+      listRef.current.updateList(data)
     })
     // }
   }

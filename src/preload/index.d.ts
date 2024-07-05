@@ -6,6 +6,7 @@ interface ApiFunction {
   getStore: Function
   getTables: Function
   querySql: Function
+  getTableData: Function
 }
 
 declare global {
