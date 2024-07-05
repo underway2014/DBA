@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Table } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 
@@ -26,18 +26,29 @@ const columns: TableColumnsType<DataType> = [
   },
 ];
 
-const data: DataType[] = [];
-for (let i = 0; i < 46; i++) {
-  data.push({
-    key: i,
-    name: `Edward King ${i}`,
-    age: 32,
-    address: `London, Park Lane no. ${i}`,
-  });
-}
+// const data: DataType[] = [];
+// for (let i = 0; i < 46; i++) {
+//   data.push({
+//     key: i,
+//     name: `Edward King ${i}`,
+//     age: 32,
+//     address: `London, Park Lane no. ${i}`,
+//   });
+// }
 
-const DataList: React.FC = () => {
+const DataList: React.FC = (props, parentRef) => {
+  const inputRef = useRef(null);
+
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [data, setData] = useState<React.Key[]>([]);
+
+  useImperativeHandle(parentRef, () => {
+    return {
+      updateList (listData) {
+        return setData(listData)
+      }
+    }
+  })
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
     console.log('selectedRowKeys changed: ', newSelectedRowKeys);
@@ -80,7 +91,8 @@ const DataList: React.FC = () => {
     ],
   };
 
-  return <Table rowSelection={rowSelection} columns={columns} dataSource={data} />;
+  return <Table rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
 };
 
-export default DataList;
+// export default DataList;
+export default forwardRef(DataList);

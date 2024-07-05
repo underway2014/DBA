@@ -1,10 +1,9 @@
 import Koa from 'koa';
-import { QueryTypes } from 'sequelize';
 
 import bodyParse from 'koa-bodyparser'
 
 import Router from "@koa/router";
-import { getDb } from './db';
+// import { getDb } from './db';
 var router = new Router();
 
 async function server( ) {
@@ -19,7 +18,7 @@ const app: Koa = new Koa();
 
   app.use(bodyParse())
 
-const db = getDb({name: 'local-server', config: {}})
+// const db = getDb({name: 'local-server', config: {}})
 
 router.get('/list', async (ctx, _) => {
         console.log('get client request!!!')
@@ -27,10 +26,10 @@ router.get('/list', async (ctx, _) => {
         select * from active limit 2
         `
     
-        let result = await db.query(sql, {type: QueryTypes.SELECT})
-        console.log('result: ', result)
+        // let result = await db.query(sql, {type: QueryTypes.SELECT})
+        // console.log('result: ', result)
         ctx.status = 200
-        ctx.body = {data: result};
+        ctx.body = {data: sql};
 })
 
 

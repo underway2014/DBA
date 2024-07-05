@@ -50,6 +50,7 @@ const CLayout: React.FC = () => {
   })
 
   const sqlTxtRef = useRef<any>()
+  const listRef = useRef<any>()
 
   function getAddCon () {
     console.log('getAddCon', data.showForm)
@@ -79,6 +80,20 @@ const CLayout: React.FC = () => {
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
 
     console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
+
+    window.api.querySql(sqlTxtRef.current.getTxt()).then(data => {
+
+      console.log('query sql res: ', data)
+      listRef.current.updateList(data.map((el, index) => {
+        return {
+          key: index,
+          name: el.user_name || el.name,
+          address: el.id,
+          age: el.id
+        }
+
+      }))
+    })
     // }
   }
 
@@ -112,7 +127,7 @@ const CLayout: React.FC = () => {
               <SqlContent ref={sqlTxtRef}></SqlContent>
             }
             {
-              <DataList></DataList>
+              <DataList ref={listRef}></DataList>
             }
           </Content>
         </Layout>

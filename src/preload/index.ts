@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { getTables } from '../server/db'
+import { getTables, query } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -22,6 +22,10 @@ const api = {
       dialect: 'postgres',
       database: 'jogo_gaming_dev'
   }})
+  },
+  querySql: async(sql)=> {
+    console.log('querySql: ', sql)
+    return query({ sql})
   }
 }
 
