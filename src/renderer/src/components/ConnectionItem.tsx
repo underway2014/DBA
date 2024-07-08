@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Tree } from 'antd';
+import { Button, Space, Tree } from 'antd';
 import type { GetProps, TreeDataNode } from 'antd';
 import { title } from 'process';
-import { DownOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
 
@@ -29,12 +29,13 @@ type selfProps = {
   connection: pgConfig
   key: number
   cid: number
+  updateSlider: Function
 }
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
   const [treeData, setTreeData] = useState<TreeDataNode[]>([{
     title: props.connection.name,
-    key: `${props.cid}-${props.connection.name}`
+    key: `${props.connection.id}`,
   }])
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
     console.log('Trigger Select', keys, info, props.connection);
@@ -48,7 +49,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       treeNow.children = tables.map((el, index) => {
         return {
           isLeaf: true,
-          key: `0-${index}`,
+          key: `${el.table_name}-${index}`,
           title: el.table_name
         }
       })
@@ -69,6 +70,44 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       })
   };
 
+  function editConnection (node) {
+    console.log('editConnection: ', event)
+    window.api.editStore(node)
+  }
+
+  function delConnection (node) {
+    console.log('delConnection aa', node)
+
+    window.api.delStore(node.key)
+
+    props.updateSlider()
+
+  }
+
+  function titleRender (nodeData) {
+    console.log('title render: ', nodeData)
+    return (
+      <div className='treeTitle'>
+        <span>{nodeData.title}</span>
+        <Space className='treeBtn'>
+
+          <DeleteOutlined className='marginlr20' onClick={(e) => {
+            //业务的处理函数
+            //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+            console.log('delete', e)
+            e.stopPropagation()
+            delConnection(nodeData)
+          }} />
+          <EditOutlined onClick={(e) => {
+            console.log('edit')
+            //业务的处理函数
+            //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+          }} />
+        </Space>
+      </div>
+    )
+  }
+
 
   return (
     // <DirectoryTree
@@ -78,13 +117,18 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     //   onExpand={onExpand}
     //   treeData={treeData}
     // />
-    <Tree
-      showLine
-      switcherIcon={<DownOutlined />}
-      defaultExpandedKeys={['0-0-0']}
-      onSelect={onSelect}
-      treeData={treeData}
-    />
+    <div>
+
+      <Tree
+        showLine
+        blockNode
+        // switcherIcon={<DownOutlined />}
+        defaultExpandedKeys={['0-0-0']}
+        onSelect={onSelect}
+        treeData={treeData}
+        titleRender={titleRender}
+      />
+    </div>
   );
 };
 

@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import server from '../server'
-import { addConnections, getConnections } from '../server/lib/wrjson'
+import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 function createWindow(): void {
   // Create the browser window.
@@ -69,13 +69,29 @@ app.whenReady().then(() => {
 
     return data
   })
-  ipcMain.handle('store:set', (_, val) => {
+  ipcMain.handle('store:add', (_, val) => {
     // console.log('store:set', event)
-    console.log('store:set val', val)
+    console.log('store:add val', val)
 
     // return {name: 1, age: 3333}
 
-    addConnections(val)
+    addConnection(val)
+  })
+  ipcMain.handle('store:edit', (_, val) => {
+    // console.log('store:set', event)
+    console.log('store:edit val', val)
+
+    // return {name: 1, age: 3333}
+
+    editConnection(val)
+  })
+  ipcMain.handle('store:del', (_, val) => {
+    // console.log('store:set', event)
+    console.log('store:del val', val)
+
+    // return {name: 1, age: 3333}
+
+    delConnection(val)
   })
 
 

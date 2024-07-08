@@ -34,18 +34,26 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
       onValuesChange={onFormLayoutChange}
       style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
     >
-      {/* <Form.Item label="Form Layout" name="layout">
-        <Radio.Group value={formLayout}>
-          <Radio.Button value="horizontal">Horizontal</Radio.Button>
-          <Radio.Button value="vertical">Vertical</Radio.Button>
-          <Radio.Button value="inline">Inline</Radio.Button>
-        </Radio.Group>
-      </Form.Item> */}
-      <Form.Item label="Field A" name="host">
+      <Form.Item label="name" name="name">
+        <Input placeholder="connection name" />
+      </Form.Item>
+      <Form.Item label="host" name="host">
         <Input placeholder="input placeholder" />
       </Form.Item>
-      <Form.Item label="Field B" name="port">
-        <Input placeholder="input placeholder" />
+      <Form.Item label="port" name="port">
+        <Input placeholder="5432" />
+      </Form.Item>
+      <Form.Item label="username" name="username">
+        <Input placeholder="username" />
+      </Form.Item>
+      <Form.Item label="password" name="password">
+        <Input placeholder="password" />
+      </Form.Item>
+      <Form.Item label="database" name="database">
+        <Input placeholder="database" />
+      </Form.Item>
+      <Form.Item label="dialect" name="dialect">
+        <Input placeholder="postgres" />
       </Form.Item>
       <Form.Item {...buttonItemLayout}>
         <Button type="primary" onClick={submit}>Submit</Button>

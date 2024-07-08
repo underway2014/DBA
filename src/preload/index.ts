@@ -4,9 +4,17 @@ import { getTableData, getTables, query } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
-  setStore: (val) => {
+  addStore: (val) => {
     console.log('setstore', val)
-    ipcRenderer.invoke('store:set', val)
+    ipcRenderer.invoke('store:add', val)
+    },
+  delStore: (val) => {
+    console.log('delStore', val)
+    ipcRenderer.invoke('store:del', val)
+    },
+  editStore: (val) => {
+    console.log('editStore', val)
+    ipcRenderer.invoke('store:edit', val)
     },
   getStore: async (val) => {
     console.log('getStore', val)
@@ -14,14 +22,7 @@ const api = {
   },
   getTables: async(val) => {
     console.log('getTables: ', val)
-    return getTables({name: 'test1', config: {
-      host: '127.0.0.1',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      dialect: 'postgres',
-      database: 'jogo_gaming_dev'
-  }})
+    return getTables(val)
   },
   querySql: async(sql)=> {
     console.log('querySql: ', sql)

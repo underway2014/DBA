@@ -29,15 +29,15 @@ const HeaderTool: React.FC<selfProps> = (props) => {
         console.log('add ok.>>>', val)
         setData({ isModalOpen: false })
 
-        window.api.setStore({
-            "name": "local-pg",
-            "config": {
-                "host": "127.0.0.1",
-                "port": 5432,
-                "username": "postgres",
-                "password": "postgres",
-                "dialect": "postgres",
-                "database": "jogo_gaming_dev"
+        window.api.addStore({
+            name: val.name,
+            config: {
+                host: val.host,
+                port: val.port,
+                username: val.username,
+                password: val.password,
+                dialect: val.dialect,
+                database: val.database
             }
         })
 

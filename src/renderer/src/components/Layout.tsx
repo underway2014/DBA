@@ -106,7 +106,7 @@ const CLayout: React.FC = () => {
         >
           {
             data.connections.map((el, index) => {
-              return <ConnectionItem cid={index} key={index} connection={el}></ConnectionItem>
+              return <ConnectionItem cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
             })
           }
         </Sider>

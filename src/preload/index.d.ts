@@ -2,7 +2,9 @@ import { ElectronAPI } from '@electron-toolkit/preload'
 import { Interface } from 'readline'
 
 interface ApiFunction {
-  setStore: Function
+  addStore: Function
+  editStore: Function
+  delStore: Function
   getStore: Function
   getTables: Function
   querySql: Function
