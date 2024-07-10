@@ -21,11 +21,20 @@ function initDb({name, config}) {
         db = new Sequelize(config)
     }
 
-
     dbMap[name] = db
     currentDb = db
 
     return db
+}
+
+async function getSchema({name, config}) {
+    await initDb({name, config})
+
+    let sql = `
+    select schema_name name from information_schema.schemata
+    `
+
+    return query({sql})
 }
 
 async function getColums(tableName) {
@@ -45,16 +54,17 @@ async function getColums(tableName) {
 }
 
 
-async function getTables({name, config}) {
+async function getTables({name, config, schema = 'public'}) {
+    console.log('get tables schema: ', schema)
     await initDb({name, config})
-    let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='public' LIMIT 1000`)
+    let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`)
 
     console.log('tabels:', tables)
 
     return tables[0]
 }
 
-async function query({sql}) {
+async function query({sql }) {
     console.log('query: ',  sql)
     let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
 
@@ -83,4 +93,4 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-export {getTables, query, getColums, getTableData}
+export {getTables, query, getColums, getTableData, getSchema}

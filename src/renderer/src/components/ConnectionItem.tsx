@@ -3,6 +3,7 @@ import { Button, Space, Tree } from 'antd';
 import type { GetProps, TreeDataNode } from 'antd';
 import { title } from 'process';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Schema } from 'electron-store';
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
 
@@ -32,42 +33,90 @@ type selfProps = {
   updateSlider: Function
 }
 
+interface NodeData extends TreeDataNode {
+  children?: NodeData[]
+}
+
 const ConnectionItem: React.FC<selfProps> = (props) => {
-  const [treeData, setTreeData] = useState<TreeDataNode[]>([{
+  const [treeData, setTreeData] = useState<NodeData[]>([{
     title: props.connection.name,
-    key: `${props.connection.id}`,
+    key: `connection-${props.connection.name}-${props.connection.id}`,
   }])
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
     console.log('Trigger Select', keys, info, props.connection);
+    console.log('treeData Select', treeData);
 
-    window.api.getTables(props.connection).then(tables => {
+    let treeNow = treeData[0]
 
-      console.log('getTables res ', tables)
+    let key = String(keys[0])
 
-      let treeNow = treeData[0]
+    let parseKeys = key.split('-')
 
-      treeNow.children = tables.map((el, index) => {
-        return {
-          isLeaf: true,
-          key: `${el.table_name}-${index}`,
-          title: el.table_name
+    let nodeType = parseKeys[0]
+    console.log('node type: ', parseKeys)
+    if (nodeType === 'connection') {
+      window.api.getSchema(props.connection).then(tables => {
+        treeNow.children = [{
+          isLeaf: false,
+          key: `schemas-${props.connection.id}`,
+          title: 'schemas',
+          children: tables.map((el, index) => {
+            return {
+              isLeaf: true,
+              key: `schema-${el.name}-${new Date().getTime()}`,
+              title: el.name
+            }
+          })
+        }]
+
+        setTreeData([treeNow])
+
+      })
+    } else if (nodeType === 'schema') {
+      window.api.getTables({ ...props.connection, schema: parseKeys[1] }).then(tables => {
+
+        console.log('api getSchema tables ', tables)
+
+        let schemas = treeNow.children
+
+        console.log('schemas length ', schemas?.length, schemas)
+        if (!schemas?.length) {
+          return false
         }
+        let schema = schemas[0].children?.find(el => el.key === key)
+        console.log('now schema key: ', key)
+        if (schema) {
+          console.log('right shcema: ', schema)
+          schema.isLeaf = false
+          schema.children = tables.map((el, index) => {
+            return {
+              isLeaf: true,
+              key: `table-${el.table_name}-${new Date().getTime()}`,
+              title: el.table_name
+            }
+          })
+        } else {
+          console.log('not find schema')
+        }
+        setTreeData([treeNow])
       })
 
-      // console.log('new treeNow.children: ', treeNow)
+    } else if (nodeType === 'table') {
 
-      setTreeData([treeNow])
-    })
+    }
+
+
+
   };
 
   const onExpand: DirectoryTreeProps['onExpand'] = (keys, info) => {
     console.log('Trigger Expand', keys, info);
-    fetch('http://localhost:3000/list')
-      .then(response => response.json())
-      .then(json => {
-        console.log('fetch res: ', json.data)
-        // setData({rows: json.data})
-      })
+    // fetch('http://localhost:3000/list')
+    //   .then(response => response.json())
+    //   .then(json => {
+    //     console.log('fetch res: ', json.data)
+    //     // setData({rows: json.data})
+    //   })
   };
 
   function editConnection (node) {
@@ -85,7 +134,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   }
 
   function titleRender (nodeData) {
-    console.log('title render: ', nodeData)
+    // console.log('title render: ', nodeData)
     return (
       <div className='treeTitle'>
         <span>{nodeData.title}</span>
@@ -110,18 +159,11 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
 
   return (
-    // <DirectoryTree
-    //   multiple
-    //   defaultExpandAll
-    //   onSelect={onSelect}
-    //   onExpand={onExpand}
-    //   treeData={treeData}
-    // />
     <div>
-
       <Tree
         showLine
         blockNode
+        // expandAction='doubleClick'
         // switcherIcon={<DownOutlined />}
         defaultExpandedKeys={['0-0-0']}
         onSelect={onSelect}

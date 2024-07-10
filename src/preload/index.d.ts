@@ -7,6 +7,7 @@ interface ApiFunction {
   delStore: Function
   getStore: Function
   getTables: Function
+  getSchema: Function
   querySql: Function
   getTableData: Function
 }
