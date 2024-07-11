@@ -58,11 +58,15 @@ const DataList: React.FC = (props, parentRef) => {
           }
 
         })
+        listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+
+        console.log('column rows: ', listData.columns, listData.rows)
         setData(listData.rows)
+
         setColumns(listData.columns.map(el => {
           return {
             title: el.column_name,
-            dataIndex: el.column_name
+            dataIndex: el.column_name,
           }
         }))
       }

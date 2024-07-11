@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import server from '../server'
+// import server from '../server'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 function createWindow(): void {
@@ -44,7 +44,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   
-  server()
+  // server()
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

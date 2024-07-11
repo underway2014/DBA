@@ -1,5 +1,5 @@
 import {  QueryTypes, Sequelize } from "sequelize";
-
+import * as _ from 'lodash'
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
 //     port: 5432,
@@ -50,7 +50,9 @@ async function getColums(tableName) {
     table_name = '${tableName}' LIMIT 1000
     `
 
-    return query({sql})
+    let columns = await query({sql})
+
+    return _.sortBy(columns, ['columnn_name'])
 }
 
 
@@ -61,7 +63,8 @@ async function getTables({name, config, schema = 'public'}) {
 
     console.log('tabels:', tables)
 
-    return tables[0]
+    return  _.sortBy(tables[0], ['table_name'])
+
 }
 
 async function query({sql }) {
@@ -72,11 +75,12 @@ async function query({sql }) {
 }
 
 async function getTableData({sql}) {
+    console.log('getTableData22: ', sql)
     let tableName = getTableName(sql)
 
+    console.log('tableName: ', tableName)
     let columns = await getColums(tableName)
 
-    console.log('getTableData22: ', sql)
     let rows = await query({sql})
 
     return {columns, rows}
@@ -87,7 +91,7 @@ function getTableName(sql) {
         throw new Error(`${sql} error`)
     }
 
-    let a = sql.split('from')
+    let a = sql.replaceAll('\n', '').split('from')
     let b = a[1].split(' ')
 
     return b.find(el => !!el)

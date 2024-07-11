@@ -86,7 +86,16 @@ const CLayout: React.FC = () => {
       console.log('query sql res: ', data)
       listRef.current.updateList(data)
     })
-    // }
+  }
+
+  function executeSql (val) {
+    console.log('executeSql: ', val)
+
+    window.api.getTableData(val).then(data => {
+
+      console.log('executeSql query sql res: ', data)
+      listRef.current.updateList(data)
+    })
   }
 
   return (
@@ -106,7 +115,7 @@ const CLayout: React.FC = () => {
         >
           {
             data.connections.map((el, index) => {
-              return <ConnectionItem cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
+              return <ConnectionItem executeSql={executeSql} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
             })
           }
         </Sider>

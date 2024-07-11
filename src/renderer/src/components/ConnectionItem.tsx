@@ -31,6 +31,7 @@ type selfProps = {
   key: number
   cid: number
   updateSlider: Function
+  executeSql: Function
 }
 
 interface NodeData extends TreeDataNode {
@@ -102,6 +103,17 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       })
 
     } else if (nodeType === 'table') {
+
+      const sql = `
+      select * from ${parseKeys[1]}
+      `
+
+      console.log('table sql: ', sql)
+      props.executeSql(sql)
+      // window.api.getTableData(sql).then(data => {
+
+      //   console.log('query sql res: ', data)
+      // })
 
     }
 
