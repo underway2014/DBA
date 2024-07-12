@@ -10,6 +10,7 @@ interface ApiFunction {
   getSchema: Function
   querySql: Function
   getTableData: Function
+  updateDate: Function
 }
 
 declare global {

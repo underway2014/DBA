@@ -86,6 +86,25 @@ async function getTableData({sql}) {
     return {columns, rows}
 }
 
+async function updateDate({tableName, id, data}) {
+    let updateFields = Object.keys(data).map(key => {
+        if(Number.isInteger(data[key])) {
+            return `${key} = ${data[key]}`
+        }else {
+            return `${key} = '${data[key]}'`
+        }
+    }).join(',')
+    
+    let sql = `
+    update ${tableName} set ${updateFields}
+    where id = ${id}
+    `
+
+    console.log('updateDate sql: ', sql, tableName,id, data)
+
+    await query({sql})
+}
+
 function getTableName(sql) {
     if(!sql){
         throw new Error(`${sql} error`)
@@ -97,4 +116,4 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-export {getTables, query, getColums, getTableData, getSchema}
+export {getTables, updateDate, query, getColums, getTableData, getSchema}

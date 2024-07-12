@@ -80,21 +80,34 @@ const CLayout: React.FC = () => {
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
 
     console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
-
+    let tableName = getTableName(val)
     window.api.getTableData(sqlTxtRef.current.getTxt()).then(data => {
 
       console.log('query sql res: ', data)
-      listRef.current.updateList(data)
+      listRef.current.updateList({ listData: data, tableName })
     })
+  }
+
+  function getTableName (sql) {
+    if (!sql) {
+      throw new Error(`${sql} error`)
+    }
+
+    let a = sql.replaceAll('\n', '').split('from')
+    let b = a[1].split(' ')
+
+    return b.find(el => !!el)
   }
 
   function executeSql (val) {
     console.log('executeSql: ', val)
 
+    let tableName = getTableName(val)
+
     window.api.getTableData(val).then(data => {
 
       console.log('executeSql query sql res: ', data)
-      listRef.current.updateList(data)
+      listRef.current.updateList({ listData: data, tableName })
     })
   }
 

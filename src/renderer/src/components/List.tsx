@@ -51,7 +51,8 @@ const scroll = {
 
 const currentData = {
   rows: [],
-  columns: []
+  columns: [],
+  table: ''
 }
 const DataList: React.FC = (props, parentRef) => {
   const inputRef = useRef(null);
@@ -60,23 +61,30 @@ const DataList: React.FC = (props, parentRef) => {
   const [data, setData] = useState<React.Key[]>([]);
   const [columns, setColumns] = useState<React.Key[]>([]);
 
-  const handleSave = (row: any) => {
+  const handleSave = ({ row, opt }) => {
     const newData = [...currentData.rows];
-    console.log('handleSave row: ', row)
+    console.log('handleSave row: ', row, opt)
     console.log('handleSave newData: ', currentData.rows, data)
     const index = newData.findIndex((item) => row.id === item.id);
     const item = newData[index];
     console.log('handleSave item: ', item, index)
     newData.splice(index, 1, {
       ...item,
-      ...row,
+      ...row
     });
-    setData(newData);
+
+    window.api.updateDate({ tableName: currentData.table, id: row.id, data: opt }).then(data => {
+
+      console.log('query sql res: ', data)
+      setData(newData);
+
+    })
   };
 
   useImperativeHandle(parentRef, () => {
     return {
-      updateList (listData) {
+      updateList ({ listData, tableName }) {
+        currentData.table = tableName
 
         console.log('useImperativeHandle data: ', data)
 
@@ -194,7 +202,7 @@ const DataList: React.FC = (props, parentRef) => {
         console.log('values: ', values)
 
         toggleEdit();
-        handleSave({ ...record, ...values });
+        handleSave({ row: { ...record, ...values }, opt: values });
       } catch (errInfo) {
         console.log('Save failed:', errInfo);
       }
