@@ -115,23 +115,25 @@ const CLayout: React.FC = () => {
     <div>
       <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool>
       <Layout>
-        <Sider
-          breakpoint="lg"
-          collapsedWidth="0"
-          onBreakpoint={(broken) => {
-            console.log(broken);
-          }}
-          width={300}
-          onCollapse={(collapsed, type) => {
-            console.log(collapsed, type);
-          }}
-        >
-          {
-            data.connections.map((el, index) => {
-              return <ConnectionItem executeSql={executeSql} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
-            })
-          }
-        </Sider>
+        <div style={{ height: window.screen.height - 64 - 60 + 'px', overflow: 'auto' }}>
+          <Sider
+            breakpoint="lg"
+            collapsedWidth="0"
+            onBreakpoint={(broken) => {
+              console.log(broken);
+            }}
+            width={300}
+            onCollapse={(collapsed, type) => {
+              console.log(collapsed, type);
+            }}
+          >
+            {
+              data.connections.map((el, index) => {
+                return <ConnectionItem executeSql={executeSql} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
+              })
+            }
+          </Sider>
+        </div>
         <Layout>
           <Content style={{ margin: '24px 16px 0' }}>
             {

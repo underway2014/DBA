@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,17 +6,20 @@ import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 function createWindow(): void {
+  const {width, height} = screen.getPrimaryDisplay().bounds
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width,
+    height,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
-    }
+    },
+    // fullscreen: true,
+    // maximizable
   })
 
   mainWindow.on('ready-to-show', () => {
