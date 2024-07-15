@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { backup, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -39,6 +39,10 @@ const api = {
   getTableData: async(sql)=> {
     console.log('getTableData: ', sql)
     return getTableData({ sql})
+  },
+  dbBackup: async(val)=> {
+    console.log('dbBackup: ', val)
+    return backup(val)
   }
 }
 

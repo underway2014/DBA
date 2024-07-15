@@ -11,6 +11,7 @@ interface ApiFunction {
   querySql: Function
   getTableData: Function
   updateDate: Function
+  dbBackup: Function
 }
 
 declare global {

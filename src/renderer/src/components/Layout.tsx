@@ -80,7 +80,7 @@ const CLayout: React.FC = () => {
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
 
     console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
-    let tableName = getTableName(val)
+    let tableName = getTableName(sqlTxtRef.current.getTxt())
     window.api.getTableData(sqlTxtRef.current.getTxt()).then(data => {
 
       console.log('query sql res: ', data)

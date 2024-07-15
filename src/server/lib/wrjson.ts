@@ -2,10 +2,27 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { app } from 'electron'
 
-
+console.log('wrjosn test: ', app.getPath('userData'))
 const filePath = path.join(app.getPath('userData'), './config.json')
 console.log('now dir: ', __dirname, filePath)
 
+// {
+//     "version": "1.0.0",
+//     "connections": [
+//       {
+//         "name": "t1",
+//         "config": {
+//           "host": "127.0.0.1",
+//           "port": "5432",
+//           "username": "postgres",
+//           "password": "postgres",
+//           "dialect": "postgres",
+//           "database": "t1"
+//         },
+//         "id": "1720530542130"
+//       }
+//     ]
+//   }
 function readFile () {
     if(!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, JSON.stringify({

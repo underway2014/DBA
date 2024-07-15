@@ -1,5 +1,7 @@
 import {  QueryTypes, Sequelize } from "sequelize";
 import * as _ from 'lodash'
+// import { execa } from "execa";
+import { getConnections } from "./lib/wrjson";
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
 //     port: 5432,
@@ -116,4 +118,16 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-export {getTables, updateDate, query, getColums, getTableData, getSchema}
+async function backup({type, name, id}) {
+    console.log('backup: ', type, name)
+
+    let connections = await getConnections()
+    let nowCon = connections.find(el => el.id === id && el.config.database === name)
+    console.log('nowcon: ', nowCon)
+    let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata2.sql`
+    // let res = await execa(shell)
+    // console.log('backup res: ', res)
+    return {ok: true}
+}
+
+export {getTables, updateDate, query, getColums, getTableData, getSchema, backup}

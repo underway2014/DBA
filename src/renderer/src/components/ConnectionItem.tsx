@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Space, Tree } from 'antd';
-import type { GetProps, TreeDataNode } from 'antd';
+import { Button, Dropdown, Menu, Space, Tree } from 'antd';
+import type { GetProps, MenuProps, TreeDataNode } from 'antd';
 import { title } from 'process';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Schema } from 'electron-store';
@@ -37,6 +37,8 @@ type selfProps = {
 interface NodeData extends TreeDataNode {
   children?: NodeData[]
 }
+
+let rightClickItemKey: string = ''
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
   const [treeData, setTreeData] = useState<NodeData[]>([{
@@ -145,27 +147,76 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
   }
 
+  const items: MenuProps['items'] = [
+    {
+      label: 'Backup',
+      key: '0',
+    },
+    {
+      type: 'divider',
+    },
+    {
+      label: 'Restore struct',
+      key: '1',
+    },
+    {
+      label: 'Restore struct and data',
+      key: '2',
+    }
+
+  ];
+
+  //export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata.sql
+
+  //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
+  //下面只恢复表结构
+  //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 -s --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
+
+  function rightMenuHandler (e) {
+    console.log('rightMenuHandler e: ', e)
+    e.domEvent.stopPropagation()
+    console.log('rightClickItemKey: ', rightClickItemKey)
+
+    if (!rightClickItemKey) {
+      return
+    }
+    let keyArr = rightClickItemKey.split('-')
+
+    window.api.dbBackup({ type: 1, name: keyArr[1], id: keyArr[2] }).then(res => {
+      console.log('client backup res: ', res)
+    })
+  }
+
+  // node connection-jogo_gaming_dev-1720530577574
+  function treeRightHandler ({ event, node }) {
+    console.log('treeRightHandler: ', event, node)
+
+    rightClickItemKey = node.key
+  }
+
   function titleRender (nodeData) {
     // console.log('title render: ', nodeData)
     return (
-      <div className='treeTitle'>
-        <span>{nodeData.title}</span>
-        <Space className='treeBtn'>
+      <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+        <div className='treeTitle'>
+          <span>{nodeData.title}</span>
+          <Space className='treeBtn'>
 
-          <DeleteOutlined className='marginlr20' onClick={(e) => {
-            //业务的处理函数
-            //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-            console.log('delete', e)
-            e.stopPropagation()
-            delConnection(nodeData)
-          }} />
-          <EditOutlined onClick={(e) => {
-            console.log('edit')
-            //业务的处理函数
-            //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-          }} />
-        </Space>
-      </div>
+            <DeleteOutlined className='marginlr20' onClick={(e) => {
+              //业务的处理函数
+              //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+              console.log('delete', e)
+              e.stopPropagation()
+              delConnection(nodeData)
+            }} />
+            <EditOutlined onClick={(e) => {
+              console.log('edit')
+              //业务的处理函数
+              //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+            }} />
+          </Space>
+        </div>
+      </Dropdown>
     )
   }
 
@@ -178,6 +229,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         // expandAction='doubleClick'
         // switcherIcon={<DownOutlined />}
         defaultExpandedKeys={['0-0-0']}
+        onRightClick={treeRightHandler}
         onSelect={onSelect}
         treeData={treeData}
         titleRender={titleRender}
