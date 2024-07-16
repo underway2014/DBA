@@ -1,7 +1,12 @@
 import {  QueryTypes, Sequelize } from "sequelize";
 import * as _ from 'lodash'
 // import { execa } from "execa";
-import { getConnections } from "./lib/wrjson";
+import { $ } from 'zx'
+import path from "path";
+import { app } from "electron";
+
+
+// import { getConnections } from "./lib/wrjson";
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
 //     port: 5432,
@@ -118,15 +123,24 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-async function backup({type, name, id}) {
-    console.log('backup: ', type, name)
+async function backup({type, name, id, config}) {
+    console.log('backup: ', type, name, config)
 
-    let connections = await getConnections()
-    let nowCon = connections.find(el => el.id === id && el.config.database === name)
-    console.log('nowcon: ', nowCon)
-    let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata2.sql`
-    // let res = await execa(shell)
-    // console.log('backup res: ', res)
+    // let connections = await getConnections()
+    // let nowCon = connections.find(el => el.id === id && el.config.database === name)
+    // console.log('nowcon: ', nowCon)
+    let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > testdata2.sql`
+    // let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata2.sql`
+    // const { stdout } = await execa("echo", ["Hello, Execa!"]);
+    // console.log(stdout);
+    let appPath =  app.getAppPath()
+    let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
+    console.log('pgDumpPath: ', pgPath)
+    const list = await $`export PGPASSWORD='postgres' && ${pgPath} -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > testdata23.sql`
+    console.log('backup res: ', list)
+    // let res1 = await execa(pgPath, ['--help']);
+    // console.log('backup res1: ', res1)
+    // let res = await execa`${shell}`
     return {ok: true}
 }
 

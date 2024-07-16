@@ -5,6 +5,11 @@ import icon from '../../resources/icon.png?asset'
 // import server from '../server'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
+// import remoteMain from '@electron/remote/main'
+import { backup } from '../server/db'
+// require('@electron/remote/main').initialize()
+// remoteMain.initialize()
+
 function createWindow(): void {
   const {width, height} = screen.getPrimaryDisplay().bounds
   // Create the browser window.
@@ -95,6 +100,14 @@ app.whenReady().then(() => {
     // return {name: 1, age: 3333}
 
     delConnection(val)
+  })
+  ipcMain.handle('db:backup', (_, val) => {
+    // console.log('store:set', event)
+    console.log('store:del val', val)
+
+    // return {name: 1, age: 3333}
+
+    backup(val)
   })
 
 

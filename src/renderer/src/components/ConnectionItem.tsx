@@ -182,7 +182,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     }
     let keyArr = rightClickItemKey.split('-')
 
-    window.api.dbBackup({ type: 1, name: keyArr[1], id: keyArr[2] }).then(res => {
+    window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
       console.log('client backup res: ', res)
     })
   }

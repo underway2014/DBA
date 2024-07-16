@@ -1,11 +1,16 @@
+import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
-import { app } from 'electron'
-
-console.log('wrjosn test: ', app.getPath('userData'))
-const filePath = path.join(app.getPath('userData'), './config.json')
-console.log('now dir: ', __dirname, filePath)
-
+// console.log('wrjosn test: ', app.getPath('userData'))
+// const getConfigPath() = path.join(app.getPath('userData'), './config.json')
+console.log('path1: ', __dirname, app.getPath('userData'))
+console.log('path2: ', __dirname, app.getPath('home'))
+console.log('path3: ', __dirname, app.getPath('appData'))
+console.log('path3: ', __dirname, app.getPath('exe'))
+console.log('path3: ', __dirname, app.getAppPath())
+function getConfigPath() {
+    return path.join(app.getPath('userData'), './config.json')
+}
 // {
 //     "version": "1.0.0",
 //     "connections": [
@@ -24,14 +29,14 @@ console.log('now dir: ', __dirname, filePath)
 //     ]
 //   }
 function readFile () {
-    if(!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, JSON.stringify({
+    if(!fs.existsSync(getConfigPath())) {
+        fs.writeFileSync(getConfigPath(), JSON.stringify({
             version: '1.0.0',
             connections: []
         }))
     }
 
-  let data = fs.readFileSync(filePath, { encoding: 'utf-8' })
+  let data = fs.readFileSync(getConfigPath(), { encoding: 'utf-8' })
 
   console.log(data, typeof data)
 
@@ -40,7 +45,7 @@ function readFile () {
 
 
 function writeFile (obj: object) {
-    fs.writeFileSync(filePath, JSON.stringify(obj))
+    fs.writeFileSync(getConfigPath(), JSON.stringify(obj))
 }
 
 export const getConnections = () => {

@@ -23,18 +23,21 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
+    "@electron/remote": "^2.1.2",
     "@koa/router": "^12.0.1",
     "@types/koa": "^2.15.0",
     "antd": "^5.18.1",
     "axios": "^1.7.2",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.1.7",
+    "execa": "^9.3.0",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
     "lodash": "^4.17.21",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.3"
+    "sequelize": "^6.37.3",
+    "zx": "^8.1.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
