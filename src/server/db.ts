@@ -123,25 +123,31 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-async function backup({type, name, id, config}) {
-    console.log('backup: ', type, name, config)
+//type 1-database 2-table
+async function restore({type, connection, dbName, sqlPath}) {
+    console.log('restore: ', type, connection, dbName, sqlPath)
+    let appPath =  app.getAppPath()
+    let pgPath = path.join(appPath, 'resources/bin/mac/pg_restore')
+    console.log('pgDumpPath: ', pgPath)
+    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} --dbname=${dbName}  ${sqlPath}`
+    console.log('restore res: ', res, res.exitCode)
+    return res
+}
 
-    // let connections = await getConnections()
-    // let nowCon = connections.find(el => el.id === id && el.config.database === name)
-    // console.log('nowcon: ', nowCon)
-    let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > testdata2.sql`
-    // let shell = `export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata2.sql`
-    // const { stdout } = await execa("echo", ["Hello, Execa!"]);
-    // console.log(stdout);
+//type 1-database 2-table
+async function backup({type, config}) {
+    console.log('backup: ', type,  config)
     let appPath =  app.getAppPath()
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
     console.log('pgDumpPath: ', pgPath)
-    const list = await $`export PGPASSWORD='postgres' && ${pgPath} -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > testdata23.sql`
-    console.log('backup res: ', list)
+    let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${new Date().getTime()}.sql`)
+    console.log('downPath: ', downPath)
+    const res = await $`export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
+    console.log('backup res: ', res, res.exitCode)
     // let res1 = await execa(pgPath, ['--help']);
     // console.log('backup res1: ', res1)
     // let res = await execa`${shell}`
-    return {ok: true}
+    return res
 }
 
-export {getTables, updateDate, query, getColums, getTableData, getSchema, backup}
+export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore}

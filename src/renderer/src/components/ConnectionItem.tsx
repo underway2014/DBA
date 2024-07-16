@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button, Dropdown, Menu, Space, Tree } from 'antd';
-import type { GetProps, MenuProps, TreeDataNode } from 'antd';
+import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
 import { title } from 'process';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Schema } from 'electron-store';
@@ -39,8 +39,12 @@ interface NodeData extends TreeDataNode {
 }
 
 let rightClickItemKey: string = ''
+let backupDbName = null
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
+  const selectSqlFile = useRef()
+
+
   const [treeData, setTreeData] = useState<NodeData[]>([{
     title: props.connection.name,
     key: `connection-${props.connection.name}-${props.connection.id}`,
@@ -147,6 +151,29 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
   }
 
+
+  const upProps: UploadProps = {
+    name: 'file',
+    // action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
+    headers: {
+      authorization: 'authorization-text',
+    },
+    onChange (info) {
+      // if (info.file.status !== 'uploading') {
+      //   console.log(info.file, info.fileList);
+      // }
+      // if (info.file.status === 'done') {
+      //   message.success(`${info.file.name} file uploaded successfully`);
+      // } else if (info.file.status === 'error') {
+      //   message.error(`${info.file.name} file upload failed.`);
+      // }
+    },
+  };
+
+  function folderInput (e) {
+    console.log('folderInput: ', e)
+  }
+
   const items: MenuProps['items'] = [
     {
       label: 'Backup',
@@ -182,8 +209,29 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     }
     let keyArr = rightClickItemKey.split('-')
 
-    window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
-      console.log('client backup res: ', res)
+    if (+e.key === 0) {
+      window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
+        console.log('client backup res: ', res)
+      })
+
+    } else if (+e.key === 1) {
+      // window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
+      //   console.log('client backup res: ', res)
+      // })
+
+    } else if (+e.key === 2) {
+      console.log('select file: ')
+      backupDbName = keyArr[1]
+      selectSqlFile.current.click('abcdef')
+    }
+  }
+
+  function selectFile (e) {
+    console.log('selectFile: ', e)
+    console.log('selectFile path: ', e.target.files[0]?.path)
+
+    window.api.dbRestore({ type: 1, dbName: backupDbName, connection: props.connection, sqlPath: e.target.files[0]?.path }).then(res => {
+      console.log('client dbRestore res: ', res)
     })
   }
 
@@ -197,26 +245,30 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   function titleRender (nodeData) {
     // console.log('title render: ', nodeData)
     return (
-      <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
-        <div className='treeTitle'>
-          <span>{nodeData.title}</span>
-          <Space className='treeBtn'>
+      <div>
 
-            <DeleteOutlined className='marginlr20' onClick={(e) => {
-              //业务的处理函数
-              //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-              console.log('delete', e)
-              e.stopPropagation()
-              delConnection(nodeData)
-            }} />
-            <EditOutlined onClick={(e) => {
-              console.log('edit')
-              //业务的处理函数
-              //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-            }} />
-          </Space>
-        </div>
-      </Dropdown>
+        <input ref={selectSqlFile} type="file" style={{ display: 'none' }} onChange={selectFile} />
+        <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+          <div className='treeTitle'>
+            <span>{nodeData.title}</span>
+            <Space className='treeBtn'>
+
+              <DeleteOutlined className='marginlr20' onClick={(e) => {
+                //业务的处理函数
+                //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+                console.log('delete', e)
+                e.stopPropagation()
+                delConnection(nodeData)
+              }} />
+              <EditOutlined onClick={(e) => {
+                console.log('edit')
+                //业务的处理函数
+                //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+              }} />
+            </Space>
+          </div>
+        </Dropdown>
+      </div>
     )
   }
 

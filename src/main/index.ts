@@ -6,7 +6,7 @@ import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 // import remoteMain from '@electron/remote/main'
-import { backup } from '../server/db'
+import { backup, restore } from '../server/db'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
@@ -102,12 +102,10 @@ app.whenReady().then(() => {
     delConnection(val)
   })
   ipcMain.handle('db:backup', (_, val) => {
-    // console.log('store:set', event)
-    console.log('store:del val', val)
-
-    // return {name: 1, age: 3333}
-
-    backup(val)
+    return backup(val)
+  })
+  ipcMain.handle('db:restore', (_, val) => {
+    return restore(val)
   })
 
 

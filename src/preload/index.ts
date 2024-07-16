@@ -42,7 +42,11 @@ const api = {
   },
   dbBackup: async(val)=> {
     console.log('dbBackup: ', val)
-    ipcRenderer.invoke('db:backup', val)
+    return ipcRenderer.invoke('db:backup', val)
+  },
+  dbRestore: async(val)=> {
+    console.log('restore: ', val)
+    return ipcRenderer.invoke('db:restore', val)
   }
 }
 

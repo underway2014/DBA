@@ -12,6 +12,7 @@ interface ApiFunction {
   getTableData: Function
   updateDate: Function
   dbBackup: Function
+  dbRestore: Function
 }
 
 declare global {
