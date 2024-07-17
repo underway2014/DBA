@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Button, Dropdown, Menu, Modal, Space, Tree } from 'antd';
+import { Button, Dropdown, Menu, Modal, Space, Tree, message } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
 import { title } from 'process';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -41,8 +41,11 @@ interface NodeData extends TreeDataNode {
 
 let rightClickItemKey: string = ''
 let backupDbName = null
+let restoreType = 2 // 1-struct 2-struct and data
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
+  const [messageApi, contextHolder] = message.useMessage();
+
   const selectSqlFile = useRef()
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
@@ -231,20 +234,31 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
 
     } else if (+e.key === 20) {
-      window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
-        console.log('client backup res: ', res)
+      window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then((res, a, b) => {
+        console.log('client backup res: ', res, typeof res, res?.exitCode)
+        if (res === 0) {
+          message.success({
+            type: 'success',
+            content: 'Backup success',
+          })
+        } else {
+          message.error({
+            type: 'error',
+            content: 'Backup error',
+          });
+        }
       })
 
-    }
-    else if (+e.key === 1) {
-      // window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
-      //   console.log('client backup res: ', res)
-      // })
-
-    } else if (+e.key === 31) {
+    } else if (+e.key === 30) {
       console.log('select file: ')
       backupDbName = keyArr[1]
-      selectSqlFile.current.click('abcdef')
+      restoreType = 1
+      selectSqlFile.current.click()
+    } else if (+e.key === 31) {
+      console.log('select file: ')
+      restoreType = 2
+      backupDbName = keyArr[1]
+      selectSqlFile.current.click()
     }
   }
 
@@ -252,7 +266,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     console.log('selectFile: ', e)
     console.log('selectFile path: ', e.target.files[0]?.path)
 
-    window.api.dbRestore({ type: 1, dbName: backupDbName, connection: props.connection, sqlPath: e.target.files[0]?.path }).then(res => {
+    window.api.dbRestore({ type: restoreType, dbName: backupDbName, connection: props.connection, sqlPath: e.target.files[0]?.path }).then(res => {
       console.log('client dbRestore res: ', res)
     })
   }

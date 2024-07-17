@@ -101,7 +101,7 @@ app.whenReady().then(() => {
 
     delConnection(val)
   })
-  ipcMain.handle('db:backup', (_, val) => {
+  ipcMain.handle('db:backup', async (_, val) => {
     return backup(val)
   })
   ipcMain.handle('db:restore', (_, val) => {

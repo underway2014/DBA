@@ -139,13 +139,18 @@ function getTableName(sql) {
     return b.find(el => !!el)
 }
 
-//type 1-database 2-table
+// type 1-struct 2-struct and data
 async function restore({type, connection, dbName, sqlPath}) {
     console.log('restore: ', type, connection, dbName, sqlPath)
     let appPath =  app.getAppPath()
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_restore')
     console.log('pgDumpPath: ', pgPath)
-    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} --dbname=${dbName}  ${sqlPath}`
+    let option = ''
+    if(type === 1) {
+        option = '-s'
+    }
+    
+    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${dbName}  ${sqlPath}`
     console.log('restore res: ', res, res.exitCode)
     return res
 }
@@ -163,7 +168,7 @@ async function backup({type, config}) {
     // let res1 = await execa(pgPath, ['--help']);
     // console.log('backup res1: ', res1)
     // let res = await execa`${shell}`
-    return res
+    return res?.exitCode
 }
 
 async function createDb({dbName, connection}) {
