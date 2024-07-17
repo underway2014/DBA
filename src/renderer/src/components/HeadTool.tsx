@@ -59,7 +59,7 @@ const HeaderTool: React.FC<selfProps> = (props) => {
                     Add Connection
                 </Button>
             </Header>
-            <Modal title="Basic Modal" open={data.isModalOpen}
+            <Modal title="Add connection" open={data.isModalOpen}
                 onOk={handleOk} onCancel={handleCancel}
                 footer={[]}>
                 <ConnectionForm addConnection={addOk}></ConnectionForm>

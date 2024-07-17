@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { Button, Dropdown, Menu, Space, Tree } from 'antd';
+import { Button, Dropdown, Menu, Modal, Space, Tree } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
 import { title } from 'process';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Schema } from 'electron-store';
+import CreateDbForm from './CreateDbFrom';
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
 
@@ -44,11 +45,20 @@ let backupDbName = null
 const ConnectionItem: React.FC<selfProps> = (props) => {
   const selectSqlFile = useRef()
 
+  const [showCreateFrom, setShowCreateFrom] = useState(false)
 
   const [treeData, setTreeData] = useState<NodeData[]>([{
     title: props.connection.name,
     key: `connection-${props.connection.name}-${props.connection.id}`,
   }])
+
+  const handleOk = () => {
+    setShowCreateFrom(false)
+  };
+  const handleCancel = () => {
+    setShowCreateFrom(false)
+  };
+
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
     console.log('Trigger Select', keys, info, props.connection);
     console.log('treeData Select', treeData);
@@ -176,19 +186,26 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
   const items: MenuProps['items'] = [
     {
+      label: 'Create Database',
+      key: '10',
+    },
+    {
+      type: 'divider',
+    },
+    {
       label: 'Backup',
-      key: '0',
+      key: '20',
     },
     {
       type: 'divider',
     },
     {
       label: 'Restore struct',
-      key: '1',
+      key: '30',
     },
     {
       label: 'Restore struct and data',
-      key: '2',
+      key: '31',
     }
 
   ];
@@ -209,17 +226,22 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     }
     let keyArr = rightClickItemKey.split('-')
 
-    if (+e.key === 0) {
+    if (+e.key === 10) {
+      setShowCreateFrom(true)
+
+
+    } else if (+e.key === 20) {
       window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
         console.log('client backup res: ', res)
       })
 
-    } else if (+e.key === 1) {
+    }
+    else if (+e.key === 1) {
       // window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then(res => {
       //   console.log('client backup res: ', res)
       // })
 
-    } else if (+e.key === 2) {
+    } else if (+e.key === 31) {
       console.log('select file: ')
       backupDbName = keyArr[1]
       selectSqlFile.current.click('abcdef')
@@ -272,6 +294,30 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     )
   }
 
+  async function addOk (val) {
+    console.log('crate db add ok.>>>', val)
+    setShowCreateFrom(false)
+
+    window.api.dbCreate({ dbName: val.name, connection: props.connection }).then(res => {
+      console.log('client dbCreate res: ', res)
+    })
+
+    // window.api.addStore({
+    //     name: val.name,
+    //     config: {
+    //         host: val.host,
+    //         port: val.port,
+    //         username: val.username,
+    //         password: val.password,
+    //         dialect: val.dialect,
+    //         database: val.database
+    //     }
+    // })
+
+    // props.updateSlider()
+
+  }
+
 
   return (
     <div>
@@ -286,6 +332,11 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         treeData={treeData}
         titleRender={titleRender}
       />
+      <Modal title="Create database" open={showCreateFrom}
+        onOk={handleOk} onCancel={handleCancel}
+        footer={[]}>
+        <CreateDbForm createDatabase={addOk}></CreateDbForm>
+      </Modal>
     </div>
   );
 };

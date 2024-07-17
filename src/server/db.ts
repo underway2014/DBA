@@ -166,4 +166,13 @@ async function backup({type, config}) {
     return res
 }
 
-export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore}
+async function createDb({dbName, connection}) {
+    console.log('createDatabase: ', dbName,  connection)
+    let appPath =  app.getAppPath()
+    let pgPath = path.join(appPath, 'resources/bin/mac/createdb')
+    console.log('pgDumpPath: ', pgPath)
+    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
+    return res
+}
+
+export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb}

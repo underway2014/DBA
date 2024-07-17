@@ -11,6 +11,7 @@ interface ApiFunction {
   querySql: Function
   getTableData: Function
   updateDate: Function
+  dbCreate: Function
   dbBackup: Function
   dbRestore: Function
 }

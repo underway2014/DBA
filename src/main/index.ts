@@ -6,7 +6,7 @@ import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 // import remoteMain from '@electron/remote/main'
-import { backup, restore } from '../server/db'
+import { backup, createDb, restore } from '../server/db'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
@@ -106,6 +106,9 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('db:restore', (_, val) => {
     return restore(val)
+  })
+  ipcMain.handle('db:create', (_, val) => {
+    return createDb(val)
   })
 
 

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { backup, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { backup, createDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -47,6 +47,10 @@ const api = {
   dbRestore: async(val)=> {
     console.log('restore: ', val)
     return ipcRenderer.invoke('db:restore', val)
+  },
+  dbCreate: async(val)=> {
+    console.log('restore: ', val)
+     return ipcRenderer.invoke('db:create', val)
   }
 }
 
