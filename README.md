@@ -1,4 +1,4 @@
-# electron-app
+# DBA
 
 An Electron application with React and TypeScript
 

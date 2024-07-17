@@ -59,7 +59,23 @@ async function getColums(tableName) {
 
     let columns = await query({sql})
 
-    return _.sortBy(columns, ['columnn_name'])
+    let idEl = null
+    columns = columns.filter(el => {
+        if(el.column_name === 'id') {
+            idEl = el
+            return false
+        }
+        return true
+    })
+    
+
+    columns = _.sortBy(columns, ['column_name'])
+
+    if(idEl) {
+        columns.unshift(idEl)
+    }
+
+    return columns
 }
 
 

@@ -100,6 +100,7 @@ const DataList: React.FC = (props, parentRef) => {
           return {
             title: el.column_name,
             dataIndex: el.column_name,
+            with: '100px',
             onCell: (record: DataType) => ({
               record,
               editable: true,
