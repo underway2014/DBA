@@ -54,15 +54,40 @@ const currentData = {
   columns: [],
   table: ''
 }
-const DataList: React.FC = (props, parentRef) => {
-  const inputRef = useRef(null);
 
+type selfProps = {
+  tabData: any
+}
+
+const DataList: React.FC<selfProps> = (props, parentRef) => {
+  const inputRef = useRef(null);
+  console.log('datalist props.tabData: ', props.tabData)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [data, setData] = useState<React.Key[]>([]);
-  const [columns, setColumns] = useState<React.Key[]>([]);
+  props.tabData.listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+
+  const [data, setData] = useState<React.Key[]>(props.tabData.listData.rows);
+
+  let nowColumns = props.tabData.listData.columns.map(el => {
+    return {
+      title: el.column_name,
+      dataIndex: el.column_name,
+      with: '100px',
+      onCell: (record: DataType) => ({
+        record,
+        editable: true,
+        dataIndex: el.column_name,
+        title: el.column_name,
+        handleSave,
+      })
+    }
+  })
+
+  const [columns, setColumns] = useState<React.Key[]>(nowColumns);
 
   const handleSave = ({ row, opt }) => {
     const newData = [...currentData.rows];
+    currentData.table = props.listData.tableName
+    currentData.rows = props.listData.rows
     console.log('handleSave row: ', row, opt)
     console.log('handleSave newData: ', currentData.rows, data)
     const index = newData.findIndex((item) => row.id === item.id);

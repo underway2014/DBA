@@ -6,6 +6,7 @@ import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
 import SqlContent from './SqlContent';
 import SqlToolBar from './SqlToolBar';
+import TabelContent from './TabelContent';
 
 const { Content, Sider } = Layout;
 
@@ -51,6 +52,7 @@ const CLayout: React.FC = () => {
 
   const sqlTxtRef = useRef<any>()
   const listRef = useRef<any>()
+  const tabsRef = useRef<any>()
 
   function getAddCon () {
     console.log('getAddCon', data.showForm)
@@ -107,7 +109,8 @@ const CLayout: React.FC = () => {
     window.api.getTableData(val).then(data => {
 
       console.log('executeSql query sql res: ', data)
-      listRef.current.updateList({ listData: data, tableName })
+      tabsRef.current.updateList({ listData: data, tableName })
+      // listRef.current.updateList({ listData: data, tableName })
     })
   }
 
@@ -136,15 +139,18 @@ const CLayout: React.FC = () => {
         </div>
         <Layout>
           <Content style={{ margin: '24px 16px 0' }}>
-            {
+            {/* {
               <SqlToolBar sqlToolHandler={sqlHandler} ></SqlToolBar>
             }
             {
-              <SqlContent ref={sqlTxtRef}></SqlContent>
-            }
+              }
+              {
+                } */}
             {
-              <DataList ref={listRef}></DataList>
+              // <DataList ref={listRef}></DataList>
+              // <SqlContent ref={sqlTxtRef}></SqlContent>
             }
+            <TabelContent ref={tabsRef}></TabelContent>
           </Content>
         </Layout>
       </Layout>
