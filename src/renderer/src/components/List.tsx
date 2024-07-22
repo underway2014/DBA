@@ -53,13 +53,6 @@ const scroll = {
   x: '100vw', y: 240
 }
 
-const currentData = {
-  rows: [],
-  columns: [],
-  table: '',
-  sql: ''
-}
-
 type selfProps = {
   tabData: any
 }
@@ -67,12 +60,13 @@ type selfProps = {
 const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
   const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
+  const [tableName, setTableName] = useState(props.tabData.tableName)
+  const [listRows, setListRows] = useState([])
 
-  console.log('currentData: ', currentData.table)
+  console.log('tableName: ', tableName)
   // console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   console.log('aaa')
-  const [data, setData] = useState<React.Key[]>([]);
 
   useEffect(() => {
     console.log('use effect sqlTxt: ', sqlTxt)
@@ -88,11 +82,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   console.log('bbb')
 
   const handleSave = ({ row, opt }) => {
-    const newData = [...currentData.rows];
-    // currentData.table = props.listData.tableName
-    // currentData.rows = props.listData.rows
+    const newData = listRows;
     console.log('handleSave row: ', row, opt)
-    console.log('handleSave newData: ', currentData.rows, data)
     const index = newData.findIndex((item) => row.id === item.id);
     const item = newData[index];
     console.log('handleSave item: ', item, index)
@@ -101,27 +92,22 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       ...row
     });
 
-    window.api.updateDate({ tableName: currentData.table, id: row.id, data: opt }).then(data => {
+    window.api.updateDate({ tableName: tableName, id: row.id, data: opt }).then(data => {
 
       console.log('query sql res: ', data)
-      setData(newData);
+      setListRows(newData);
 
     })
   };
 
 
   function updateList ({ listData, tableName }) {
-    currentData.table = tableName
-
-    console.log('useImperativeHandle data: ', data)
+    setTableName(tableName)
 
     listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
     console.log('column rows: ', listData.columns, listData.rows)
-    setData(listData.rows)
-    currentData.rows = listData.rows
-
-    console.log('update data:', data)
+    setListRows(listData.rows)
 
     setColumns(listData.columns.map(el => {
       return {
@@ -308,7 +294,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         setSqlTxt(e.target.value)
         // currentSql = e.target.value
       }} />
-      <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
+      <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
     </div >
   )
 };
