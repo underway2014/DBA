@@ -68,7 +68,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
   const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
 
-  console.log('datalist props.tabData: ', props.tabData)
+  console.log('currentData: ', currentData.table)
   // console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   console.log('aaa')
@@ -89,8 +89,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   const handleSave = ({ row, opt }) => {
     const newData = [...currentData.rows];
-    currentData.table = props.listData.tableName
-    currentData.rows = props.listData.rows
+    // currentData.table = props.listData.tableName
+    // currentData.rows = props.listData.rows
     console.log('handleSave row: ', row, opt)
     console.log('handleSave newData: ', currentData.rows, data)
     const index = newData.findIndex((item) => row.id === item.id);
