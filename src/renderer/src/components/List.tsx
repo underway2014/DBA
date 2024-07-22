@@ -68,12 +68,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
   const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
 
-  let currentSql = sqlTxt
-
   console.log('datalist props.tabData: ', props.tabData)
-  console.log('init current sql: ', currentSql)
+  // console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  // props.tabData.listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
   console.log('aaa')
   const [data, setData] = useState<React.Key[]>([]);
 
@@ -86,20 +83,6 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
   }, [])
 
-  // let nowColumns = props.tabData.listData.columns.map(el => {
-  //   return {
-  //     title: el.column_name,
-  //     dataIndex: el.column_name,
-  //     with: '100px',
-  //     onCell: (record: DataType) => ({
-  //       record,
-  //       editable: true,
-  //       dataIndex: el.column_name,
-  //       title: el.column_name,
-  //       handleSave,
-  //     })
-  //   }
-  // })
 
   const [columns, setColumns] = useState<React.Key[]>([]);
   console.log('bbb')
@@ -126,11 +109,6 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
   };
 
-  // useImperativeHandle(parentRef, () => {
-  //   return {
-
-  //   }
-  // })
 
   function updateList ({ listData, tableName }) {
     currentData.table = tableName
@@ -306,12 +284,12 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
   function sqlHandler () {
-    console.log('sqlHandler: ', currentSql)
+    console.log('sqlHandler: ', sqlTxt)
 
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
-    setSqlTxt(currentSql)
-    let tableName = getTableName(currentSql)
-    window.api.getTableData(currentSql).then(data => {
+    setSqlTxt(sqlTxt)
+    let tableName = getTableName(sqlTxt)
+    window.api.getTableData(sqlTxt).then(data => {
 
       console.log('query sql res: ', data)
       updateList({ listData: data, tableName })
