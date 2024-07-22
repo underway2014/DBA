@@ -1,6 +1,10 @@
 import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Form, Input, Table } from 'antd';
+import { Button, Flex, Form, Input, Table } from 'antd';
+import { DownloadOutlined, CaretRightOutlined, EditFilled } from '@ant-design/icons';
+
 import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
+import SqlContent from './SqlContent';
+import TextArea from 'antd/es/input/TextArea';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -52,7 +56,8 @@ const scroll = {
 const currentData = {
   rows: [],
   columns: [],
-  table: ''
+  table: '',
+  sql: ''
 }
 
 type selfProps = {
@@ -61,28 +66,43 @@ type selfProps = {
 
 const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
+  const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
+
+  let currentSql = sqlTxt
+
   console.log('datalist props.tabData: ', props.tabData)
+  console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  props.tabData.listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+  // props.tabData.listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+  console.log('aaa')
+  const [data, setData] = useState<React.Key[]>([]);
 
-  const [data, setData] = useState<React.Key[]>(props.tabData.listData.rows);
+  useEffect(() => {
+    console.log('use effect sqlTxt: ', sqlTxt)
+    window.api.getTableData(sqlTxt).then(data => {
 
-  let nowColumns = props.tabData.listData.columns.map(el => {
-    return {
-      title: el.column_name,
-      dataIndex: el.column_name,
-      with: '100px',
-      onCell: (record: DataType) => ({
-        record,
-        editable: true,
-        dataIndex: el.column_name,
-        title: el.column_name,
-        handleSave,
-      })
-    }
-  })
+      console.log('executeSql query sql res: ', data)
+      updateList({ listData: data, tableName: props.tabData.tableName })
+    })
+  }, [])
 
-  const [columns, setColumns] = useState<React.Key[]>(nowColumns);
+  // let nowColumns = props.tabData.listData.columns.map(el => {
+  //   return {
+  //     title: el.column_name,
+  //     dataIndex: el.column_name,
+  //     with: '100px',
+  //     onCell: (record: DataType) => ({
+  //       record,
+  //       editable: true,
+  //       dataIndex: el.column_name,
+  //       title: el.column_name,
+  //       handleSave,
+  //     })
+  //   }
+  // })
+
+  const [columns, setColumns] = useState<React.Key[]>([]);
+  console.log('bbb')
 
   const handleSave = ({ row, opt }) => {
     const newData = [...currentData.rows];
@@ -106,38 +126,40 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
   };
 
-  useImperativeHandle(parentRef, () => {
-    return {
-      updateList ({ listData, tableName }) {
-        currentData.table = tableName
+  // useImperativeHandle(parentRef, () => {
+  //   return {
 
-        console.log('useImperativeHandle data: ', data)
+  //   }
+  // })
 
-        listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+  function updateList ({ listData, tableName }) {
+    currentData.table = tableName
 
-        console.log('column rows: ', listData.columns, listData.rows)
-        setData(listData.rows)
-        currentData.rows = listData.rows
+    console.log('useImperativeHandle data: ', data)
 
-        console.log('update data:', data)
+    listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
-        setColumns(listData.columns.map(el => {
-          return {
-            title: el.column_name,
-            dataIndex: el.column_name,
-            with: '100px',
-            onCell: (record: DataType) => ({
-              record,
-              editable: true,
-              dataIndex: el.column_name,
-              title: el.column_name,
-              handleSave,
-            })
-          }
-        }))
+    console.log('column rows: ', listData.columns, listData.rows)
+    setData(listData.rows)
+    currentData.rows = listData.rows
+
+    console.log('update data:', data)
+
+    setColumns(listData.columns.map(el => {
+      return {
+        title: el.column_name,
+        dataIndex: el.column_name,
+        with: '100px',
+        onCell: (record: DataType) => ({
+          record,
+          editable: true,
+          dataIndex: el.column_name,
+          title: el.column_name,
+          handleSave,
+        })
       }
-    }
-  })
+    }))
+  }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
     console.log('selectedRowKeys changed: ', newSelectedRowKeys);
@@ -267,7 +289,50 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     },
   };
 
-  return <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
+  function runSql () {
+    sqlHandler()
+  }
+
+
+  function getTableName (sql) {
+    if (!sql) {
+      throw new Error(`${sql} error`)
+    }
+
+    let a = sql.replaceAll('\n', '').split('from')
+    let b = a[1].split(' ')
+
+    return b.find(el => !!el)
+  }
+
+  function sqlHandler () {
+    console.log('sqlHandler: ', currentSql)
+
+    // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
+    setSqlTxt(currentSql)
+    let tableName = getTableName(currentSql)
+    window.api.getTableData(currentSql).then(data => {
+
+      console.log('query sql res: ', data)
+      updateList({ listData: data, tableName })
+    })
+  }
+
+  return (
+    <div>
+      <Flex gap="small" align="flex-start" vertical>
+        <Flex gap="small" wrap>
+          <Button type="primary" onClick={() => runSql()} shape="circle" icon={<CaretRightOutlined />} size='large' />
+        </Flex>
+      </Flex>
+      <TextArea rows={4} value={sqlTxt} onChange={e => {
+        console.log('sql txt:', e.target.value)
+        setSqlTxt(e.target.value)
+        // currentSql = e.target.value
+      }} />
+      <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={data} ref={inputRef} />;
+    </div >
+  )
 };
 
 // export default DataList;

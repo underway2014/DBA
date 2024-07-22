@@ -128,7 +128,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       `
 
       console.log('table sql: ', sql)
-      props.executeSql(sql)
+      props.executeSql(parseKeys[1])
       // window.api.getTableData(sql).then(data => {
 
       //   console.log('query sql res: ', data)

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 // import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import { Layout } from 'antd';
-import DataList from './List';
+// import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
-import SqlContent from './SqlContent';
-import SqlToolBar from './SqlToolBar';
+// import SqlContent from './SqlContent';
+// import SqlToolBar from './SqlToolBar';
 import TabelContent from './TabelContent';
 
 const { Content, Sider } = Layout;
@@ -50,8 +50,6 @@ const CLayout: React.FC = () => {
     ]
   })
 
-  const sqlTxtRef = useRef<any>()
-  const listRef = useRef<any>()
   const tabsRef = useRef<any>()
 
   function getAddCon () {
@@ -76,20 +74,6 @@ const CLayout: React.FC = () => {
     })
   }
 
-  function sqlHandler (val) {
-    console.log('sqlHandler: ', val)
-
-    // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
-
-    console.log('sqlTxtRef content: ', sqlTxtRef.current.getTxt())
-    let tableName = getTableName(sqlTxtRef.current.getTxt())
-    window.api.getTableData(sqlTxtRef.current.getTxt()).then(data => {
-
-      console.log('query sql res: ', data)
-      listRef.current.updateList({ listData: data, tableName })
-    })
-  }
-
   function getTableName (sql) {
     if (!sql) {
       throw new Error(`${sql} error`)
@@ -102,16 +86,16 @@ const CLayout: React.FC = () => {
   }
 
   function executeSql (val) {
-    console.log('executeSql: ', val)
+    console.log('layout executeSql: ', val)
 
-    let tableName = getTableName(val)
+    // let tableName = getTableName(val)
 
-    window.api.getTableData(val).then(data => {
+    // window.api.getTableData(val).then(data => {
 
-      console.log('executeSql query sql res: ', data)
-      tabsRef.current.updateList({ listData: data, tableName })
-      // listRef.current.updateList({ listData: data, tableName })
-    })
+    //   console.log('executeSql query sql res: ', data)
+    //   // listRef.current.updateList({ listData: data, tableName })
+    // })
+    tabsRef.current.updateList({ tableName: val })
   }
 
   return (
@@ -139,17 +123,6 @@ const CLayout: React.FC = () => {
         </div>
         <Layout>
           <Content style={{ margin: '24px 16px 0' }}>
-            {/* {
-              <SqlToolBar sqlToolHandler={sqlHandler} ></SqlToolBar>
-            }
-            {
-              }
-              {
-                } */}
-            {
-              // <DataList ref={listRef}></DataList>
-              // <SqlContent ref={sqlTxtRef}></SqlContent>
-            }
             <TabelContent ref={tabsRef}></TabelContent>
           </Content>
         </Layout>
