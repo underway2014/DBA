@@ -1,6 +1,7 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { Button, Tabs } from 'antd';
 import List from './List';
+import EditTable from './EditTable';
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
@@ -20,7 +21,8 @@ const TabelContent: React.FC = (props, parentRef) => {
             updateList (tabData) {
                 // listRef.current.updateList({ listData, tableName })
 
-                add(tabData)
+                addTab(tabData)
+
             }
         }
     })
@@ -29,11 +31,16 @@ const TabelContent: React.FC = (props, parentRef) => {
         setActiveKey(key);
     };
 
-    const add = (data) => {
+    const addTab = (data) => {
         const newActiveKey = `newTab${newTabIndex.current++}`;
         // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
         console.log('add data: ', data)
-        setItems([...items, { label: data.tableName, children: <List tabData={data} ></List>, key: newActiveKey }]);
+        if (data.type === 1) {
+            setItems([...items, { label: data.tableName, children: <List tabData={data} ></List>, key: newActiveKey }]);
+
+        } else if (data.type === 2) {
+            setItems([...items, { label: data.tableName, children: <EditTable tabData={data} ></EditTable>, key: newActiveKey }]);
+        }
         setActiveKey(newActiveKey);
     };
 

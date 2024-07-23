@@ -74,28 +74,18 @@ const CLayout: React.FC = () => {
     })
   }
 
-  function getTableName (sql) {
-    if (!sql) {
-      throw new Error(`${sql} error`)
-    }
-
-    let a = sql.replaceAll('\n', '').split('from')
-    let b = a[1].split(' ')
-
-    return b.find(el => !!el)
-  }
-
-  function executeSql (val) {
-    console.log('layout executeSql: ', val)
+  function getTableDataByName (val) {
+    console.log('layout getTableDataByName: ', val)
 
     // let tableName = getTableName(val)
 
     // window.api.getTableData(val).then(data => {
 
-    //   console.log('executeSql query sql res: ', data)
+    //   console.log('getTableDataByName query sql res: ', data)
     //   // listRef.current.updateList({ listData: data, tableName })
     // })
-    tabsRef.current.updateList({ tableName: val })
+    // type 1-查看表数据 2-编辑表
+    tabsRef.current.updateList(val)
   }
 
   return (
@@ -116,7 +106,7 @@ const CLayout: React.FC = () => {
           >
             {
               data.connections.map((el, index) => {
-                return <ConnectionItem executeSql={executeSql} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
+                return <ConnectionItem getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
               })
             }
           </Sider>

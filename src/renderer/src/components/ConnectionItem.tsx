@@ -32,7 +32,7 @@ type selfProps = {
   key: number
   cid: number
   updateSlider: Function
-  executeSql: Function
+  getTableDataByName: Function
 }
 
 interface NodeData extends TreeDataNode {
@@ -128,7 +128,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       `
 
       console.log('table sql: ', sql)
-      props.executeSql(parseKeys[1])
+      props.getTableDataByName({ tableName: parseKeys[1], type: 1 })
       // window.api.getTableData(sql).then(data => {
 
       //   console.log('query sql res: ', data)
@@ -151,8 +151,20 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   };
 
   function editConnection (node) {
-    console.log('editConnection: ', event)
-    window.api.editStore(node)
+    console.log('editConnection: ', node, node.key)
+    // window.api.editStore(node)
+
+    // props.getTableDataByName({})
+
+    let parseKeys = node.key.split('-')
+
+    let nodeType = parseKeys[0]
+    console.log('editConnection node type: ', parseKeys)
+    if (nodeType === 'connection') {
+
+    } else if (nodeType === 'table') {
+      props.getTableDataByName({ tableName: parseKeys[1], type: 2 })
+    }
   }
 
   function delConnection (node) {
@@ -297,7 +309,10 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
                 delConnection(nodeData)
               }} />
               <EditOutlined onClick={(e) => {
-                console.log('edit')
+                console.log('edit connection: ', nodeData)
+                e.stopPropagation()
+
+                editConnection(nodeData)
                 //业务的处理函数
                 //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
               }} />
