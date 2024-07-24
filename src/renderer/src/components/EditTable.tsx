@@ -237,8 +237,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   };
 
   return (
-    <div>
-      <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+    <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
+      <Table size='small' pagination={false} scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
     </div >
   )
 };

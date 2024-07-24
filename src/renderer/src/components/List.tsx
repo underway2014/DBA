@@ -1,10 +1,11 @@
 import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Button, Flex, Form, Input, Table } from 'antd';
-import { DownloadOutlined, CaretRightOutlined, EditFilled } from '@ant-design/icons';
+import { PlusOutlined, CaretRightOutlined, MinusOutlined } from '@ant-design/icons';
 
 import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
 import SqlContent from './SqlContent';
 import TextArea from 'antd/es/input/TextArea';
+import { AddIcon, MinusIcon, RunIcon } from '@renderer/assets/icons/icon';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -283,18 +284,28 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
   return (
-    <div>
-      <Flex gap="small" align="flex-start" vertical>
-        <Flex gap="small" wrap>
-          <Button type="primary" onClick={() => runSql()} shape="circle" icon={<CaretRightOutlined />} size='large' />
-        </Flex>
-      </Flex>
+    <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
       <TextArea rows={4} value={sqlTxt} onChange={e => {
         console.log('sql txt:', e.target.value)
         setSqlTxt(e.target.value)
         // currentSql = e.target.value
       }} />
-      <Table scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+      <Flex gap="small" align="flex-start" vertical>
+        <Flex gap="small" wrap>
+          <div onClick={() => runSql()} style={{ width: '50px' }}>
+            <RunIcon></RunIcon>
+          </div>
+          <div onClick={() => runSql()} style={{ width: '50px' }}>
+            <AddIcon></AddIcon>
+          </div>
+          <div onClick={() => runSql()} style={{ width: '50px' }}>
+            <MinusIcon></MinusIcon>
+          </div>
+
+
+        </Flex>
+      </Flex>
+      <Table bordered={true} scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
     </div >
   )
 };

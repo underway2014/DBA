@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
-import { DownloadOutlined, CaretRightOutlined,EditFilled } from '@ant-design/icons';
+import { DownloadOutlined, CaretRightOutlined, EditFilled } from '@ant-design/icons';
 import { Button, Divider, Flex, Radio } from 'antd';
 import type { ConfigProviderProps } from 'antd';
+import { RunIcon } from '@renderer/assets/icons/icon';
 
 type SizeType = ConfigProviderProps['componentSize'];
 
 
 type selfProps = {
-    sqlToolHandler: Function
+  sqlToolHandler: Function
 }
 
 const SqlToolBar: React.FC<selfProps> = (pro) => {
   const [size, setSize] = useState<SizeType>('large'); // default is 'middle'
-  function excute(val) {
+  function excute (val) {
     pro.sqlToolHandler(val)
   }
   return (
     <>
       <Flex gap="small" align="flex-start" vertical>
         <Flex gap="small" wrap>
-          <Button type="primary" onClick={() => excute(1)} shape="circle" icon={<CaretRightOutlined />} size={size} />
+          <RunIcon style={{ fontSize: '150%' }}></RunIcon>
+          {/* <Button type="primary" onClick={() => excute(1)} shape="circle" icon={RunIcon} size={size} /> */}
           <Button type="primary" shape="round" icon={<DownloadOutlined />} size={size} />
           <Button type="primary" shape="round" icon={<EditFilled />} size={size}>
             Download
