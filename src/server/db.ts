@@ -180,4 +180,34 @@ async function createDb({dbName, connection}) {
     return res
 }
 
-export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb}
+async function addField({tableName, column, dataType, defaltValue, comment}) {
+    let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
+
+    if(defaltValue) {
+        sql = `${sql} default ${defaltValue}`
+    }
+
+    let res = await query({sql})
+    if(comment){
+        let commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
+        await query({sql: commentSql})
+    }
+    // ALTER TABLE active ADD c1 int8 DEFAULT 1 "test2"
+
+}
+
+async function delField({tableName, column}) {
+    const sql = `ALTER TABLE ${tableName} DROP ${column}`
+
+    let res = await query({sql})
+}
+
+async function alterTable(data) {
+    if(data.type === 1) {
+        return addField(data)
+    }else if(data.type === 2) {
+        return delField(data)
+    }
+}
+
+export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable}

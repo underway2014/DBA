@@ -14,6 +14,7 @@ interface ApiFunction {
   dbCreate: Function
   dbBackup: Function
   dbRestore: Function
+  alterTable: Function
 }
 
 declare global {

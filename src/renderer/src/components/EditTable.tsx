@@ -1,7 +1,9 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Form, Input, Table } from 'antd';
+import { Flex, Form, Input, Modal, Table } from 'antd';
 
 import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
+import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
+import AddColumnForm from './AddColumnForm';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -26,19 +28,26 @@ type selfProps = {
   tabData: any
 }
 
-const editColumns: TableColumnsType<DataType> = 'column_name, column_default, is_nullable, data_type,character_maximum_length,numeric_precision, numeric_precision_radix,udt_name'.split(',').map(el => {
-  return {
-    title: el,
-    dataIndex: el
-  }
-})
-
 const EditTable: React.FC<selfProps> = (props, parentRef) => {
+
+  const [alterModal, setAlterModal] = useState({
+    add: false,
+    alter: false
+  })
+
+  const columnsStr = `column_name, column_default, is_nullable, data_type,
+      character_maximum_length,numeric_precision, numeric_precision_radix,udt_name`
+  const editColumns: TableColumnsType<DataType> = columnsStr.split(',').map(el => {
+    return {
+      title: el,
+      dataIndex: el
+    }
+  })
+
   const inputRef = useRef(null);
   let sql = `
   SELECT
-      column_name, column_default, is_nullable, data_type,
-      character_maximum_length,numeric_precision, numeric_precision_radix,udt_name
+      ${columnsStr}
   FROM
   information_schema.columns
   WHERE
@@ -61,20 +70,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   }, [])
 
 
-  const [columns, setColumns] = useState<React.Key[]>(editColumns.map(el => {
-    return {
-      title: el.title,
-      dataIndex: el.dataIndex,
-      with: '100px',
-      onCell: (record: DataType) => ({
-        record,
-        editable: true,
-        dataIndex: el.title,
-        title: el.title,
-        handleSave,
-      })
-    }
-  }));
+  const [columns, setColumns] = useState<React.Key[]>([]);
   console.log('bbb')
 
   const handleSave = ({ row, opt }) => {
@@ -105,6 +101,20 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     console.log('column rows: ', listData.columns, listData.rows)
     setListRows(listData.rows)
 
+    setColumns(editColumns.map(el => {
+      return {
+        title: el.title,
+        dataIndex: el.dataIndex,
+        with: '100px',
+        onCell: (record: DataType) => ({
+          record,
+          editable: true,
+          dataIndex: el.title,
+          title: el.title,
+          handleSave,
+        })
+      }
+    }))
 
   }
 
@@ -236,9 +246,57 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     },
   };
 
+  function addField () {
+    setAlterModal({ ...alterModal, add: true })
+  }
+
+  const handleOk = () => {
+    setAlterModal({ ...alterModal, add: false })
+  };
+  const handleCancel = () => {
+    setAlterModal({ ...alterModal, add: false })
+  };
+
+  function addColumn (val) {
+    console.log('addColumn: ', val)
+    setAlterModal({ ...alterModal, add: false })
+    //type 1-add 2-del
+    let opt = {
+      tableName: tableName,
+      column: val.name,
+      dataType: val.type,
+      comment: val.comment,
+      defaultValue: val.default,
+      type: 1
+    }
+    window.api.alterTable(opt).then(res => {
+      console.log('client dbCreate res: ', res)
+    })
+  }
+
+  const buttonSize = '40px'
+
   return (
     <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
+      <Flex gap="small" align="flex-start" vertical style={{ backgroundColor: '#202020', paddingLeft: '10px' }}>
+        <Flex gap="small" wrap>
+          <div onClick={() => addField()} style={{ width: buttonSize, cursor: 'pointer' }}>
+            <AddIcon></AddIcon>
+          </div>
+          <div style={{ width: buttonSize }}>
+            <MinusIcon></MinusIcon>
+          </div>
+
+
+        </Flex>
+      </Flex>
       <Table size='small' pagination={false} scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+
+      <Modal title="Add Column" open={alterModal.add}
+        onOk={handleOk} onCancel={handleCancel}
+        footer={[]}>
+        <AddColumnForm addColumn={addColumn}></AddColumnForm>
+      </Modal>
     </div >
   )
 };

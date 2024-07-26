@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { backup, createDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { alterTable, backup, createDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -51,7 +51,11 @@ const api = {
   dbCreate: async(val)=> {
     console.log('restore: ', val)
      return ipcRenderer.invoke('db:create', val)
-  }
+  },
+  alterTable: async(val)=> {
+    console.log('alterTable: ', val)
+     return alterTable(val)
+  },
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
