@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, Select } from 'antd';
+import { AutoComplete, Button, Form, Input, Select } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
@@ -25,6 +25,46 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
 
     addColumn(form.getFieldsValue())
   }
+
+  const options = [
+    { value: 'int2' },
+    { value: 'int4' },
+    { value: 'int8' },
+    { value: 'bit(6)' },
+    { value: 'varbit(6)' },
+    { value: 'boolean' },
+    { value: 'box' },
+    { value: 'bytea' },
+    { value: 'char(6)' },
+    { value: 'varchar(255)' },
+    { value: 'cidr' },
+    { value: 'circle' },
+    { value: 'date' },
+    { value: 'float4' },
+    { value: 'float8' },
+    { value: 'inet' },
+    { value: 'interval' },
+    { value: 'json' },
+    { value: 'jsonb' },
+    { value: 'line' },
+    { value: 'lseg' },
+    { value: 'macaddr' },
+    { value: 'macaddr8' },
+    { value: 'money' },
+    { value: 'numeric(12,4)' },
+    { value: 'point' },
+    { value: 'smallserial' },
+    { value: 'serial' },
+    { value: 'bigserial' },
+    { value: 'text' },
+    { value: 'timestamptz' },
+    { value: 'tsquery' },
+    { value: 'tsvector' },
+    { value: 'txid_snapshot' },
+    { value: 'uuid' },
+    { value: 'xml' }
+  ];
+
   return (
     <Form
       {...formItemLayout}
@@ -38,14 +78,22 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
         <Input placeholder="" />
       </Form.Item>
       <Form.Item label="type" name="type" rules={[{ required: true }]}>
-        <Select>
+        {/* <Select>
           <Select.Option value="int2">int2</Select.Option>
           <Select.Option value="int4">int4</Select.Option>
           <Select.Option value="int8">int8</Select.Option>
           <Select.Option value="json">json</Select.Option>
           <Select.Option value="jsonb">jsonb</Select.Option>
           <Select.Option value="timestamptz">timestamptz</Select.Option>
-        </Select>
+        </Select> */}
+        <AutoComplete
+          style={{ width: 200 }}
+          options={options}
+          placeholder=""
+          filterOption={(inputValue, option) =>
+            option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+          }
+        />
       </Form.Item>
       <Form.Item label="default" name="default">
         <Input value="" />

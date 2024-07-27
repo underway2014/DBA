@@ -1,10 +1,12 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Form, Input, Modal, Table } from 'antd';
+import { Flex, Form, Input, Modal, Popconfirm, Table } from 'antd';
 
-import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
+import type { FormInstance, InputRef, PopconfirmProps, TableColumnsType, TableProps } from 'antd';
 import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
 import AddColumnForm from './AddColumnForm';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 
+const { confirm } = Modal;
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
@@ -32,7 +34,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
   const [alterModal, setAlterModal] = useState({
     add: false,
-    alter: false
+    alter: false,
+    del: false
   })
 
   const columnsStr = `column_name, column_default, is_nullable, data_type,
@@ -250,6 +253,20 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     setAlterModal({ ...alterModal, add: true })
   }
 
+  function delField () {
+    confirm({
+      title: 'Do you want to delete these columns?',
+      icon: <ExclamationCircleFilled />,
+      content: 'Some descriptions',
+      onOk () {
+        console.log('OK');
+      },
+      onCancel () {
+        console.log('Cancel');
+      },
+    });
+  }
+
   const handleOk = () => {
     setAlterModal({ ...alterModal, add: false })
   };
@@ -276,6 +293,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
   const buttonSize = '40px'
 
+
   return (
     <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
       <Flex gap="small" align="flex-start" vertical style={{ backgroundColor: '#202020', paddingLeft: '10px' }}>
@@ -283,7 +301,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
           <div onClick={() => addField()} style={{ width: buttonSize, cursor: 'pointer' }}>
             <AddIcon></AddIcon>
           </div>
-          <div style={{ width: buttonSize }}>
+          <div onClick={() => delField()} style={{ width: buttonSize }}>
             <MinusIcon></MinusIcon>
           </div>
 
@@ -297,6 +315,13 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
         footer={[]}>
         <AddColumnForm addColumn={addColumn}></AddColumnForm>
       </Modal>
+      {/* <Modal title="Delete Column" open={alterModal.del}
+        onOk={handleOk} onCancel={handleCancel}
+        footer={[]}>
+        <AddColumnForm addColumn={addColumn}></AddColumnForm>
+      </Modal> */}
+
+
     </div >
   )
 };
