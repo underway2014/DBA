@@ -192,14 +192,19 @@ async function addField({tableName, column, dataType, defaltValue, comment}) {
         let commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
         await query({sql: commentSql})
     }
+
+    return res
     // ALTER TABLE active ADD c1 int8 DEFAULT 1 "test2"
 
 }
 
 async function delField({tableName, column}) {
-    const sql = `ALTER TABLE ${tableName} DROP ${column}`
+    let dropSql = column.map(el => {
+        return `drop column ${el}`
+    })
+    const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
-    let res = await query({sql})
+    return query({sql})
 }
 
 async function alterTable(data) {

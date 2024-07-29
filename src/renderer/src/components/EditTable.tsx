@@ -58,6 +58,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   `
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState([])
+  const selectKeys = []
 
   console.log('tableName: ', tableName)
   // console.log('init current sql: ', currentSql)
@@ -65,12 +66,16 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
   useEffect(() => {
     console.log('use effect sqlTxt: ', sql)
+    getTableData()
+  }, [])
+
+  function getTableData () {
     window.api.getTableData(sql).then(data => {
 
       console.log('executeSql query sql res: ', sql)
       updateList({ listData: data, tableName: props.tabData.tableName })
     })
-  }, [])
+  }
 
 
   const [columns, setColumns] = useState<React.Key[]>([]);
@@ -124,6 +129,9 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
     console.log('selectedRowKeys changed: ', newSelectedRowKeys);
     setSelectedRowKeys(newSelectedRowKeys);
+
+    selectKeys.length = 0
+    selectKeys.push(...newSelectedRowKeys)
   };
 
   const rowSelection: TableRowSelection<DataType> = {
@@ -259,7 +267,30 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       icon: <ExclamationCircleFilled />,
       content: 'Some descriptions',
       onOk () {
-        console.log('OK');
+        console.log('del OK', listRows, selectKeys, selectedRowKeys);
+
+        let delFields = []
+        let leftRows = []
+        for (let el of listRows) {
+          if (selectedRowKeys.includes(el.key)) {
+            delFields.push(el.column_name)
+          } else {
+            leftRows.push(el)
+          }
+        }
+
+        console.log('delFields: ', delFields)
+        let opt = {
+          tableName: tableName,
+          column: delFields,
+          type: 2
+        }
+        window.api.alterTable(opt).then(res => {
+          console.log('client del field res: ', res)
+          selectKeys.length = 0
+          setListRows(leftRows)
+        })
+
       },
       onCancel () {
         console.log('Cancel');
@@ -288,6 +319,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     }
     window.api.alterTable(opt).then(res => {
       console.log('client dbCreate res: ', res)
+
+      getTableData()
     })
   }
 
