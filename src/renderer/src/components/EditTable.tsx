@@ -38,8 +38,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     del: false
   })
 
-  const columnsStr = `column_name, column_default, is_nullable, data_type,
-      character_maximum_length,numeric_precision, numeric_precision_radix,udt_name`
+  const columnsStr = `column_name,column_default,is_nullable,data_type,character_maximum_length,numeric_precision,numeric_precision_radix,udt_name`
   const editColumns: TableColumnsType<DataType> = columnsStr.split(',').map(el => {
     return {
       title: el,
@@ -54,7 +53,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   FROM
   information_schema.columns
   WHERE
-  table_name = '${props.tabData.tableName}' LIMIT 200
+  table_name = '${props.tabData.tableName}' LIMIT 400
   `
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState([])
@@ -107,7 +106,6 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
     console.log('column rows: ', listData.columns, listData.rows)
-    setListRows(listData.rows)
 
     setColumns(editColumns.map(el => {
       return {
@@ -123,6 +121,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
         })
       }
     }))
+
+    setListRows(listData.rows)
 
   }
 
