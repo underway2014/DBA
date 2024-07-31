@@ -291,34 +291,39 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   }
 
   function titleRender (nodeData) {
-    // console.log('title render: ', nodeData)
+    console.log('title render: ', nodeData)
+
+    let item = <div className='treeTitle'>
+      <span>{nodeData.title}</span>
+      <Space className='treeBtn'>
+
+        <DeleteOutlined className='marginlr20' onClick={(e) => {
+          //业务的处理函数
+          //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+          console.log('delete', e)
+          e.stopPropagation()
+          delConnection(nodeData)
+        }} />
+        <EditOutlined onClick={(e) => {
+          console.log('edit connection: ', nodeData)
+          e.stopPropagation()
+
+          editConnection(nodeData)
+          //业务的处理函数
+          //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
+        }} />
+      </Space>
+    </div>
+    if (/connection/.test(nodeData.key)) {
+      item = <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+        {item}
+      </Dropdown>
+    }
     return (
       <div>
 
         <input ref={selectSqlFile} type="file" style={{ display: 'none' }} onChange={selectFile} />
-        <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
-          <div className='treeTitle'>
-            <span>{nodeData.title}</span>
-            <Space className='treeBtn'>
-
-              <DeleteOutlined className='marginlr20' onClick={(e) => {
-                //业务的处理函数
-                //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-                console.log('delete', e)
-                e.stopPropagation()
-                delConnection(nodeData)
-              }} />
-              <EditOutlined onClick={(e) => {
-                console.log('edit connection: ', nodeData)
-                e.stopPropagation()
-
-                editConnection(nodeData)
-                //业务的处理函数
-                //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
-              }} />
-            </Space>
-          </div>
-        </Dropdown>
+        {item}
       </div>
     )
   }

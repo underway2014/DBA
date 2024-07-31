@@ -7,6 +7,7 @@ import HeaderTool from './HeadTool';
 // import SqlContent from './SqlContent';
 // import SqlToolBar from './SqlToolBar';
 import TabelContent from './TabelContent';
+import { Header } from 'antd/es/layout/layout';
 
 const { Content, Sider } = Layout;
 
@@ -90,7 +91,12 @@ const CLayout: React.FC = () => {
 
   return (
     <div>
-      <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool>
+      <Header>
+        <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool>
+
+
+      </Header>
+
       <Layout>
         <div style={{ height: window.screen.height - 64 - 60 + 'px', overflow: 'auto' }}>
           <Sider

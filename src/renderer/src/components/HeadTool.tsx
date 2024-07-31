@@ -58,6 +58,12 @@ const HeaderTool: React.FC<selfProps> = (props) => {
                 >
                     Add Connection
                 </Button>
+
+                {/* <div>
+                    now database: jogo_gaming_dev
+                    schema: public
+                    table: active
+                </div> */}
             </Header>
             <Modal title="Add connection" open={data.isModalOpen}
                 onOk={handleOk} onCancel={handleCancel}
