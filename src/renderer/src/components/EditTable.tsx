@@ -38,8 +38,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     del: false
   })
 
-  const columnsStr = `column_name,column_default,is_nullable,data_type,character_maximum_length,numeric_precision,numeric_precision_radix,udt_name`
-  const editColumns: TableColumnsType<DataType> = columnsStr.split(',').map(el => {
+  const columnsStr = ['column_name', 'column_default', 'is_nullable', 'data_type', 'character_maximum_length', 'numeric_precision', 'numeric_precision_radix', 'udt_name']
+  const editColumns: TableColumnsType<DataType> = columnsStr.map(el => {
     return {
       title: el,
       dataIndex: el
@@ -69,7 +69,11 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   }, [])
 
   function getTableData () {
-    window.api.getTableData(sql).then(data => {
+    window.api.getTableData({
+      ...props.tabData,
+      fields: columnsStr,
+      sql
+    }).then(data => {
 
       console.log('executeSql query sql res: ', sql)
       updateList({ listData: data, tableName: props.tabData.tableName })

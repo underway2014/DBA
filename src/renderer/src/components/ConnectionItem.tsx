@@ -49,10 +49,11 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   const selectSqlFile = useRef()
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
+  const SP = '@'
 
   const [treeData, setTreeData] = useState<NodeData[]>([{
     title: props.connection.name,
-    key: `connection-${props.connection.name}-${props.connection.id}`,
+    key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`,
   }])
 
   const handleOk = () => {
@@ -62,6 +63,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     setShowCreateFrom(false)
   };
 
+
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
     console.log('Trigger Select', keys, info, props.connection);
     console.log('treeData Select', treeData);
@@ -70,7 +72,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
     let key = String(keys[0])
 
-    let parseKeys = key.split('-')
+    let parseKeys = key.split(SP)
 
     let nodeType = parseKeys[0]
     console.log('node type: ', parseKeys)
@@ -78,12 +80,12 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       window.api.getSchema(props.connection).then(tables => {
         treeNow.children = [{
           isLeaf: false,
-          key: `schemas-${props.connection.id}`,
+          key: `schemas${SP}${props.connection.id}`,
           title: 'schemas',
           children: tables.map((el, index) => {
             return {
               isLeaf: true,
-              key: `schema-${el.name}-${new Date().getTime()}`,
+              key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${new Date().getTime()}`,
               title: el.name
             }
           })
@@ -111,7 +113,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
           schema.children = tables.map((el, index) => {
             return {
               isLeaf: true,
-              key: `table-${el.table_name}-${new Date().getTime()}`,
+              key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${new Date().getTime()}`,
               title: el.table_name
             }
           })
@@ -128,7 +130,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       `
 
       console.log('table sql: ', sql)
-      props.getTableDataByName({ tableName: parseKeys[1], type: 1 })
+      props.getTableDataByName({ tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql })
       // window.api.getTableData(sql).then(data => {
 
       //   console.log('query sql res: ', data)
@@ -156,14 +158,15 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
     // props.getTableDataByName({})
 
-    let parseKeys = node.key.split('-')
+    let parseKeys = node.key.split(SP)
 
     let nodeType = parseKeys[0]
     console.log('editConnection node type: ', parseKeys)
     if (nodeType === 'connection') {
 
     } else if (nodeType === 'table') {
-      props.getTableDataByName({ tableName: parseKeys[1], type: 2 })
+      // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql
+      props.getTableDataByName({ tableName: parseKeys[1], type: 2, schema: parseKeys[2], dbName: parseKeys[3] })
     }
   }
 
@@ -239,7 +242,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     if (!rightClickItemKey) {
       return
     }
-    let keyArr = rightClickItemKey.split('-')
+    let keyArr = rightClickItemKey.split(SP)
 
     if (+e.key === 10) {
       setShowCreateFrom(true)
@@ -358,6 +361,8 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       <Tree
         showLine
         blockNode
+        virtual={false}
+        motion={false}
         // expandAction='doubleClick'
         // switcherIcon={<DownOutlined />}
         defaultExpandedKeys={['0-0-0']}

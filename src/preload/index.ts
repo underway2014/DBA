@@ -36,9 +36,9 @@ const api = {
     console.log('updateDate: ', val)
     return updateDate(val)
   },
-  getTableData: async(sql)=> {
-    console.log('getTableData: ', sql)
-    return getTableData({ sql})
+  getTableData: async(data)=> {
+    console.log('getTableData: ', data)
+    return getTableData(data)
   },
   dbBackup: async(val)=> {
     console.log('dbBackup: ', val)

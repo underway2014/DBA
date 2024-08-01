@@ -71,7 +71,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   useEffect(() => {
     console.log('use effect sqlTxt: ', sqlTxt)
-    window.api.getTableData(sqlTxt).then(data => {
+    window.api.getTableData(props.tabData).then(data => {
 
       console.log('executeSql query sql res: ', data)
       updateList({ listData: data, tableName: props.tabData.tableName })

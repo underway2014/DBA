@@ -97,14 +97,27 @@ async function query({sql }) {
     return data
 }
 
-async function getTableData({sql}) {
-    console.log('getTableData22: ', sql)
-    let tableName = getTableName(sql)
+function setDb(dbName) {
+    let db = initDb({name: dbName, config: null})
 
-    console.log('tableName: ', tableName)
-    let columns = await getColums(tableName)
+    currentDb = db
+}
 
-    let rows = await query({sql})
+// tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
+async function getTableData(data) {
+    console.log('db getTableData: ', data)
+    setDb(data.dbName)
+
+    let columns = []
+    let fields = data.fields || []
+
+    if(fields.length) {
+        columns = fields
+    }else {
+        columns = await getColums(data.tableName)
+    }
+
+    let rows = await query({sql: data.sql})
 
     return {columns, rows}
 }
