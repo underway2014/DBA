@@ -1,5 +1,7 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { Button, Tabs } from 'antd';
+import { UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
+
 import List from './List';
 import EditTable from './EditTable';
 
@@ -36,10 +38,10 @@ const TabelContent: React.FC = (props, parentRef) => {
         // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
         console.log('add data: ', data)
         if (data.type === 1) {
-            setItems([...items, { label: data.tableName, children: <List tabData={data} ></List>, key: newActiveKey }]);
+            setItems([...items, { label: data.tableName, icon: <UnorderedListOutlined />, children: <List tabData={data} ></List>, key: newActiveKey }]);
 
         } else if (data.type === 2) {
-            setItems([...items, { label: data.tableName, children: <EditTable tabData={data} ></EditTable>, key: newActiveKey }]);
+            setItems([...items, { label: data.tableName, icon: <EditOutlined />, children: <EditTable tabData={data} ></EditTable>, key: newActiveKey }]);
         }
         setActiveKey(newActiveKey);
     };
@@ -64,9 +66,6 @@ const TabelContent: React.FC = (props, parentRef) => {
 
     return (
         <div>
-            {/* <div style={{ marginBottom: 16 }}>
-                <Button onClick={add}>ADD</Button>
-            </div> */}
             <Tabs
                 hideAdd
                 onChange={onChange}

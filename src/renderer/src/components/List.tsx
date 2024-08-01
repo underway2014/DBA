@@ -276,7 +276,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
     setSqlTxt(sqlTxt)
     let tableName = getTableName(sqlTxt)
-    window.api.getTableData(sqlTxt).then(data => {
+    window.api.getTableData(
+      { ...props.tabData, sql: sqlTxt }
+    ).then(data => {
 
       console.log('query sql res: ', data)
       updateList({ listData: data, tableName })

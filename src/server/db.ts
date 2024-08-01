@@ -103,18 +103,35 @@ function setDb(dbName) {
     currentDb = db
 }
 
+function getFields(sql) {
+    let fieldStr = (sql.split('from')[0]).replace(/(select|\s+)/gi, '')
+
+    console.log('db fieldStr: ', fieldStr)
+    return fieldStr.split(',')
+}
+
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
     console.log('db getTableData: ', data)
     setDb(data.dbName)
 
     let columns = []
-    let fields = data.fields || []
+    // let fields = data.fields || []
 
-    if(fields.length) {
-        columns = fields
-    }else {
-        columns = await getColums(data.tableName)
+    
+    let tabeName = data.tabeName
+    if(data.sql) {
+        tabeName = getTableName(data.sql)
+
+        columns = getFields(data.sql)
+
+        if(columns[0] === '*') {
+            columns = await getColums(tabeName)
+        }else {
+            columns = columns.map(el => {
+                return {column_name: el}
+            })
+        }
     }
 
     let rows = await query({sql: data.sql})

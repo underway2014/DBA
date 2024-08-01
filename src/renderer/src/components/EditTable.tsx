@@ -71,7 +71,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   function getTableData () {
     window.api.getTableData({
       ...props.tabData,
-      fields: columnsStr,
+      // fields: columnsStr,
       sql
     }).then(data => {
 
