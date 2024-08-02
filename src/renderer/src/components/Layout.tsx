@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 // import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Dropdown, Layout, MenuProps, Modal } from 'antd';
+import { Breadcrumb, Dropdown, Layout, MenuProps, Modal } from 'antd';
 // import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
@@ -10,6 +10,7 @@ import TabelContent from './TabelContent';
 import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
+import { title } from 'process';
 
 const { Content, Sider } = Layout;
 
@@ -53,7 +54,17 @@ const CLayout: React.FC = () => {
     ],
     connectionForm: false,
     createdbFrom: false,
+    dbInfo: [
+      // {
+      //   title: 'Home',
+      // },
+      // {
+      //   title: 'Application Center',
+      //   href: '',
+      // }
+    ]
   })
+
 
   const tabsRef = useRef<any>()
 
@@ -163,12 +174,26 @@ const CLayout: React.FC = () => {
     setData({ ...data, createdbFrom: false })
   }
 
+  function setDbInfo (val) {
+    console.log('set db info: ', val)
+    let a = val.map(el => {
+      return {
+        title: el
+      }
+    })
+    setData({ ...data, dbInfo: a })
+  }
+
+
   return (
     <div>
-      <Header>
-        <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool>
+      <Header style={{ backgroundColor: 'white' }}>
+        {/* <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool> */}
 
-
+        <Breadcrumb
+          separator=">"
+          items={data.dbInfo}
+        />
       </Header>
 
       <Layout>
@@ -187,7 +212,7 @@ const CLayout: React.FC = () => {
             >
               {
                 data.connections.map((el, index) => {
-                  return <ConnectionItem getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
+                  return <ConnectionItem setDbInfo={setDbInfo} getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
                 })
               }
             </Sider>

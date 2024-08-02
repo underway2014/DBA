@@ -33,6 +33,7 @@ type selfProps = {
   cid: number
   updateSlider: Function
   getTableDataByName: Function
+  setDbInfo: Function
 }
 
 interface NodeData extends TreeDataNode {
@@ -91,6 +92,11 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
           })
         }]
 
+        props.setDbInfo([
+          props.connection.name,
+          props.connection.config.database
+        ])
+
         setTreeData([treeNow])
 
       })
@@ -120,6 +126,12 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         } else {
           console.log('not find schema')
         }
+
+        props.setDbInfo([
+          props.connection.name,
+          props.connection.config.database,
+          parseKeys[1]
+        ])
         setTreeData([treeNow])
       })
 
