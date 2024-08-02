@@ -30,6 +30,7 @@ const TabelContent: React.FC = (props, parentRef) => {
     })
 
     const onChange = (key: string) => {
+        console.log('tab onchane key: ', key)
         setActiveKey(key);
     };
 
