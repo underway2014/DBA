@@ -78,7 +78,7 @@ async function getColums(tableName) {
     return columns
 }
 
-
+//select oid from pg_class where relname='active_lock_user' //可以查出tabelId
 async function getTables({name, config, schema = 'public'}) {
     console.log('get tables schema: ', schema)
     await initDb({name, config})
@@ -90,10 +90,17 @@ async function getTables({name, config, schema = 'public'}) {
 
 }
 
+async function getRowAndColumns({sql, type}) {
+    let data = await currentDb.query(sql, {type: QueryTypes.RAW})
+    console.log('data1: ',data)
+
+    return {rows: data[0], columns: data[1].fields}
+}
+
 async function query({sql }) {
     console.log('query: ',  sql)
     let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
-
+    
     return data
 }
 
@@ -104,10 +111,25 @@ function setDb(dbName) {
 }
 
 function getFields(sql) {
-    let fieldStr = (sql.split('from')[0]).replace(/(select|\s+)/gi, '')
+    return sql.split('from')[0].replace(/select/gi, '').split(',').map(el => {
 
-    console.log('db fieldStr: ', fieldStr)
-    return fieldStr.split(',')
+        el = el.trim()
+        let a = el.split(/\s+/)
+
+        return a[a.length - 1]
+        // if(/as/i.test(el)) {
+        //     return (el.split(/as/i)[1]).replace(/\s+/g, '')
+        // }else {
+        //     let a = el.split(/\s+/)
+
+        //     return el.replace(/\s+/g, '')
+        // }
+    })
+
+
+
+    // console.log('db fieldStr: ', fieldStr)
+    // return fieldStr.split(',')
 }
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
@@ -115,28 +137,30 @@ async function getTableData(data) {
     console.log('db getTableData: ', data)
     setDb(data.dbName)
 
-    let columns = []
-    // let fields = data.fields || []
+    // let columns = []
+    // // let fields = data.fields || []
 
     
-    let tabeName = data.tabeName
-    if(data.sql) {
-        tabeName = getTableName(data.sql)
+    // let tabeName = data.tabeName
+    // if(data.sql) {
+    //     tabeName = getTableName(data.sql)
 
-        columns = getFields(data.sql)
+    //     columns = getFields(data.sql)
 
-        if(columns[0] === '*') {
-            columns = await getColums(tabeName)
-        }else {
-            columns = columns.map(el => {
-                return {column_name: el}
-            })
-        }
-    }
+    //     if(columns[0] === '*') {
+    //         columns = await getColums(tabeName)
+    //     }else {
+    //         columns = columns.map(el => {
+    //             return {column_name: el}
+    //         })
+    //     }
+    // }
 
-    let rows = await query({sql: data.sql})
+    // let rows = await query({sql: data.sql})
 
-    return {columns, rows}
+    // return {columns, rows}
+
+    return getRowAndColumns({sql: data.sql, type: null})
 }
 
 async function updateDate({tableName, id, data}) {

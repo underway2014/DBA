@@ -112,14 +112,14 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
     setColumns(listData.columns.map(el => {
       return {
-        title: el.column_name,
-        dataIndex: el.column_name,
+        title: el.name,
+        dataIndex: el.name,
         with: '100px',
         onCell: (record: DataType) => ({
           record,
           editable: true,
-          dataIndex: el.column_name,
-          title: el.column_name,
+          dataIndex: el.name,
+          title: el.name,
           handleSave,
         })
       }

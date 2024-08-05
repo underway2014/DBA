@@ -306,7 +306,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   }
 
   function titleRender (nodeData) {
-    console.log('title render: ', nodeData)
+    // console.log('title render: ', nodeData)
 
     let item = <div className='treeTitle'>
       <span>{nodeData.title}</span>
