@@ -1,5 +1,5 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { Button, Tabs } from 'antd';
+import { Button, Dropdown, MenuProps, Tabs, TabsProps } from 'antd';
 import { UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
 
 import List from './List';
@@ -65,14 +65,44 @@ const TabelContent: React.FC = (props, parentRef) => {
         }
     };
 
+    function rightMenuHandler (e) {
+        console.log('tab content rightMenuHandler: ', e)
+    }
+    function tabRightClick (e) {
+        console.log('tab content tabRightClick: ', e, e.target.id)
+        console.log('tab content tabRightClick2: ', e.currentTarget)
+        // console.log('tab content tabRightClick3: ', e.target.__reactFiber$nh8hlbxh0nq.return.key, e.target.__reactFiber$nh8hlbxh0nq.return.return.key, e.target.__reactFiber$nh8hlbxh0nq.return.return?.key)
+        // __reactFiber$nh8hlbxh0nq
+    }
+
+    const tabRightItems: MenuProps['items'] = [
+        {
+            label: 'colose tab',
+            key: '5',
+        },
+    ];
+    const renderTabBar: TabsProps['renderTabBar'] = (props, DefaultTabBar) => {
+        console.log('tab bar: ', props, props.activeKey)
+        return (
+
+            <Dropdown menu={{ items: tabRightItems, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+                <div id={props.activeKey} data-a={props.activeKey} onContextMenu={tabRightClick}>
+                    <DefaultTabBar {...props} />
+                </div>
+            </Dropdown>
+        )
+    }
+
     return (
         <div>
             <Tabs
+                renderTabBar={renderTabBar}
                 hideAdd
                 onChange={onChange}
                 activeKey={activeKey}
                 type="editable-card"
                 onEdit={onEdit}
+                // onTabClick={tabRightClick}
                 items={items}
             />
         </div>

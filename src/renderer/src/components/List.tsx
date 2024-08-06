@@ -1,5 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Button, Flex, Form, Input, Table } from 'antd';
+import { Button, Flex, Form, Input, Table, Tooltip } from 'antd';
 import { PlusOutlined, CaretRightOutlined, MinusOutlined } from '@ant-design/icons';
 
 import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
@@ -108,20 +108,40 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
     console.log('column rows: ', listData.columns, listData.rows)
+    listData.rows.forEach(el => {
+      Object.keys(el).forEach(key => {
+        if (el[key] && typeof el[key] === 'object') {
+          el[key] = JSON.stringify(el[key])
+        }
+      })
+    })
     setListRows(listData.rows)
 
     setColumns(listData.columns.map(el => {
       return {
         title: el.name,
         dataIndex: el.name,
-        with: '100px',
-        onCell: (record: DataType) => ({
-          record,
-          editable: true,
-          dataIndex: el.name,
-          title: el.name,
-          handleSave,
-        })
+        key: el.name,
+        // ellipsis: true,
+        width: '100px',
+        render: (address) => {
+          if (!address) return address
+          let s = address
+          if (address.length > 100) {
+            s = address.substring(0, 100)
+          }
+          return (< Tooltip placement="topLeft" title={address} >
+            {s}
+          </Tooltip >
+          )
+        },
+        // onCell: (record: DataType) => ({
+        //   record,
+        //   editable: true,
+        //   dataIndex: el.name,
+        //   title: el.name,
+        //   handleSave,
+        // })
       }
     }))
   }
@@ -307,7 +327,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
         </Flex>
       </Flex>
-      <Table bordered={true} scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+      <Table bordered={true}
+        scroll={{ x: 'max-content' }}
+        components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
     </div >
   )
 };

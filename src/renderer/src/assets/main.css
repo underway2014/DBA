@@ -16,3 +16,7 @@ body {
     display: flex;
   }
 }
+
+/* table {
+  table-layout: fixed;
+} */

@@ -38,7 +38,7 @@ async function getSchema({name, config}) {
     await initDb({name, config})
 
     let sql = `
-    select schema_name name from information_schema.schemata
+    select schema_name as name from information_schema.schemata
     `
 
     return query({sql})

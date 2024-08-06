@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 // import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Breadcrumb, Dropdown, Layout, MenuProps, Modal } from 'antd';
+import { Breadcrumb, Dropdown, Layout, MenuProps, Modal, TabsProps } from 'antd';
 // import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 import HeaderTool from './HeadTool';
@@ -105,6 +105,10 @@ const CLayout: React.FC = () => {
   }
   const SP = '@'
 
+  function tabRightHandler (e) {
+    console.log('tabRightHandler e: ', e)
+  }
+
   function rightMenuHandler (e) {
     console.log('rightMenuHandler e: ', e)
     e.domEvent.stopPropagation()
@@ -185,6 +189,7 @@ const CLayout: React.FC = () => {
   }
 
 
+
   return (
     <div>
       <Header style={{ backgroundColor: 'white' }}>
@@ -219,6 +224,8 @@ const CLayout: React.FC = () => {
           </div>
         </Dropdown>
         <Layout>
+
+
           <Content style={{ margin: '24px 16px 0' }}>
             <TabelContent ref={tabsRef}></TabelContent>
           </Content>
@@ -236,7 +243,7 @@ const CLayout: React.FC = () => {
         footer={[]}>
         <CreateDbForm createDatabase={addDbOk}></CreateDbForm>
       </Modal>
-    </div>
+    </div >
   );
 };
 
