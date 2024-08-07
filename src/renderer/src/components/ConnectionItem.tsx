@@ -147,6 +147,11 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
       //   console.log('query sql res: ', data)
       // })
+      props.setDbInfo([
+        props.connection.name,
+        props.connection.config.database,
+        parseKeys[1]
+      ])
 
     }
 

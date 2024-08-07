@@ -6,6 +6,7 @@ import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd'
 import SqlContent from './SqlContent';
 import TextArea from 'antd/es/input/TextArea';
 import { AddIcon, MinusIcon, RunIcon } from '@renderer/assets/icons/icon';
+import { ZoomInOutlined } from '@ant-design/icons';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -63,6 +64,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState([])
+  const [editCell, setEditCell] = useState({ show: true, content: '' })
 
   console.log('tableName: ', tableName)
   // console.log('init current sql: ', currentSql)
@@ -101,6 +103,18 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
   };
 
+  function showCell (e, data) {
+    console.log('show cell: ', e, data)
+  }
+  function showEditCell (e, data) {
+    console.log('showEditCell cell: ', e, data)
+  }
+
+  function mouseEnterHandler (e) {
+    console.log('mouseEnterHandler: ', e)
+    setEditCell({ show: true, content: '' })
+  }
+
 
   function updateList ({ listData, tableName }) {
     setTableName(tableName)
@@ -123,15 +137,21 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         dataIndex: el.name,
         key: el.name,
         // ellipsis: true,
-        width: '100px',
+        width: 100,
         render: (address) => {
           if (!address) return address
           let s = address
-          if (address.length > 100) {
-            s = address.substring(0, 100)
+          if (address.length > 50) {
+            s = address.substring(0, 45) + '...  '
           }
           return (< Tooltip placement="topLeft" title={address} >
-            {s}
+            <div className='cellHover'>
+              {s}
+              {<div className='cellPlus' onClick={e => showEditCell(e, address)}>
+                <ZoomInOutlined />
+
+              </div>}
+            </div>
           </Tooltip >
           )
         },

@@ -17,6 +17,25 @@ body {
   }
 }
 
+.cellHover {
+  position: relative;
+  white-space: nowrap;
+}
+
+.cellHover:hover .cellPlus {
+  display: inline-block;
+  position: absolute;
+  /* size: 20; */
+  width: 10;
+  height: 10;
+  right: 0;
+  /* background-color: rgba(rgb(224, 13, 13), green, blue, 0.5); */
+}
+
+.cellPlus {
+  display: none;
+}
+
 /* table {
   table-layout: fixed;
 } */

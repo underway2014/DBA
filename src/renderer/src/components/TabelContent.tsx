@@ -7,9 +7,13 @@ import EditTable from './EditTable';
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
-const defaultPanes = new Array(2).fill(null).map((_, index) => {
+const defaultPanes = new Array(1).fill(null).map((_, index) => {
     const id = String(index + 1);
-    return { label: `Tab ${id}`, children: `Content of Tab Pane ${index + 1}`, key: id };
+    return {
+        label: `Home`, children: `
+      Hi there,Welcome to my open-source database tool! I'm thrilled to share this project with you all. If you encounter any issues or have suggestions while using it, please feel free to raise an issue on GitHub. Our goal is to improve this tool together, making it more powerful and user-friendly. Looking forward to your contributions!
+    `, key: id
+    };
 });
 
 const TabelContent: React.FC = (props, parentRef) => {
