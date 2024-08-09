@@ -54,8 +54,11 @@ export const getConnections = () => {
     return data.connections
 }
 
-export const delConnection = (id) => {
-    console.log('delConnection ww: ', id)
+export const delConnection = (connectionStr) => {
+    // connection@t1_local2@1723166257140
+    console.log('delConnection ww: ', connectionStr)
+    let a = connectionStr.split('@')
+    let id = a[a.length - 1]
     let data = readFile()
     let connections = data.connections.filter(el => {
         if(el.id === id) {
@@ -67,7 +70,7 @@ export const delConnection = (id) => {
 
     data.connections = connections
 
-    writeFile(data)
+    return writeFile(data)
 }
 
 export const editConnection = function(val) {

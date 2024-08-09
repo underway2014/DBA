@@ -1,25 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { Button, Dropdown, Menu, Modal, Space, Tree, message } from 'antd';
+import { Dropdown,   Modal, Space, Tree, message } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
-import { title } from 'process';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Schema } from 'electron-store';
+import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import CreateDbForm from './CreateDbFrom';
+const { confirm } = Modal;
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
-
-const { DirectoryTree } = Tree;
-
-const test: TreeDataNode[] = [
-  {
-    title: 'test 0',
-    key: '0-1',
-    children: [
-      { title: 'leaf 0-0', key: '0-0-0', isLeaf: true },
-      { title: 'leaf 0-1', key: '0-0-1', isLeaf: true },
-    ],
-  }
-];
 
 type pgConfig = {
   name: string
@@ -190,33 +176,23 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   function delConnection (node) {
     console.log('delConnection aa', node)
 
-    window.api.delStore(node.key)
+    confirm({
+      title: `Do you want to delete the ${node.title} connection?`,
+      icon: <ExclamationCircleFilled />,
+      content: '',
+      onOk () {
+        window.api.delStore(node.key).then(res => {
+          console.log('del connection res: ', res)
+          props.updateSlider()
+        })
+      },
+      onCancel () {
+        console.log('Cancel');
+      },
+    });
 
-    props.updateSlider()
+    
 
-  }
-
-
-  const upProps: UploadProps = {
-    name: 'file',
-    // action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
-    headers: {
-      authorization: 'authorization-text',
-    },
-    onChange (info) {
-      // if (info.file.status !== 'uploading') {
-      //   console.log(info.file, info.fileList);
-      // }
-      // if (info.file.status === 'done') {
-      //   message.success(`${info.file.name} file uploaded successfully`);
-      // } else if (info.file.status === 'error') {
-      //   message.error(`${info.file.name} file upload failed.`);
-      // }
-    },
-  };
-
-  function folderInput (e) {
-    console.log('folderInput: ', e)
   }
 
   const items: MenuProps['items'] = [

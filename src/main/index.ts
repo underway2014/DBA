@@ -99,7 +99,7 @@ app.whenReady().then(() => {
 
     // return {name: 1, age: 3333}
 
-    delConnection(val)
+    return delConnection(val)
   })
   ipcMain.handle('db:backup', async (_, val) => {
     return backup(val)

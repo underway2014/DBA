@@ -1,20 +1,20 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { alterTable, backup, createDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { alterTable, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
   addStore: (val) => {
     console.log('setstore', val)
-    ipcRenderer.invoke('store:add', val)
+    return ipcRenderer.invoke('store:add', val)
     },
   delStore: (val) => {
     console.log('delStore', val)
-    ipcRenderer.invoke('store:del', val)
+    return ipcRenderer.invoke('store:del', val)
     },
   editStore: (val) => {
     console.log('editStore', val)
-    ipcRenderer.invoke('store:edit', val)
+    return ipcRenderer.invoke('store:edit', val)
     },
   getStore: async (val) => {
     console.log('getStore', val)
@@ -49,7 +49,7 @@ const api = {
     return ipcRenderer.invoke('db:restore', val)
   },
   dbCreate: async(val)=> {
-    console.log('restore: ', val)
+    console.log('dbCreate: ', val)
      return ipcRenderer.invoke('db:create', val)
   },
   alterTable: async(val)=> {

@@ -203,8 +203,8 @@ async function restore({type, connection, dbName, sqlPath}) {
     if(type === 1) {
         option = '-s'
     }
-    
-    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${dbName}  ${sqlPath}`
+    console.log(`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${connection.config.database}  ${sqlPath}`)
+    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${connection.config.database}  ${sqlPath}`
     console.log('restore res: ', res, res.exitCode)
     return res
 }
@@ -216,7 +216,7 @@ async function backup({type, config}) {
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
     console.log('pgDumpPath: ', pgPath)
     let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${new Date().getTime()}.sql`)
-    console.log('downPath: ', downPath)
+    console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
     const res = await $`export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
     console.log('backup res: ', res, res.exitCode)
     // let res1 = await execa(pgPath, ['--help']);
