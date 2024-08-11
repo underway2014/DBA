@@ -4,9 +4,11 @@ import { Button, Form, Input } from 'antd';
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
   addConnection: Function
+  defautValues?: Object
 }
 
 const ConnectionForm: React.FC<selfProps> = (props) => {
+  console.log('ConnectionForm ', props.defautValues)
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
   const { addConnection } = props
@@ -25,12 +27,19 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
 
     addConnection(form.getFieldsValue())
   }
+
+  // host: '35.220.166.96',
+  //     port: '8001',
+  //     username: 'postgres',
+  //     password: 'ZLKLMqzHy2308jU6',
+  //     dialect: 'postgres',
+  //     database: 'postgres'
   return (
     <Form
       {...formItemLayout}
       layout={formLayout}
       form={form}
-      initialValues={{ layout: formLayout }}
+      initialValues={{ layout: formLayout, ...props.defautValues }}
       onValuesChange={onFormLayoutChange}
       style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
     >

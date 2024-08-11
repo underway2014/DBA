@@ -3,14 +3,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Breadcrumb, Dropdown, Layout, MenuProps, Modal, TabsProps } from 'antd';
 // import DataList from './List';
 import ConnectionItem from './ConnectionItem';
-import HeaderTool from './HeadTool';
 // import SqlContent from './SqlContent';
 // import SqlToolBar from './SqlToolBar';
 import TabelContent from './TabelContent';
 import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
-import { title } from 'process';
+import * as _ from 'lodash'
 
 const { Content, Sider } = Layout;
 
@@ -38,6 +37,8 @@ const CLayout: React.FC = () => {
   // const {
   //   token: { colorBgContainer, borderRadiusLG },
   // } = theme.useToken();
+
+  const [connections, setConnections] = useState([])
   const [data, setData] = useState({
     showForm: false, connections: [
       // {
@@ -68,15 +69,6 @@ const CLayout: React.FC = () => {
 
   const tabsRef = useRef<any>()
 
-  function getAddCon () {
-    console.log('getAddCon', data.showForm)
-    let connections = data.connections
-    // connections.push({ url: 1 })
-    setData({ showForm: !data.showForm, connections })
-    console.log('22 getAddCon', data.showForm)
-  }
-
-
   useEffect(() => {
     console.log('useEffect')
     updateSlider()
@@ -86,7 +78,10 @@ const CLayout: React.FC = () => {
     window.api.getStore('age').then(connections => {
 
       console.log('updateSlider begin connections: ', connections)
-      setData({ showForm: !data.showForm, connections })
+      // let tmp = _.cloneDeep(data)
+      // tmp.connections = connections
+      // setData(null)
+      setConnections(connections)
     })
   }
 
@@ -216,7 +211,7 @@ const CLayout: React.FC = () => {
               }}
             >
               {
-                data.connections.map((el, index) => {
+                connections.map((el, index) => {
                   return <ConnectionItem setDbInfo={setDbInfo} getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
                 })
               }

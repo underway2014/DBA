@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { alterTable, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { alterTable, clearDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -14,6 +14,7 @@ const api = {
     },
   editStore: (val) => {
     console.log('editStore', val)
+    clearDb({id: val.id})
     return ipcRenderer.invoke('store:edit', val)
     },
   getStore: async (val) => {

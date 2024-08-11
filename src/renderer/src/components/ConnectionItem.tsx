@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Dropdown,   Modal, Space, Tree, message } from 'antd';
+import { Dropdown, Modal, Space, Tree, message } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import CreateDbForm from './CreateDbFrom';
+import ConnectionForm from './ConnectionForm';
 const { confirm } = Modal;
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
@@ -31,11 +32,11 @@ let backupDbName = null
 let restoreType = 2 // 1-struct 2-struct and data
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
-  const [messageApi, contextHolder] = message.useMessage();
 
   const selectSqlFile = useRef()
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
+  const [showEditConnectionForm, setShowEditConnectionForm] = useState(false)
   const SP = '@'
 
   const [treeData, setTreeData] = useState<NodeData[]>([{
@@ -48,6 +49,12 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   };
   const handleCancel = () => {
     setShowCreateFrom(false)
+  };
+  const editHandleOk = () => {
+    setShowEditConnectionForm(false)
+  };
+  const editHandleCancel = () => {
+    setShowEditConnectionForm(false)
   };
 
 
@@ -128,7 +135,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       `
 
       console.log('table sql: ', sql)
-      props.getTableDataByName({ tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql })
+      props.getTableDataByName({ id: props.connection.id, tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql })
       // window.api.getTableData(sql).then(data => {
 
       //   console.log('query sql res: ', data)
@@ -166,10 +173,13 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     let nodeType = parseKeys[0]
     console.log('editConnection node type: ', parseKeys)
     if (nodeType === 'connection') {
-
+      setShowEditConnectionForm(true)
+      // setConDefaultValues({
+      //   name: 
+      // })
     } else if (nodeType === 'table') {
       // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql
-      props.getTableDataByName({ tableName: parseKeys[1], type: 2, schema: parseKeys[2], dbName: parseKeys[3] })
+      props.getTableDataByName({ id: props.connection.id, tableName: parseKeys[1], type: 2, schema: parseKeys[2], dbName: parseKeys[3] })
     }
   }
 
@@ -191,7 +201,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       },
     });
 
-    
+
 
   }
 
@@ -324,6 +334,33 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     )
   }
 
+  async function editConnectionSumit (val) {
+    console.log('editConnectionSumit>>>', val)
+    window.api.editStore({
+      name: val.name,
+      id: props.connection.id,
+      config: {
+        host: val.host,
+        port: val.port,
+        username: val.username,
+        password: val.password,
+        dialect: val.dialect,
+        database: val.database
+      }
+    }).then(res => {
+      console.log('editStore res: ', res)
+      props.updateSlider()
+      setShowEditConnectionForm(false)
+
+      setTreeData([{
+        title: val.name,
+        key: `connection${SP}${val.name}${SP}${props.connection.id}`,
+      }])
+    })
+    console.log('after editStore res: ')
+
+  }
+
   async function addOk (val) {
     console.log('crate db add ok.>>>', val)
     setShowCreateFrom(false)
@@ -369,7 +406,13 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         footer={[]}>
         <CreateDbForm createDatabase={addOk}></CreateDbForm>
       </Modal>
-    </div>
+
+      <Modal title="Edit connection" open={showEditConnectionForm}
+        onOk={editHandleOk} onCancel={editHandleCancel}
+        footer={[]}>
+        <ConnectionForm defautValues={{ name: props.connection.name, ...props.connection.config }} addConnection={editConnectionSumit}></ConnectionForm>
+      </Modal>
+    </div >
   );
 };
 

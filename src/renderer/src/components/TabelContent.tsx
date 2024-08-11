@@ -1,5 +1,5 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { Button, Dropdown, MenuProps, Tabs, TabsProps } from 'antd';
+import { Dropdown, MenuProps, Tabs, TabsProps } from 'antd';
 import { UnorderedListOutlined, EditOutlined } from '@ant-design/icons';
 
 import List from './List';
@@ -10,7 +10,7 @@ type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 const defaultPanes = new Array(1).fill(null).map((_, index) => {
     const id = String(index + 1);
     return {
-        label: `Home`, children: `
+        label: `Welcome`, children: `
       Hi there,Welcome to my open-source database tool! I'm thrilled to share this project with you all. If you encounter any issues or have suggestions while using it, please feel free to raise an issue on GitHub. Our goal is to improve this tool together, making it more powerful and user-friendly. Looking forward to your contributions!
     `, key: id
     };

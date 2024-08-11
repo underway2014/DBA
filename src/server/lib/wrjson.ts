@@ -85,8 +85,8 @@ export const editConnection = function(val) {
     
 
     data.connections = list
-
     writeFile(data)
+
 }
 
 export const addConnection = function(val) {

@@ -20,22 +20,30 @@ import { app } from "electron";
 const dbMap = {}
 let currentDb
 
-function initDb({name, config}) {
-    console.log('init db: ', name, config)
-    let db = dbMap[name]
+function clearDb({id}) {
+    console.log('cleardb: ',id, dbMap)
+    delete dbMap[id]
+    console.log('after cleardb: ',id, dbMap)
+}
+
+function initDb({id, config}) {
+    console.log('init db: ', id, config, dbMap)
+    console.log('init db: ', id, config, dbMap)
+    console.log('init db: ', id, config, dbMap)
+    let db = dbMap[id]
 
     if(!db){
         db = new Sequelize(config)
     }
 
-    dbMap[name] = db
+    dbMap[id] = db
     currentDb = db
 
     return db
 }
 
-async function getSchema({name, config}) {
-    await initDb({name, config})
+async function getSchema({id, config}) {
+      initDb({id, config})
 
     let sql = `
     select schema_name as name from information_schema.schemata
@@ -79,9 +87,9 @@ async function getColums(tableName) {
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({name, config, schema = 'public'}) {
-    console.log('get tables schema: ', schema)
-    await initDb({name, config})
+async function getTables({name, id, config, schema = 'public'}) {
+    console.log('db getTables ', arguments)
+     initDb({id, config})
     let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`)
 
     console.log('tabels:', tables)
@@ -104,8 +112,8 @@ async function query({sql }) {
     return data
 }
 
-function setDb(dbName) {
-    let db = initDb({name: dbName, config: null})
+function setDb(id) {
+    let db = initDb({id, config: null})
 
     currentDb = db
 }
@@ -135,7 +143,7 @@ function getFields(sql) {
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
     console.log('db getTableData: ', data)
-    setDb(data.dbName)
+    setDb(data.id)
 
     // let columns = []
     // // let fields = data.fields || []
@@ -269,4 +277,4 @@ async function alterTable(data) {
     }
 }
 
-export {getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable}
+export {clearDb, getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable}
