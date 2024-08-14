@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AutoComplete, Button, Form, Input, Select } from 'antd';
+import { AutoComplete, Button, Checkbox, Flex, Form, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
@@ -77,24 +77,21 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
         <Input placeholder="" />
       </Form.Item>
-      <Form.Item label="type" name="type" rules={[{ required: true }]}>
-        {/* <Select>
-          <Select.Option value="int2">int2</Select.Option>
-          <Select.Option value="int4">int4</Select.Option>
-          <Select.Option value="int8">int8</Select.Option>
-          <Select.Option value="json">json</Select.Option>
-          <Select.Option value="jsonb">jsonb</Select.Option>
-          <Select.Option value="timestamptz">timestamptz</Select.Option>
-        </Select> */}
-        <AutoComplete
-          style={{ width: 200 }}
-          options={options}
-          placeholder=""
-          filterOption={(inputValue, option) =>
-            option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-          }
-        />
-      </Form.Item>
+      <Flex vertical={false}>
+        <Form.Item label="type" name="type" rules={[{ required: true }]}>
+          <AutoComplete
+            style={{ width: 100 }}
+            options={options}
+            placeholder=""
+            filterOption={(inputValue, option) =>
+              option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+            }
+          />
+        </Form.Item>
+        <Form.Item style={{ marginLeft: 10 }} label="" name="notnull" valuePropName="checked">
+          <Checkbox>Not Null</Checkbox>
+        </Form.Item>
+      </Flex>
       <Form.Item label="default" name="default">
         <Input value="" />
       </Form.Item>

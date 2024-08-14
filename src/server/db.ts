@@ -145,30 +145,13 @@ async function getTableData(data) {
     console.log('db getTableData: ', data)
     setDb(data.id)
 
-    // let columns = []
-    // // let fields = data.fields || []
+    if(/^\s*select/i.test(data.sql)){
+        return getRowAndColumns({sql: data.sql, type: null})
+    }else {
+        return query({sql: data.sql})
 
-    
-    // let tabeName = data.tabeName
-    // if(data.sql) {
-    //     tabeName = getTableName(data.sql)
+    }
 
-    //     columns = getFields(data.sql)
-
-    //     if(columns[0] === '*') {
-    //         columns = await getColums(tabeName)
-    //     }else {
-    //         columns = columns.map(el => {
-    //             return {column_name: el}
-    //         })
-    //     }
-    // }
-
-    // let rows = await query({sql: data.sql})
-
-    // return {columns, rows}
-
-    return getRowAndColumns({sql: data.sql, type: null})
 }
 
 async function updateDate({tableName, id, data}) {
@@ -242,8 +225,16 @@ async function createDb({dbName, connection}) {
     return res
 }
 
-async function addField({tableName, column, dataType, defaltValue, comment}) {
+
+    // ALTER TABLE active
+    // ADD COLUMN aa4 INTEGER NOT null
+    // DEFAULT 0;
+async function addField({tableName, column, dataType, defaltValue, comment, notnull}) {
     let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
+
+    if(notnull) {
+        sql = `${sql} NOT NULL`
+    }
 
     if(defaltValue) {
         sql = `${sql} default ${defaltValue}`

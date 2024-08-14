@@ -292,8 +292,10 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   // node connection-jogo_gaming_dev-1720530577574
   function treeRightHandler ({ event, node }) {
     console.log('treeRightHandler: ', event, node)
+    event.stopPropagation()
 
     rightClickItemKey = node.key
+
   }
 
   function titleRender (nodeData) {

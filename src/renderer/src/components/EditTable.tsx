@@ -269,7 +269,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     confirm({
       title: 'Do you want to delete these columns?',
       icon: <ExclamationCircleFilled />,
-      content: 'Some descriptions',
+      content: '',
       onOk () {
         console.log('del OK', listRows, selectKeys, selectedRowKeys);
 
