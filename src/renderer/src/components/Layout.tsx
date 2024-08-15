@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 // import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Breadcrumb, Dropdown, Layout, MenuProps, Modal, TabsProps } from 'antd';
+import { Breadcrumb, Dropdown, Layout, List, MenuProps, Modal, TabsProps } from 'antd';
 // import DataList from './List';
 import ConnectionItem from './ConnectionItem';
 // import SqlContent from './SqlContent';
 // import SqlToolBar from './SqlToolBar';
 import TabelContent from './TabelContent';
-import { Header } from 'antd/es/layout/layout';
+import { Footer, Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
 import * as _ from 'lodash'
@@ -183,7 +183,16 @@ const CLayout: React.FC = () => {
     setData({ ...data, dbInfo: a })
   }
 
+  const consoleData = [
+    'Racing car sprays burning fuel into crowd.',
+    'Japanese princess to wed commoner.',
+    'Racing car sprays burning fuel into crowd.',
+    'Japanese princess to wed commoner.',
+    'Racing car sprays burning fuel into crowd.',
+    'Japanese princess to wed commoner.',
+    'Australian walks 100km after outback crash.',
 
+  ];
 
   return (
     <div>
@@ -221,9 +230,23 @@ const CLayout: React.FC = () => {
         <Layout>
 
 
-          <Content style={{ margin: '24px 16px 0' }}>
+          <Content style={{ height: window.screen.height - 64 - 60 - 200 + 'px' }}>
             <TabelContent ref={tabsRef}></TabelContent>
           </Content>
+
+          <Footer style={{ backgroundColor: '#4096ff', height: 200, position: 'sticky' }}>
+            <div style={{ height: 200, overflow: 'auto' }}>
+              <List
+                size="small"
+                header={<div>Header</div>}
+                footer={<div>Footer</div>}
+                bordered
+                dataSource={consoleData}
+                renderItem={(item) => <List.Item>{item}</List.Item>}
+              />
+
+            </div>
+          </Footer>
         </Layout>
       </Layout>
 

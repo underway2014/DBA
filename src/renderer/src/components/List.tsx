@@ -1,9 +1,7 @@
-import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Button, Flex, Form, Input, Table, Tooltip } from 'antd';
-import { PlusOutlined, CaretRightOutlined, MinusOutlined } from '@ant-design/icons';
+import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
+import { Flex, Form, Input, Table, Tooltip } from 'antd';
 
-import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
-import SqlContent from './SqlContent';
+import type { FormInstance, InputRef, TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { AddIcon, MinusIcon, RunIcon } from '@renderer/assets/icons/icon';
 import { ZoomInOutlined } from '@ant-design/icons';
@@ -51,9 +49,6 @@ interface EditableCellProps {
 //     address: `London, Park Lane no. ${i}`,
 //   });
 // }
-const scroll = {
-  x: '100vw', y: 240
-}
 
 type selfProps = {
   tabData: any
@@ -103,16 +98,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
   };
 
-  function showCell (e, data) {
-    console.log('show cell: ', e, data)
-  }
   function showEditCell (e, data) {
     console.log('showEditCell cell: ', e, data)
-  }
-
-  function mouseEnterHandler (e) {
-    console.log('mouseEnterHandler: ', e)
-    setEditCell({ show: true, content: '' })
   }
 
 
@@ -330,7 +317,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
   return (
-    <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
+    <div style={{ height: window.screen.height - 64 - 360 + 'px', overflow: 'auto' }}>
       <TextArea rows={4} value={sqlTxt} onChange={e => {
         console.log('sql txt:', e.target.value)
         setSqlTxt(e.target.value)
@@ -353,7 +340,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       </Flex>
       <Table bordered={true}
         scroll={{ x: 'max-content' }}
-        components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+        size='small'
+        // pagination={{ defaultPageSize: 15 }}
+        components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />
     </div >
   )
 };
