@@ -4,6 +4,7 @@ import { AutoComplete, Button, Checkbox, Flex, Form, Input } from 'antd';
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
   addColumn: Function
+  defautValues?: Object
 }
 
 const AddColumnForm: React.FC<selfProps> = (props) => {
@@ -24,6 +25,8 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
     console.log('submit: ', form.getFieldsValue(), val)
 
     addColumn(form.getFieldsValue())
+
+    form.resetFields()
   }
 
   const options = [
@@ -66,39 +69,47 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
   ];
 
   return (
+    // <Form
+    //   {...formItemLayout}
+    //   layout={formLayout}
+    //   form={form}
+    //   initialValues={{ layout: formLayout, ...props.defautValues }}
+    //   onValuesChange={onFormLayoutChange}
+    //   style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
+    // >
     <Form
-      {...formItemLayout}
-      layout={formLayout}
+      labelCol={{ span: 6 }}
+      wrapperCol={{ span: 14 }}
+      layout="horizontal"
       form={form}
-      initialValues={{ layout: formLayout }}
       onValuesChange={onFormLayoutChange}
-      style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
+      // size={componentSize as SizeType}
+      style={{ maxWidth: 700 }}
     >
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
         <Input placeholder="" />
       </Form.Item>
-      <Flex vertical={false}>
-        <Form.Item label="type" name="type" rules={[{ required: true }]}>
-          <AutoComplete
-            style={{ width: 100 }}
-            options={options}
-            placeholder=""
-            filterOption={(inputValue, option) =>
-              option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-            }
-          />
-        </Form.Item>
-        <Form.Item style={{ marginLeft: 10 }} label="" name="notnull" valuePropName="checked">
-          <Checkbox>Not Null</Checkbox>
-        </Form.Item>
-      </Flex>
+      <Form.Item label="type" name="type" rules={[{ required: true }]}>
+        <AutoComplete
+          style={{ width: 100 }}
+          options={options}
+          placeholder=""
+          filterOption={(inputValue, option) =>
+            option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+          }
+        />
+      </Form.Item>
+      <Form.Item wrapperCol={{ offset: 6, span: 16 }} style={{ marginTop: "-20px" }} name="notnull" valuePropName="checked">
+        <Checkbox>Not Null</Checkbox>
+      </Form.Item>
       <Form.Item label="default" name="default">
         <Input value="" />
       </Form.Item>
       <Form.Item label="comment" name="comment">
         <Input value="" />
       </Form.Item>
-      <Form.Item {...buttonItemLayout}>
+      <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
+        {/* <Form.Item {...buttonItemLayout}> */}
         <Button type="primary" onClick={submit}>Submit</Button>
       </Form.Item>
     </Form>

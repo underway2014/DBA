@@ -27,12 +27,19 @@ const CreateDbForm: React.FC<selfProps> = (props) => {
   }
   return (
     <Form
-      {...formItemLayout}
-      layout={formLayout}
+      // {...formItemLayout}
+      // layout={formLayout}
+      // form={form}
+      // initialValues={{ layout: formLayout, owner: 'postgres', encoding: 'UTF8' }}
+      // onValuesChange={onFormLayoutChange}
+      // style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
+      initialValues={{ owner: 'postgres', encoding: 'UTF8' }}
+      labelCol={{ span: 6 }}
+      wrapperCol={{ span: 14 }}
+      layout="horizontal"
       form={form}
-      initialValues={{ layout: formLayout, owner: 'postgres', encoding: 'UTF8' }}
       onValuesChange={onFormLayoutChange}
-      style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
+      style={{ maxWidth: 700 }}
     >
       <Form.Item label="Database name" name="name" rules={[{ required: true }]}>
         <Input placeholder="" />
@@ -43,10 +50,10 @@ const CreateDbForm: React.FC<selfProps> = (props) => {
       <Form.Item label="Encoding" name="encoding">
         <Input value="UTF8" />
       </Form.Item>
-      <Form.Item {...buttonItemLayout}>
+      <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <Button type="primary" onClick={submit}>Submit</Button>
       </Form.Item>
-    </Form>
+    </Form >
   );
 };
 

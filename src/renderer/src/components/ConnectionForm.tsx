@@ -36,12 +36,18 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
   //     database: 'postgres'
   return (
     <Form
-      {...formItemLayout}
-      layout={formLayout}
+      // {...formItemLayout}
+      // layout={formLayout}
+      // form={form}
+      // onValuesChange={onFormLayoutChange}
+      // style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
+      initialValues={{ ...props.defautValues }}
+      labelCol={{ span: 6 }}
+      wrapperCol={{ span: 14 }}
+      layout="horizontal"
       form={form}
-      initialValues={{ layout: formLayout, ...props.defautValues }}
       onValuesChange={onFormLayoutChange}
-      style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
+      style={{ maxWidth: 700 }}
     >
       <Form.Item label="name" name="name">
         <Input placeholder="connection name" />
@@ -64,7 +70,7 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
       <Form.Item label="dialect" name="dialect">
         <Input placeholder="postgres" />
       </Form.Item>
-      <Form.Item {...buttonItemLayout}>
+      <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <Button type="primary" onClick={submit}>Submit</Button>
       </Form.Item>
     </Form>

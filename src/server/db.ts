@@ -119,7 +119,7 @@ function setDb(id) {
 }
 
 function getFields(sql) {
-    return sql.split('from')[0].replace(/select/gi, '').split(',').map(el => {
+    return sql.split(/form/i)[0].replace(/select/gi, '').split(',').map(el => {
 
         el = el.trim()
         let a = el.split(/\s+/)
@@ -258,6 +258,15 @@ async function delField({tableName, column}) {
     const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
     return query({sql})
+}
+//语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
+async function alterType(params:type) {
+    // ALTER TABLE assets 
+    // ALTER COLUMN asset_no TYPE INT;
+}
+
+async function  alterName(params:type) {
+    // ALTER TABLE products RENAME COLUMN product_no TO product_number;
 }
 
 async function alterTable(data) {

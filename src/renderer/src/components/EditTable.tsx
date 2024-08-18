@@ -5,6 +5,7 @@ import type { FormInstance, InputRef, PopconfirmProps, TableColumnsType, TablePr
 import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
 import AddColumnForm from './AddColumnForm';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import { render } from 'react-dom';
 
 const { confirm } = Modal;
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
@@ -31,7 +32,6 @@ type selfProps = {
 }
 
 const EditTable: React.FC<selfProps> = (props, parentRef) => {
-
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,
@@ -110,12 +110,17 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
     console.log('column rows: ', listData.columns, listData.rows)
+    // { title: 'Action', key: 'operation', render: () => <a>Publish</a> },
 
-    setColumns(editColumns.map(el => {
+    let cms = editColumns.map(el => {
       return {
         title: el.title,
         dataIndex: el.dataIndex,
-        with: '100px',
+        key: el.title,
+        // with: '50px',
+        render: (text) => {
+          return <div style={{ maxWidth: "150px" }}>{text}</div>
+        },
         onCell: (record: DataType) => ({
           record,
           editable: true,
@@ -124,7 +129,19 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
           handleSave,
         })
       }
-    }))
+    })
+
+    cms.push({
+      title: 'operater',
+      key: 'operater',
+      with: '100px',
+      dataIndex: 100,
+      render: (s) => {
+        return <a>Edit</a>
+      }
+    })
+
+    setColumns(cms)
 
     setListRows(listData.rows)
 
@@ -345,12 +362,21 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
         </Flex>
       </Flex>
-      <Table size='small' pagination={false} scroll={{ x: 'max-content' }} components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />;
+      {/*   */}
+      <Table scroll={{ x: 'max-content' }} size='small' pagination={false}
+        components={components} rowSelection={rowSelection} columns={columns}
+        dataSource={listRows} ref={inputRef} />;
 
       <Modal title="Add Column" open={alterModal.add}
         onOk={handleOk} onCancel={handleCancel}
         footer={[]}>
         <AddColumnForm addColumn={addColumn}></AddColumnForm>
+      </Modal>
+
+      <Modal title="Edit Column" open={alterModal.alter}
+        onOk={handleOk} onCancel={handleCancel}
+        footer={[]}>
+        <AddColumnForm addColumn={addColumn}  ></AddColumnForm>
       </Modal>
       {/* <Modal title="Delete Column" open={alterModal.del}
         onOk={handleOk} onCancel={handleCancel}

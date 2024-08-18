@@ -291,7 +291,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       throw new Error(`${sql} error`)
     }
 
-    let a = sql.replaceAll('\n', '').split('from')
+    let a = sql.replaceAll('\n', '').split(/from/i)
     let b = a[1].split(' ')
 
     return b.find(el => !!el)
