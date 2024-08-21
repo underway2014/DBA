@@ -288,7 +288,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   const components = {
     body: {
       row: EditableRow,
-      cell: EditableCell,
+      // cell: EditableCell,
     },
   };
 
@@ -344,7 +344,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     console.log('addColumn: ', val, oldValue)
     const type = alterModal.add ? 1 : 3
     setAlterModal({ ...alterModal, add: false, alter: false })
-    //type 1-add 2-del
+    //type 1-add 2-del  3-alter
     let opt = {
       tableName: tableName,
       column: val.name,
@@ -352,16 +352,22 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       comment: val.comment,
       defaultValue: val.default,
       notnull: val.notnull,
-      type,
-      oldValue: {
-        tableName: tableName,
-        column: oldValue.name,
-        dataType: oldValue.type,
-        comment: oldValue.comment,
-        defaultValue: oldValue.default,
-        notnull: oldValue.notnull
+      type
+    }
+
+    if (oldValue) {
+      opt = {
+        ...opt, oldValue: {
+          tableName: tableName,
+          column: oldValue.name,
+          dataType: oldValue.type,
+          comment: oldValue.comment,
+          defaultValue: oldValue.default,
+          notnull: oldValue.notnull
+        }
       }
     }
+
     window.api.alterTable(opt).then(res => {
       console.log('client alterTable res: ', res)
 
@@ -402,16 +408,9 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
         footer={[]}>
         <AddColumnForm defautValues={alterModal.editData} addColumn={addColumn}  ></AddColumnForm>
       </Modal>
-      {/* <Modal title="Delete Column" open={alterModal.del}
-        onOk={handleOk} onCancel={handleCancel}
-        footer={[]}>
-        <AddColumnForm addColumn={addColumn}></AddColumnForm>
-      </Modal> */}
-
-
     </div >
   )
-};
+}
 
 // export default EditTable;
 export default forwardRef(EditTable);

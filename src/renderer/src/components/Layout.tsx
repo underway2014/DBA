@@ -218,6 +218,7 @@ const CLayout: React.FC = () => {
               onCollapse={(collapsed, type) => {
                 console.log(collapsed, type);
               }}
+              style={{ backgroundColor: 'white' }}
             >
               {
                 connections.map((el, index) => {

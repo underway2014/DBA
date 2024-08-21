@@ -138,12 +138,12 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       props.getTableDataByName({ id: props.connection.id, tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql })
       // window.api.getTableData(sql).then(data => {
 
-      //   console.log('query sql res: ', data)
+      console.log('props.connectio: ', props.connection)
       // })
       props.setDbInfo([
         props.connection.name,
         props.connection.config.database,
-        parseKeys[1]
+        parseKeys[2]
       ])
 
     }
@@ -291,10 +291,9 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   function titleRender (nodeData) {
     // console.log('title render: ', nodeData)
 
-    let item = <div className='treeTitle'>
-      <span>{nodeData.title}</span>
-      <Space className='treeBtn'>
-
+    let editButtons
+    if (!/^schema/.test(nodeData.key)) {
+      editButtons = (<Space className='treeBtn'>
         <DeleteOutlined className='marginlr20' onClick={(e) => {
           //业务的处理函数
           //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
@@ -310,7 +309,12 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
           //业务的处理函数
           //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
         }} />
-      </Space>
+      </Space>)
+    }
+
+    let item = <div className='treeTitle'>
+      <span>{nodeData.title}</span>
+      {editButtons}
     </div>
     if (/connection/.test(nodeData.key)) {
       item = <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
