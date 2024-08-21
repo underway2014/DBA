@@ -15,19 +15,15 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
     setFormLayout(layout);
   };
 
-  const formItemLayout =
-    formLayout === 'horizontal' ? { labelCol: { span: 6 }, wrapperCol: { span: 14 } } : null;
-
-  const buttonItemLayout =
-    formLayout === 'horizontal' ? { wrapperCol: { span: 14, offset: 4 } } : null;
-
   function submit (val) {
     console.log('submit: ', form.getFieldsValue(), val)
 
-    addColumn(form.getFieldsValue())
+    addColumn(form.getFieldsValue(), props.defautValues)
 
     form.resetFields()
   }
+
+  form.setFieldsValue(props.defautValues);
 
   const options = [
     { value: 'int2' },
@@ -69,18 +65,11 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
   ];
 
   return (
-    // <Form
-    //   {...formItemLayout}
-    //   layout={formLayout}
-    //   form={form}
-    //   initialValues={{ layout: formLayout, ...props.defautValues }}
-    //   onValuesChange={onFormLayoutChange}
-    //   style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
-    // >
     <Form
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
       layout="horizontal"
+      initialValues={{ ...props.defautValues }}
       form={form}
       onValuesChange={onFormLayoutChange}
       // size={componentSize as SizeType}
@@ -91,7 +80,7 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
       </Form.Item>
       <Form.Item label="type" name="type" rules={[{ required: true }]}>
         <AutoComplete
-          style={{ width: 100 }}
+          style={{ width: 200 }}
           options={options}
           placeholder=""
           filterOption={(inputValue, option) =>

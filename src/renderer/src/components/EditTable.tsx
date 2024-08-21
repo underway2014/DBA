@@ -1,11 +1,10 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Form, Input, Modal, Popconfirm, Table } from 'antd';
+import { Flex, Form, Input, Modal, Table } from 'antd';
 
-import type { FormInstance, InputRef, PopconfirmProps, TableColumnsType, TableProps } from 'antd';
+import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
 import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
 import AddColumnForm from './AddColumnForm';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import { render } from 'react-dom';
 
 const { confirm } = Modal;
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
@@ -35,7 +34,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,
-    del: false
+    del: false,
+    editData: {}
   })
 
   const columnsStr = ['column_name', 'column_default', 'is_nullable', 'data_type', 'character_maximum_length', 'numeric_precision', 'numeric_precision_radix', 'udt_name']
@@ -136,8 +136,8 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       key: 'operater',
       with: '100px',
       dataIndex: 100,
-      render: (s) => {
-        return <a>Edit</a>
+      render: (s, record) => {
+        return <a onClick={() => editHandler(record)}>Edit</a>
       }
     })
 
@@ -145,6 +145,20 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
     setListRows(listData.rows)
 
+  }
+
+  function editHandler (record) {
+
+    console.log('editHandler: ', record)
+
+    setAlterModal({
+      ...alterModal, alter: true, editData: {
+        name: record.column_name,
+        type: record.udt_name,
+        notnull: record.is_nullable === 'YES' ? true : false,
+        default: record.column_default,
+      }
+    })
   }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -323,12 +337,13 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     setAlterModal({ ...alterModal, add: false })
   };
   const handleCancel = () => {
-    setAlterModal({ ...alterModal, add: false })
+    setAlterModal({ ...alterModal, add: false, alter: false, editData: {} })
   };
 
-  function addColumn (val) {
-    console.log('addColumn: ', val)
-    setAlterModal({ ...alterModal, add: false })
+  function addColumn (val, oldValue) {
+    console.log('addColumn: ', val, oldValue)
+    const type = alterModal.add ? 1 : 3
+    setAlterModal({ ...alterModal, add: false, alter: false })
     //type 1-add 2-del
     let opt = {
       tableName: tableName,
@@ -336,10 +351,19 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       dataType: val.type,
       comment: val.comment,
       defaultValue: val.default,
-      type: 1
+      notnull: val.notnull,
+      type,
+      oldValue: {
+        tableName: tableName,
+        column: oldValue.name,
+        dataType: oldValue.type,
+        comment: oldValue.comment,
+        defaultValue: oldValue.default,
+        notnull: oldValue.notnull
+      }
     }
     window.api.alterTable(opt).then(res => {
-      console.log('client dbCreate res: ', res)
+      console.log('client alterTable res: ', res)
 
       getTableData()
     })
@@ -376,7 +400,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       <Modal title="Edit Column" open={alterModal.alter}
         onOk={handleOk} onCancel={handleCancel}
         footer={[]}>
-        <AddColumnForm addColumn={addColumn}  ></AddColumnForm>
+        <AddColumnForm defautValues={alterModal.editData} addColumn={addColumn}  ></AddColumnForm>
       </Modal>
       {/* <Modal title="Delete Column" open={alterModal.del}
         onOk={handleOk} onCancel={handleCancel}

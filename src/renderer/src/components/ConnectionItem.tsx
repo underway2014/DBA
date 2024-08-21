@@ -152,16 +152,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
   };
 
-  const onExpand: DirectoryTreeProps['onExpand'] = (keys, info) => {
-    console.log('Trigger Expand', keys, info);
-    // fetch('http://localhost:3000/list')
-    //   .then(response => response.json())
-    //   .then(json => {
-    //     console.log('fetch res: ', json.data)
-    //     // setData({rows: json.data})
-    //   })
-  };
-
   function editConnection (node) {
     console.log('editConnection: ', node, node.key)
     // window.api.editStore(node)
@@ -370,21 +360,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     window.api.dbCreate({ dbName: val.name, connection: props.connection }).then(res => {
       console.log('client dbCreate res: ', res)
     })
-
-    // window.api.addStore({
-    //     name: val.name,
-    //     config: {
-    //         host: val.host,
-    //         port: val.port,
-    //         username: val.username,
-    //         password: val.password,
-    //         dialect: val.dialect,
-    //         database: val.database
-    //     }
-    // })
-
-    // props.updateSlider()
-
   }
 
 

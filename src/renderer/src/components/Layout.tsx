@@ -234,7 +234,7 @@ const CLayout: React.FC = () => {
             <TabelContent ref={tabsRef}></TabelContent>
           </Content>
 
-          <Footer style={{ backgroundColor: '#4096ff', height: 200, position: 'sticky' }}>
+          {/* <Footer style={{ backgroundColor: '#4096ff', height: 200, position: 'sticky' }}>
             <div style={{ height: 200, overflow: 'auto' }}>
               <List
                 size="small"
@@ -246,7 +246,7 @@ const CLayout: React.FC = () => {
               />
 
             </div>
-          </Footer>
+          </Footer> */}
         </Layout>
       </Layout>
 

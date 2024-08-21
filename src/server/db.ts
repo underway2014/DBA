@@ -1,6 +1,5 @@
 import {  QueryTypes, Sequelize } from "sequelize";
 import * as _ from 'lodash'
-// import { execa } from "execa";
 import { $ } from 'zx'
 import path from "path";
 import { app } from "electron";
@@ -260,13 +259,30 @@ async function delField({tableName, column}) {
     return query({sql})
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
-async function alterType(params:type) {
-    // ALTER TABLE assets 
-    // ALTER COLUMN asset_no TYPE INT;
-}
+async function alterColumn(data) {
+    console.log('alterColumn data: ', data)
+    if(data.dataType !== data.oldValue.dataType) {
+        await query({
+            sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
+        })
+    }
 
-async function  alterName(params:type) {
-    // ALTER TABLE products RENAME COLUMN product_no TO product_number;
+    if(data.notnull !== data.oldValue.notnull) {
+        console.log('data.notnull: ', !!data.notnull, data.notnull)
+        let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
+        if(data.notnull) {
+            sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
+        }
+       let res = await query({sql})
+        console.log('alter sql: ', sql, res)
+    }
+    
+    if(data.column !== data.oldValue.column) {
+        await query({
+            sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`
+        })
+    }
+
 }
 
 async function alterTable(data) {
@@ -274,6 +290,8 @@ async function alterTable(data) {
         return addField(data)
     }else if(data.type === 2) {
         return delField(data)
+    }else if(data.type === 3) {
+        return alterColumn(data)
     }
 }
 
