@@ -196,10 +196,11 @@ const CLayout: React.FC = () => {
 
   return (
     <div>
-      <Header style={{ backgroundColor: 'white' }}>
+      <Header style={{ backgroundColor: 'white', height: '30px' }}>
         {/* <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool> */}
 
         <Breadcrumb
+          style={{ marginLeft: '250px' }}
           separator=">"
           items={data.dbInfo}
         />

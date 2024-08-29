@@ -201,8 +201,13 @@ async function restore({type, connection, dbName, sqlPath}) {
 
 //type 1-database 2-table
 async function backup({type, config}) {
-    console.log('backup: ', type,  config)
+    console.log('backup: ', type,  config, process.env.NODE_ENV)
     let appPath =  app.getAppPath()
+    console.log('apppath00: ', appPath)
+    if(process.env.NODE_ENV !== 'development') {
+        appPath += '.unpacked'
+    }
+    console.log('apppath111: ', appPath)
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
     console.log('pgDumpPath: ', pgPath)
     let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${new Date().getTime()}.sql`)
