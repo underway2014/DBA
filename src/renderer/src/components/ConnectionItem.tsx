@@ -298,8 +298,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
       if (!/^table/.test(nodeData.key)) {
         delButton = (<DeleteOutlined className='marginlr20' onClick={(e) => {
-          //业务的处理函数
-          //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
           console.log('delete', e)
           e.stopPropagation()
           delConnection(nodeData)
@@ -313,8 +311,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
           e.stopPropagation()
 
           editConnection(nodeData)
-          //业务的处理函数
-          //在这里处理拿到key 去处理一维数组，然后再转二维数组 ，再setState
         }} />
       </Space>)
     }

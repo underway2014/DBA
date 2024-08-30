@@ -12,7 +12,7 @@ import { app } from "electron";
 //     username: 'postgres',
 //     password: 'postgres',
 //     dialect: 'postgres',
-//     database: 'jogo_gaming_dev'
+//     database: 'db'
 // })
 // await sequelize.authenticate();
 
@@ -117,28 +117,6 @@ function setDb(id) {
     currentDb = db
 }
 
-function getFields(sql) {
-    return sql.split(/form/i)[0].replace(/select/gi, '').split(',').map(el => {
-
-        el = el.trim()
-        let a = el.split(/\s+/)
-
-        return a[a.length - 1]
-        // if(/as/i.test(el)) {
-        //     return (el.split(/as/i)[1]).replace(/\s+/g, '')
-        // }else {
-        //     let a = el.split(/\s+/)
-
-        //     return el.replace(/\s+/g, '')
-        // }
-    })
-
-
-
-    // console.log('db fieldStr: ', fieldStr)
-    // return fieldStr.split(',')
-}
-
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
     console.log('db getTableData: ', data)
@@ -153,7 +131,23 @@ async function getTableData(data) {
 
 }
 
-async function updateDate({tableName, id, data}) {
+async function updateOneField({tableName, id, field, value}) {
+    let sql = `
+    update ${tableName} set ${field} = '${value}'
+    where id = ${id}
+    `
+
+    console.log('updateOneField sql: ', sql)
+
+
+    await query({sql})
+}
+
+async function updateDate({tableName, id, data, type}) {
+
+    if(type === 2) {
+        return updateOneField({tableName, id, ...data})
+    }
     let updateFields = Object.keys(data).map(key => {
         if(Number.isInteger(data[key])) {
             return `${key} = ${data[key]}`
@@ -172,28 +166,28 @@ async function updateDate({tableName, id, data}) {
     await query({sql})
 }
 
-function getTableName(sql) {
-    if(!sql){
-        throw new Error(`${sql} error`)
+function getAppPath() {
+    let appPath =  app.getAppPath()
+    if(process.env.NODE_ENV !== 'development') {
+        appPath += '.unpacked'
     }
 
-    let a = sql.replaceAll('\n', '').split(/from/i)
-    let b = a[1].split(' ')
+    console.log('getAppPath: ', appPath)
 
-    return b.find(el => !!el)
+    return appPath
 }
 
 // type 1-struct 2-struct and data
 async function restore({type, connection, dbName, sqlPath}) {
     console.log('restore: ', type, connection, dbName, sqlPath)
-    let appPath =  app.getAppPath()
+    let appPath =  getAppPath()
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_restore')
     console.log('pgDumpPath: ', pgPath)
     let option = ''
     if(type === 1) {
         option = '-s'
     }
-    console.log(`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${connection.config.database}  ${sqlPath}`)
+
     const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${connection.config.database}  ${sqlPath}`
     console.log('restore res: ', res, res.exitCode)
     return res
@@ -202,27 +196,21 @@ async function restore({type, connection, dbName, sqlPath}) {
 //type 1-database 2-table
 async function backup({type, config}) {
     console.log('backup: ', type,  config, process.env.NODE_ENV)
-    let appPath =  app.getAppPath()
-    console.log('apppath00: ', appPath)
-    if(process.env.NODE_ENV !== 'development') {
-        appPath += '.unpacked'
-    }
-    console.log('apppath111: ', appPath)
+    let appPath =  getAppPath()
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
     console.log('pgDumpPath: ', pgPath)
     let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${new Date().getTime()}.sql`)
     console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
     const res = await $`export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
     console.log('backup res: ', res, res.exitCode)
-    // let res1 = await execa(pgPath, ['--help']);
-    // console.log('backup res1: ', res1)
-    // let res = await execa`${shell}`
+    
     return res?.exitCode
 }
 
 async function createDb({dbName, connection}) {
     console.log('createDatabase: ', dbName,  connection)
-    let appPath =  app.getAppPath()
+    let appPath = getAppPath()
+
     let pgPath = path.join(appPath, 'resources/bin/mac/createdb')
     console.log('pgDumpPath: ', pgPath)
     const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
@@ -251,8 +239,6 @@ async function addField({tableName, column, dataType, defaltValue, comment, notn
     }
 
     return res
-    // ALTER TABLE active ADD c1 int8 DEFAULT 1 "test2"
-
 }
 
 async function delField({tableName, column}) {

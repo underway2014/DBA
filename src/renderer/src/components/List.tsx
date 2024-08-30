@@ -1,5 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Form, Input, Table, Tooltip } from 'antd';
+import { Flex, Form, Input, Table, Tooltip, Modal } from 'antd';
 
 import type { FormInstance, InputRef, TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
@@ -61,6 +61,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   const [listRows, setListRows] = useState([])
   const [editCell, setEditCell] = useState({ show: true, content: '' })
 
+  const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
+
   console.log('tableName: ', tableName)
   // console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -100,6 +102,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   function showEditCell (e, data) {
     console.log('showEditCell cell: ', e, data)
+
+    setEditRow({ data, show: true })
   }
 
 
@@ -125,8 +129,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         key: el.name,
         // ellipsis: true,
         width: 100,
-        render: (address) => {
-          if (!address) return address
+        render: (address, a, b, c) => {
+          if (el.name === 'id') return address
+          if (!address) address = ''
           let s = address
           if (address.length > 50) {
             s = address.substring(0, 45) + '...  '
@@ -134,9 +139,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
           return (< Tooltip placement="topLeft" title={address} >
             <div className='cellHover'>
               {s}
-              {<div className='cellPlus' onClick={e => showEditCell(e, address)}>
+              {<div className='cellPlus' onClick={e => showEditCell(e, { content: address, id: a.id, field: el.name })}>
                 <ZoomInOutlined />
-
               </div>}
             </div>
           </Tooltip >
@@ -281,6 +285,28 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     },
   };
 
+  function editRowOk () {
+
+    window.api.updateDate({ tableName: tableName, id: editRow.data.id, data: { field: editRow.data.field, value: editRow.data.content }, type: 2 }).then(data => {
+
+      console.log('query sql res: ', data)
+      // setListRows(newData);
+
+      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+
+      window.api.getTableData(props.tabData).then(data => {
+
+        console.log('executeSql query sql res: ', data)
+        updateList({ listData: data, tableName: props.tabData.tableName })
+      })
+    })
+  }
+
+  function editRowCancel () {
+    setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+
+  }
+
   function runSql () {
     sqlHandler()
   }
@@ -343,6 +369,17 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         size='small'
         // pagination={{ defaultPageSize: 15 }}
         components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />
+
+
+      <Modal title="Edit Data" open={editRow.show}
+        onOk={editRowOk} onCancel={editRowCancel}>
+        <TextArea rows={4} value={editRow.data.content} onChange={e => {
+          let data = editRow.data
+          data.content = e.target.value
+          setEditRow({ ...editRow, data })
+        }} />
+
+      </Modal>
     </div >
   )
 };
