@@ -97,11 +97,41 @@ async function getTables({name, id, config, schema = 'public'}) {
 
 }
 
-async function getRowAndColumns({sql, type}) {
+async function getRowAndColumns({sql, type, total, page, pageSize}) {
+    let res = {rows: [], columns: [], total}
+    if(!total) {
+        if(!/\blimit\b/i.test(sql)) {
+            let totalSql = sql.replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
+        
+            console.log('totalSql: ', totalSql)
+            let totalRes = await query({sql: totalSql})
+            console.log('totalRes: ', totalRes)
+    
+            res.total =  totalRes[0].count || 0
+
+        }
+    }
+
+    if(page && pageSize && !/\blimit\b/i.test(sql)) {
+        sql = `
+            ${sql}
+            limit ${pageSize}
+                `
+        if(!/\boffset\b/i.test(sql)) {
+            sql = `
+                ${sql}
+                offset ${(pageSize * (page - 1))}
+                `
+        }
+    }
+    console.log('getRowAndColumns: ', sql)
     let data = await currentDb.query(sql, {type: QueryTypes.RAW})
     console.log('data1: ',data)
+    res.rows = data[0]
+    res.columns = data[1].fields
+    
 
-    return {rows: data[0], columns: data[1].fields}
+    return res
 }
 
 async function query({sql }) {
@@ -123,7 +153,7 @@ async function getTableData(data) {
     setDb(data.id)
 
     if(/^\s*select/i.test(data.sql)){
-        return getRowAndColumns({sql: data.sql, type: null})
+        return getRowAndColumns({sql: data.sql, type: null, total: data.total, page: data.page, pageSize: data.pageSize})
     }else {
         return query({sql: data.sql})
 

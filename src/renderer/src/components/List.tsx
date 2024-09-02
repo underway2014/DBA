@@ -54,32 +54,53 @@ type selfProps = {
   tabData: any
 }
 
+
 const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
-  const [sqlTxt, setSqlTxt] = useState(`select * from ${props.tabData.tableName}`)
+  let defaultSql = `select * from ${props.tabData.tableName}`
+  const [sqlTxt, setSqlTxt] = useState(defaultSql)
   const [tableName, setTableName] = useState(props.tabData.tableName)
-  const [listRows, setListRows] = useState([])
-  const [editCell, setEditCell] = useState({ show: true, content: '' })
+  const [listRows, setListRows] = useState({
+    rows: [],
+    page: 1,
+    pageSize: 10,
+    total: 0
+  })
+  // const [editCell, setEditCell] = useState({ show: true, content: '' })
 
   const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
 
   console.log('tableName: ', tableName)
-  // console.log('init current sql: ', currentSql)
+  // console.log('init current sql: ', defaultSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   console.log('aaa')
 
   useEffect(() => {
     console.log('use effect sqlTxt: ', sqlTxt)
-    window.api.getTableData(props.tabData).then(data => {
+    getAndUpdateTable()
+  }, [])
+
+  function getAndUpdateTable ({ page, pageSize } = {}) {
+    console.log('page bbb: ', page)
+
+    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page: page || listRows.page, pageSize: pageSize || listRows.pageSize }).then(data => {
 
       console.log('executeSql query sql res: ', data)
-      updateList({ listData: data, tableName: props.tabData.tableName })
+      if (/^\s*select/i.test(sqlTxt)) {
+        console.log('page ccc111: ', listRows.page, page)
+        let tableName = getTableName(sqlTxt)
+        updateList({ listData: data, tableName: tableName })
+        setListRows((a) => {
+          return { ...a, page: page }
+        })
+        console.log('page ccc222: ', listRows.page, page)
+      }
     })
-  }, [])
+  }
 
 
   const [columns, setColumns] = useState<React.Key[]>([]);
-  console.log('bbb')
+  console.log(' bbbbb  page', listRows.page)
 
   const handleSave = ({ row, opt }) => {
     const newData = listRows;
@@ -108,11 +129,12 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
 
   function updateList ({ listData, tableName }) {
+    console.log('page dddddd: ', listRows.page)
     setTableName(tableName)
 
     listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
 
-    console.log('column rows: ', listData.columns, listData.rows)
+    console.log('column rows: ', listData, listData.page, listRows.page)
     listData.rows.forEach(el => {
       Object.keys(el).forEach(key => {
         if (el[key] && typeof el[key] === 'object') {
@@ -120,7 +142,14 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         }
       })
     })
-    setListRows(listData.rows)
+
+    setListRows({
+      ...listRows,
+      rows: listData.rows,
+      total: listData.total,
+      page: listRows.page,
+      pageSize: listData.pageSize || listRows.pageSize
+    })
 
     setColumns(listData.columns.map(el => {
       return {
@@ -323,32 +352,56 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     return b.find(el => !!el)
   }
 
+  function resetListRows () {
+    setListRows((a) => {
+      return { ...a, page: 1, pageSize: 10, total: 0 }
+    })
+  }
+
   function sqlHandler () {
-    console.log('sqlHandler: ', sqlTxt)
+    console.log('sqlHandler: ', sqlTxt, defaultSql)
 
     // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
-    setSqlTxt(sqlTxt)
+    // setSqlTxt(sqlTxt)
 
     window.api.getTableData(
       { ...props.tabData, sql: sqlTxt }
     ).then(data => {
-      console.log('query sql res: ', data)
+      console.log('query sql res: ', data, listRows.page)
       if (/^\s*select/i.test(sqlTxt)) {
         let tableName = getTableName(sqlTxt)
         updateList({ listData: data, tableName })
+        // resetListRows()
+        setListRows((a) => {
+          return { ...a, page: 1 }
+        })
       }
     })
 
 
   }
 
+  function pageChange (page, pageSize) {
+    console.log('page num: ', page, pageSize)
+
+    if (!/\blimit\b/i.test(sqlTxt)) {
+      getAndUpdateTable({ page, pageSize })
+    } else {
+      setListRows((a) => {
+        return { ...a, page }
+      })
+    }
+  }
+
   return (
     <div style={{ height: window.screen.height - 64 - 360 + 'px', overflow: 'auto' }}>
-      <TextArea rows={4} value={sqlTxt} onChange={e => {
-        console.log('sql txt:', e.target.value)
-        setSqlTxt(e.target.value)
-        // currentSql = e.target.value
-      }} />
+      <TextArea rows={4}
+        //  value={sqlTxt} 
+        defaultValue={defaultSql}
+        onChange={e => {
+          console.log('sql txt:', e.target.value)
+          setSqlTxt(e.target.value)
+        }} />
       <Flex gap="small" align="flex-start" vertical>
         <Flex gap="small" wrap>
           <div onClick={() => runSql()} style={{ width: '50px' }}>
@@ -367,8 +420,13 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       <Table bordered={true}
         scroll={{ x: 'max-content' }}
         size='small'
-        // pagination={{ defaultPageSize: 15 }}
-        components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows} ref={inputRef} />
+        pagination={{
+          defaultPageSize: listRows.pageSize,
+          // defaultCurrent: 1,
+          current: listRows.page,
+          onChange: pageChange, total: listRows.total
+        }}
+        components={components} rowSelection={rowSelection} columns={columns} dataSource={listRows.rows} ref={inputRef} />
 
 
       <Modal title="Edit Data" open={editRow.show}
