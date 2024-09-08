@@ -1,9 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { Dropdown, Modal, Space, Tree, message } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import CreateDbForm from './CreateDbFrom';
 import ConnectionForm from './ConnectionForm';
+import CustomContext from '@renderer/utils/context';
+import { LogAction, LogType } from '@renderer/utils/constant';
+import moment from 'moment';
+import { text } from 'stream/consumers';
+import { addErrorLog } from '@renderer/utils/errorHelper';
 const { confirm } = Modal;
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
@@ -32,7 +37,8 @@ let backupDbName = null
 let restoreType = 2 // 1-struct 2-struct and data
 
 const ConnectionItem: React.FC<selfProps> = (props) => {
-
+  const { logList, setLogList } = useContext(CustomContext)
+  console.log('connection item logList: ', logList)
   const selectSqlFile = useRef()
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
@@ -56,6 +62,10 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   const editHandleCancel = () => {
     setShowEditConnectionForm(false)
   };
+
+  function addDbError ({ error }) {
+    addErrorLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION })
+  }
 
 
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
@@ -92,6 +102,9 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
 
         setTreeData([treeNow])
 
+      }).catch(error => {
+        console.log('get error: ', error, typeof error)
+        addDbError({ error })
       })
     } else if (nodeType === 'schema') {
       window.api.getTables({ ...props.connection, schema: parseKeys[1] }).then(tables => {
@@ -126,6 +139,9 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
           parseKeys[1]
         ])
         setTreeData([treeNow])
+      }).catch(error => {
+        console.log('get error: ', error, typeof error)
+        addDbError({ error })
       })
 
     } else if (nodeType === 'table') {

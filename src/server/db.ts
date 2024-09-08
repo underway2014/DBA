@@ -41,6 +41,15 @@ function initDb({id, config}) {
     return db
 }
 
+async function testConnection(db) {
+    try {
+        await db.authenticate();
+        console.log('Connection has been established successfully.');
+      } catch (error) {
+        console.error('Unable to connect to the database:', error);
+      }
+}
+
 async function getSchema({id, config}) {
       initDb({id, config})
 
@@ -136,9 +145,13 @@ async function getRowAndColumns({sql, type, total, page, pageSize}) {
 
 async function query({sql }) {
     console.log('query: ',  sql)
-    let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
-    
-    return data
+    try {
+        let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
+        
+        return data
+    } catch (error) {
+        throw error
+    }
 }
 
 function setDb(id) {

@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
-// import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Breadcrumb, Dropdown, Layout, List, MenuProps, Modal, TabsProps } from 'antd';
-// import DataList from './List';
+import { Breadcrumb, Drawer, Dropdown, FloatButton, Layout, List, MenuProps, Modal } from 'antd';
 import ConnectionItem from './ConnectionItem';
-// import SqlContent from './SqlContent';
-// import SqlToolBar from './SqlToolBar';
 import TabelContent from './TabelContent';
-import { Footer, Header } from 'antd/es/layout/layout';
+import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
 import * as _ from 'lodash'
-
+import { FileTextOutlined } from '@ant-design/icons';
+import moment from 'moment';
+import CustomContext from '@renderer/utils/context';
+import { ILogItem } from '../interface'
+import { LogAction } from '@renderer/utils/constant';
 const { Content, Sider } = Layout;
 
 // const items = [UserOutlined, VideoCameraOutlined, UploadOutlined, UserOutlined].map(
@@ -75,7 +75,7 @@ const CLayout: React.FC = () => {
   }, [])
 
   function updateSlider () {
-    window.api.getStore('age').then(connections => {
+    window.api.getStore().then(connections => {
 
       console.log('updateSlider begin connections: ', connections)
       // let tmp = _.cloneDeep(data)
@@ -97,11 +97,6 @@ const CLayout: React.FC = () => {
     // })
     // type 1-查看表数据 2-编辑表
     tabsRef.current.updateList(val)
-  }
-  const SP = '@'
-
-  function tabRightHandler (e) {
-    console.log('tabRightHandler e: ', e)
   }
 
   function rightMenuHandler (e) {
@@ -139,12 +134,10 @@ const CLayout: React.FC = () => {
   }
 
   function createdbCacel () {
-
     setData({ ...data, createdbFrom: false })
   }
 
   function createdbOk () {
-
     setData({ ...data, createdbFrom: false })
   }
 
@@ -183,86 +176,117 @@ const CLayout: React.FC = () => {
     setData({ ...data, dbInfo: a })
   }
 
-  const consoleData = [
-    'Racing car sprays burning fuel into crowd.',
-    'Japanese princess to wed commoner.',
-    'Racing car sprays burning fuel into crowd.',
-    'Japanese princess to wed commoner.',
-    'Racing car sprays burning fuel into crowd.',
-    'Japanese princess to wed commoner.',
-    'Australian walks 100km after outback crash.',
+  const [logOpen, setLogOpen] = useState(false)
+  function logClose () {
+    setLogOpen(false)
+  }
 
-  ];
+  function showLog () {
+    setLogOpen(true)
+  }
+
+  const [logList, setLogList] = useState<ILogItem[]>([
+    {
+      date: moment().format('YYYY-MM-DD hh:mm:ss'),
+      action: LogAction.DBCONNECTION,
+      type: 1,
+      text: `Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.`
+    }
+  ])
 
   return (
     <div>
-      <Header style={{ backgroundColor: 'white', height: '30px' }}>
-        {/* <HeaderTool showForm={getAddCon} updateSlider={updateSlider}></HeaderTool> */}
+      <CustomContext.Provider value={{ logList, setLogList }}>
+        <Header style={{ backgroundColor: 'white', height: '30px' }}>
 
-        <Breadcrumb
-          style={{ marginLeft: '250px' }}
-          separator=">"
-          items={data.dbInfo}
-        />
-      </Header>
+          <Breadcrumb
+            style={{ marginLeft: '250px' }}
+            separator=">"
+            items={data.dbInfo}
+          />
+        </Header>
 
-      <Layout>
-        <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
-          <div style={{ height: window.screen.height - 64 - 60 + 'px', overflow: 'auto' }}>
-            <Sider
-              breakpoint="lg"
-              collapsedWidth="0"
-              onBreakpoint={(broken) => {
-                console.log(broken);
-              }}
-              width={300}
-              onCollapse={(collapsed, type) => {
-                console.log(collapsed, type);
-              }}
-              style={{ backgroundColor: 'white' }}
-            >
-              {
-                connections.map((el, index) => {
-                  return <ConnectionItem setDbInfo={setDbInfo} getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
-                })
-              }
-            </Sider>
-          </div>
-        </Dropdown>
         <Layout>
-
-
-          <Content style={{ height: window.screen.height - 64 - 60 - 200 + 'px' }}>
-            <TabelContent ref={tabsRef}></TabelContent>
-          </Content>
-
-          {/* <Footer style={{ backgroundColor: '#4096ff', height: 200, position: 'sticky' }}>
-            <div style={{ height: 200, overflow: 'auto' }}>
-              <List
-                size="small"
-                header={<div>Header</div>}
-                footer={<div>Footer</div>}
-                bordered
-                dataSource={consoleData}
-                renderItem={(item) => <List.Item>{item}</List.Item>}
-              />
-
+          <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+            <div style={{ height: window.screen.height - 64 - 60 + 'px', overflow: 'auto' }}>
+              <Sider
+                breakpoint="lg"
+                collapsedWidth="0"
+                onBreakpoint={(broken) => {
+                  console.log(broken);
+                }}
+                width={300}
+                onCollapse={(collapsed, type) => {
+                  console.log(collapsed, type);
+                }}
+                style={{ backgroundColor: 'white' }}
+              >
+                {
+                  connections.map((el, index) => {
+                    return <ConnectionItem setDbInfo={setDbInfo} getTableDataByName={getTableDataByName} cid={index} key={index} connection={el} updateSlider={updateSlider}></ConnectionItem>
+                  })
+                }
+              </Sider>
             </div>
-          </Footer> */}
+          </Dropdown>
+          <Layout>
+
+
+            <Content style={{ height: window.screen.height - 64 - 60 - 200 + 'px' }}>
+              <TabelContent ref={tabsRef}></TabelContent>
+            </Content>
+
+          </Layout>
         </Layout>
-      </Layout>
 
-      <Modal title="Add connection" open={data.connectionForm}
-        onOk={conOk} onCancel={conCancel}
-        footer={[]}>
-        <ConnectionForm addConnection={conAddOk}></ConnectionForm>
-      </Modal>
+        <Drawer
+          title={`LOG`}
+          placement="right"
+          size={'large'}
+          onClose={logClose}
+          open={logOpen}
+        // extra={
+        //   <Space>
+        //     <Button onClick={onClose}>Cancel</Button>
+        //     <Button type="primary" onClick={onClose}>
+        //       OK
+        //     </Button>
+        //   </Space>
+        // }
 
-      <Modal title="Create database" open={data.createdbFrom}
-        onOk={createdbOk} onCancel={createdbCacel}
-        footer={[]}>
-        <CreateDbForm createDatabase={addDbOk}></CreateDbForm>
-      </Modal>
+        >
+          <List
+            size="small"
+            // bordered
+            dataSource={logList}
+            renderItem={(item) => {
+              return <p style={{ fontSize: 14, margin: 0 }}>[{item.type}] [{item.date}] {item.text}</p>
+            }}
+          />
+
+        </Drawer>
+
+        <FloatButton
+          icon={<FileTextOutlined />}
+          description="LOG"
+          shape="square"
+          style={{ insetInlineEnd: 164 }}
+          onClick={showLog}
+        />
+
+        <Modal title="Add connection" open={data.connectionForm}
+          onOk={conOk} onCancel={conCancel}
+          footer={[]}>
+          <ConnectionForm addConnection={conAddOk}></ConnectionForm>
+        </Modal>
+
+        <Modal title="Create database" open={data.createdbFrom}
+          onOk={createdbOk} onCancel={createdbCacel}
+          footer={[]}>
+          <CreateDbForm createDatabase={addDbOk}></CreateDbForm>
+        </Modal>
+
+      </CustomContext.Provider>
     </div >
   );
 };

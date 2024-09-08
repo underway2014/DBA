@@ -5,10 +5,10 @@ import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd'
 import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
 import AddColumnForm from './AddColumnForm';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import CustomContext from '@renderer/utils/context';
 
 const { confirm } = Modal;
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
-const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface DataType {
   key: React.Key;
@@ -17,14 +17,6 @@ interface DataType {
   address: string;
 }
 
-
-interface EditableCellProps {
-  title: React.ReactNode;
-  editable: boolean;
-  dataIndex: any;
-  record: any;
-  handleSave: (record: any) => void;
-}
 
 type selfProps = {
   tabData: any
@@ -37,6 +29,9 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     del: false,
     editData: {}
   })
+
+  const { logList, setLogList } = useContext(CustomContext)
+  console.log('edittable logList: ', logList)
 
   const columnsStr = ['column_name', 'column_default', 'is_nullable', 'data_type', 'character_maximum_length', 'numeric_precision', 'numeric_precision_radix', 'udt_name']
   const editColumns: TableColumnsType<DataType> = columnsStr.map(el => {
@@ -84,24 +79,24 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   const [columns, setColumns] = useState<React.Key[]>([]);
   console.log('bbb')
 
-  const handleSave = ({ row, opt }) => {
-    const newData = listRows;
-    console.log('handleSave row: ', row, opt)
-    const index = newData.findIndex((item) => row.id === item.id);
-    const item = newData[index];
-    console.log('handleSave item: ', item, index)
-    newData.splice(index, 1, {
-      ...item,
-      ...row
-    });
+  // const handleSave = ({ row, opt }) => {
+  //   const newData = listRows;
+  //   console.log('handleSave row: ', row, opt)
+  //   const index = newData.findIndex((item) => row.id === item.id);
+  //   const item = newData[index];
+  //   console.log('handleSave item: ', item, index)
+  //   newData.splice(index, 1, {
+  //     ...item,
+  //     ...row
+  //   });
 
-    window.api.updateDate({ tableName: tableName, id: row.id, data: opt }).then(data => {
+  //   window.api.updateDate({ tableName: tableName, id: row.id, data: opt }).then(data => {
 
-      console.log('query sql res: ', data)
-      setListRows(newData);
+  //     console.log('query sql res: ', data)
+  //     setListRows(newData);
 
-    })
-  };
+  //   })
+  // };
 
 
   function updateList ({ listData, tableName }) {
@@ -120,14 +115,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
         // with: '50px',
         render: (text) => {
           return <div style={{ maxWidth: "150px" }}>{text}</div>
-        },
-        onCell: (record: DataType) => ({
-          record,
-          editable: true,
-          dataIndex: el.title,
-          title: el.title,
-          handleSave,
-        })
+        }
       }
     })
 
@@ -205,92 +193,6 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     ],
   };
 
-
-  interface EditableRowProps {
-    index: number;
-  }
-
-  const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
-    const [form] = Form.useForm();
-    return (
-      <Form form={form} component={false}>
-        <EditableContext.Provider value={form}>
-          <tr {...props} />
-        </EditableContext.Provider>
-      </Form>
-    );
-  };
-
-
-  const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
-    title,
-    editable,
-    children,
-    dataIndex,
-    record,
-    handleSave,
-    ...restProps
-  }) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef<InputRef>(null);
-    const form = useContext(EditableContext)!;
-
-    useEffect(() => {
-      if (editing) {
-        inputRef.current?.focus();
-      }
-    }, [editing]);
-
-    const toggleEdit = () => {
-      setEditing(!editing);
-      form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-    };
-
-    const save = async () => {
-      try {
-        const values = await form.validateFields();
-
-        console.log('values: ', values)
-
-        toggleEdit();
-        handleSave({ row: { ...record, ...values }, opt: values });
-      } catch (errInfo) {
-        console.log('Save failed:', errInfo);
-      }
-    };
-
-    let childNode = children;
-
-    if (editable) {
-      childNode = editing ? (
-        <Form.Item
-          style={{ margin: 0 }}
-          name={dataIndex}
-          rules={[
-            {
-              required: true,
-              message: `${title} is required.`,
-            },
-          ]}
-        >
-          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-        </Form.Item>
-      ) : (
-        <div className="editable-cell-value-wrap" style={{ paddingRight: 24 }} onDoubleClick={toggleEdit}>
-          {children}
-        </div>
-      );
-    }
-
-    return <td {...restProps}>{childNode}</td>;
-  }
-
-  const components = {
-    body: {
-      row: EditableRow,
-      // cell: EditableCell,
-    },
-  };
 
   function addField () {
     setAlterModal({ ...alterModal, add: true })
@@ -394,7 +296,9 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
       </Flex>
       {/*   */}
       <Table scroll={{ x: 'max-content' }} size='small' pagination={false}
-        components={components} rowSelection={rowSelection} columns={columns}
+        // components={components} 
+        rowSelection={rowSelection}
+        columns={columns}
         dataSource={listRows} ref={inputRef} />;
 
       <Modal title="Add Column" open={alterModal.add}

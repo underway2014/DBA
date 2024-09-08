@@ -34,6 +34,7 @@
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
     "lodash": "^4.17.21",
+    "moment": "^2.30.1",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.3",
