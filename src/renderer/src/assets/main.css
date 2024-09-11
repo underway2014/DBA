@@ -20,6 +20,7 @@ body {
 .cellHover {
   position: relative;
   white-space: nowrap;
+  height: 20px;
 }
 
 .cellHover:hover .cellPlus {
@@ -29,6 +30,7 @@ body {
   width: 10;
   height: 10;
   right: 0;
+  cursor: pointer;
   /* background-color: rgba(rgb(224, 13, 13), green, blue, 0.5); */
 }
 

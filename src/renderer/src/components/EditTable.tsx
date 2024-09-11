@@ -47,7 +47,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
   FROM
   information_schema.columns
   WHERE
-  table_name = '${props.tabData.tableName}' LIMIT 400
+  table_name = '${props.tabData.tableName}' LIMIT 500
   `
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState([])
@@ -76,27 +76,6 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
 
   const [columns, setColumns] = useState<React.Key[]>([]);
-  console.log('bbb')
-
-  // const handleSave = ({ row, opt }) => {
-  //   const newData = listRows;
-  //   console.log('handleSave row: ', row, opt)
-  //   const index = newData.findIndex((item) => row.id === item.id);
-  //   const item = newData[index];
-  //   console.log('handleSave item: ', item, index)
-  //   newData.splice(index, 1, {
-  //     ...item,
-  //     ...row
-  //   });
-
-  //   window.api.updateDate({ tableName: tableName, id: row.id, data: opt }).then(data => {
-
-  //     console.log('query sql res: ', data)
-  //     setListRows(newData);
-
-  //   })
-  // };
-
 
   function updateList ({ listData, tableName }) {
     setTableName(tableName)
@@ -289,24 +268,10 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
         </Flex>
       </Flex>
 
-      {/* <Flex gap="small" align="flex-start" vertical style={{ backgroundColor: '#202020', paddingLeft: '10px' }}>
-        <Flex gap="small" wrap>
-          <div onClick={() => addField()} style={{ width: buttonSize, cursor: 'pointer' }}>
-            <AddIcon></AddIcon>
-          </div>
-          <div onClick={() => delField()} style={{ width: buttonSize }}>
-            <MinusIcon></MinusIcon>
-          </div>
-
-
-        </Flex>
-      </Flex> */}
-      {/*   */}
       <Table scroll={{ x: 'max-content' }} size='small' pagination={false}
-        // components={components} 
         rowSelection={rowSelection}
         columns={columns}
-        dataSource={listRows} ref={inputRef} />;
+        dataSource={listRows} ref={inputRef} />
 
       <Modal title="Add Column" open={alterModal.add}
         onOk={handleOk} onCancel={handleCancel}

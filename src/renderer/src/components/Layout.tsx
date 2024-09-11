@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Breadcrumb, Button, Drawer, Dropdown, Flex, FloatButton, Layout, List, MenuProps, Modal, Tooltip } from 'antd';
+import { Breadcrumb, Button, Drawer, Dropdown, Flex, Layout, List, MenuProps, Modal, Tooltip } from 'antd';
 import ConnectionItem from './ConnectionItem';
 import TabelContent from './TabelContent';
 import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
-import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 
 import * as _ from 'lodash'
-import { FileTextOutlined } from '@ant-design/icons';
-import moment from 'moment';
 import CustomContext from '@renderer/utils/context';
 import { ILogItem } from '../interface'
-import { LogAction } from '@renderer/utils/constant';
 const { Content, Sider } = Layout;
 
 // const items = [UserOutlined, VideoCameraOutlined, UploadOutlined, UserOutlined].map(
@@ -32,13 +29,7 @@ const { Content, Sider } = Layout;
 //   backgroundColor: '#4096ff',
 // };
 
-type SqlRef = {
-
-}
 const CLayout: React.FC = () => {
-  // const {
-  //   token: { colorBgContainer, borderRadiusLG },
-  // } = theme.useToken();
 
   const [connections, setConnections] = useState([])
   const [data, setData] = useState({
@@ -188,12 +179,12 @@ const CLayout: React.FC = () => {
   }
 
   const [logList, setLogList] = useState<ILogItem[]>([
-    {
-      date: moment().format('YYYY-MM-DD hh:mm:ss'),
-      action: LogAction.DBCONNECTION,
-      type: 1,
-      text: `Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.`
-    }
+    // {
+    //   date: moment().format('YYYY-MM-DD hh:mm:ss'),
+    //   action: LogAction.DBCONNECTION,
+    //   type: 1,
+    //   text: `Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.`
+    // }
   ])
 
   return (
@@ -213,15 +204,6 @@ const CLayout: React.FC = () => {
               <Button size='small' shape="circle" icon={<EyeOutlined />} onClick={showLog} />
             </Tooltip>
 
-            {/* <div>
-              <FloatButton
-                icon={<FileTextOutlined />}
-                description="LOG"
-                shape="square"
-                // style={{ insetInlineEnd: 164, float: 'right', marginRight: '10px' }}
-                onClick={showLog}
-              />
-            </div> */}
           </Flex>
         </Header>
 

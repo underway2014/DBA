@@ -1,13 +1,11 @@
 import React, { useContext, useRef, useState } from 'react';
 import { Dropdown, Modal, Space, Tree, message } from 'antd';
-import type { GetProps, MenuProps, TreeDataNode, UploadProps } from 'antd';
+import type { GetProps, MenuProps, TreeDataNode } from 'antd';
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import CreateDbForm from './CreateDbFrom';
 import ConnectionForm from './ConnectionForm';
 import CustomContext from '@renderer/utils/context';
-import { LogAction, LogType } from '@renderer/utils/constant';
-import moment from 'moment';
-import { text } from 'stream/consumers';
+import { LogAction } from '@renderer/utils/constant';
 import { addErrorLog } from '@renderer/utils/errorHelper';
 const { confirm } = Modal;
 
@@ -66,7 +64,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   function addDbError ({ error }) {
     addErrorLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION })
   }
-
 
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
     console.log('Trigger Select', keys, info, props.connection);

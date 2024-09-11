@@ -20,13 +20,10 @@ const TabelContent: React.FC = (props, parentRef) => {
     const [activeKey, setActiveKey] = useState(defaultPanes[0].key);
     const [items, setItems] = useState(defaultPanes);
     const newTabIndex = useRef(0);
-    // const listRef = useRef<any>()
 
     useImperativeHandle(parentRef, () => {
         return {
             updateList (tabData) {
-                // listRef.current.updateList({ listData, tableName })
-
                 addTab(tabData)
 
             }

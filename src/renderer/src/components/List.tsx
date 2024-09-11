@@ -1,8 +1,11 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import { Flex, Table, Tooltip, Modal, Button } from 'antd';
 import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import { ZoomInOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { LogAction } from '@renderer/utils/constant';
+import { addErrorLog } from '@renderer/utils/errorHelper';
+import CustomContext from '@renderer/utils/context';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 
@@ -18,6 +21,7 @@ type selfProps = {
 }
 
 const DataList: React.FC<selfProps> = (props, parentRef) => {
+  const { logList, setLogList } = useContext(CustomContext)
   const inputRef = useRef(null);
   let defaultSql = `select * from ${props.tabData.tableName}`
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
@@ -131,8 +135,9 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
             return (< Tooltip placement="topLeft" title={address} >
               <div className='cellHover'>
                 {s}
+
                 {<div className='cellPlus' onClick={e => showEditCell(e, { content: address, id: a.id, field: el.name })}>
-                  <ZoomInOutlined />
+                  <EditOutlined />
                 </div>}
               </div>
             </Tooltip >
@@ -230,7 +235,13 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         console.log('executeSql query sql res: ', data)
         updateList({ listData: data, tableName: props.tabData.tableName })
       })
+    }).catch(error => {
+      addDbError({ error })
     })
+  }
+
+  function addDbError ({ error }) {
+    addErrorLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION })
   }
 
   function editRowCancel () {
