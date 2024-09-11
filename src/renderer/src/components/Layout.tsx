@@ -12,23 +12,6 @@ import CustomContext from '@renderer/utils/context';
 import { ILogItem } from '../interface'
 const { Content, Sider } = Layout;
 
-// const items = [UserOutlined, VideoCameraOutlined, UploadOutlined, UserOutlined].map(
-//   (icon, index) => ({
-//     key: String(index + 1),
-//     icon: React.createElement(icon),
-//     label: `nav ${index + 1}`,
-//   }),
-// );
-
-// const headerStyle: React.CSSProperties = {
-//   textAlign: 'center',
-//   color: '#fff',
-//   height: 30,
-//   paddingInline: 48,
-//   lineHeight: '64px',
-//   backgroundColor: '#4096ff',
-// };
-
 const CLayout: React.FC = () => {
 
   const [connections, setConnections] = useState([])

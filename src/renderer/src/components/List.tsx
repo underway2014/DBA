@@ -35,11 +35,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   })
 
   console.time('tabcontent')
-  // const [editCell, setEditCell] = useState({ show: true, content: '' })
-
   const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
 
-  // console.log('init current sql: ', defaultSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   console.time('useEffect')
   useEffect(() => {
@@ -67,25 +64,6 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   console.timeEnd('getAndUpdateTable')
 
   const [columns, setColumns] = useState<React.Key[]>([]);
-
-  // const handleSave = ({ row, opt }) => {
-  //   const newData = listRows;
-  //   console.log('handleSave row: ', row, opt)
-  //   const index = newData.findIndex((item) => row.id === item.id);
-  //   const item = newData[index];
-  //   console.log('handleSave item: ', item, index)
-  //   newData.splice(index, 1, {
-  //     ...item,
-  //     ...row
-  //   });
-
-  //   window.api.updateDate({ tableName: tableName, id: row.id, data: opt }).then(data => {
-
-  //     console.log('query sql res: ', data)
-  //     setListRows(newData);
-
-  //   })
-  // };
 
   function showEditCell (e, data) {
     console.log('showEditCell cell: ', e, data)
@@ -132,7 +110,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
             if (address.length > 50) {
               s = address.substring(0, 45) + '...  '
             }
-            return (< Tooltip placement="topLeft" title={address} >
+            return (
               <div className='cellHover'>
                 {s}
 
@@ -140,16 +118,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
                   <EditOutlined />
                 </div>}
               </div>
-            </Tooltip >
             )
-          },
-          // onCell: (record: DataType) => ({
-          //   record,
-          //   editable: true,
-          //   dataIndex: el.name,
-          //   title: el.name,
-          //   handleSave,
-          // })
+          }
         }
       }))
     }
@@ -198,15 +168,6 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
   console.timeEnd('rowSelection')
-
-
-
-  // const components = {
-  //   body: {
-  //     row: EditableRow,
-  //     cell: EditableCell,
-  //   },
-  // };
 
   function editRowOk () {
 
