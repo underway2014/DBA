@@ -1,13 +1,10 @@
-import React, { forwardRef, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Flex, Form, Input, Table, Tooltip, Modal } from 'antd';
-
-import type { FormInstance, InputRef, TableProps } from 'antd';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import { Flex, Table, Tooltip, Modal, Button } from 'antd';
+import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import { AddIcon, MinusIcon, RunIcon } from '@renderer/assets/icons/icon';
-import { ZoomInOutlined } from '@ant-design/icons';
+import { ZoomInOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
-const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface DataType {
   key: React.Key;
@@ -16,124 +13,9 @@ interface DataType {
   address: string;
 }
 
-
-interface EditableCellProps {
-  title: React.ReactNode;
-  editable: boolean;
-  dataIndex: any;
-  record: any;
-  handleSave: (record: any) => void;
-}
-
-// const columns: TableColumnsType<DataType> = [
-//   {
-//     title: 'Name',
-//     dataIndex: 'name',
-//   },
-//   {
-//     title: 'Age',
-//     dataIndex: 'age',
-//   },
-//   {
-//     title: 'Address',
-//     dataIndex: 'address',
-//   },
-// ];
-
-// const data: DataType[] = [];
-// for (let i = 0; i < 46; i++) {
-//   data.push({
-//     key: i,
-//     name: `Edward King ${i}`,
-//     age: 32,
-//     address: `London, Park Lane no. ${i}`,
-//   });
-// }
-
 type selfProps = {
   tabData: any
 }
-
-
-interface EditableRowProps {
-  index: number;
-}
-
-const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
-  const [form] = Form.useForm();
-  return (
-    <Form form={form} component={false}>
-      <EditableContext.Provider value={form}>
-        <tr {...props} />
-      </EditableContext.Provider>
-    </Form>
-  );
-}
-
-
-const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
-  title,
-  editable,
-  children,
-  dataIndex,
-  record,
-  handleSave,
-  ...restProps
-}) => {
-  const [editing, setEditing] = useState(false);
-  const inputRef = useRef<InputRef>(null);
-  const form = useContext(EditableContext)!;
-
-  useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-    }
-  }, [editing]);
-
-  const toggleEdit = () => {
-    setEditing(!editing);
-    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-  };
-
-  const save = async () => {
-    try {
-      const values = await form.validateFields();
-
-      console.log('values: ', values)
-
-      toggleEdit();
-      handleSave({ row: { ...record, ...values }, opt: values });
-    } catch (errInfo) {
-      console.log('Save failed:', errInfo);
-    }
-  };
-
-  let childNode = children;
-
-  if (editable) {
-    childNode = editing ? (
-      <Form.Item
-        style={{ margin: 0 }}
-        name={dataIndex}
-        rules={[
-          {
-            required: true,
-            message: `${title} is required.`,
-          },
-        ]}
-      >
-        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-      </Form.Item>
-    ) : (
-      <div className="editable-cell-value-wrap" style={{ paddingRight: 24 }} onDoubleClick={toggleEdit}>
-        {children}
-      </div>
-    );
-  }
-
-  return <td {...restProps}>{childNode}</td>;
-}
-
 
 const DataList: React.FC<selfProps> = (props, parentRef) => {
   const inputRef = useRef(null);
@@ -144,6 +26,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     rows: [],
     page: 1,
     pageSize: 10,
+    // pageSizeList: 
     total: 0
   })
 
@@ -157,26 +40,22 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   console.time('useEffect')
   useEffect(() => {
     console.log('use effect sqlTxt: ', sqlTxt)
-    getAndUpdateTable()
+    getAndUpdateTable(listRows)
   }, [])
 
   console.timeEnd('useEffect')
 
   console.time('getAndUpdateTable')
-  function getAndUpdateTable ({ page, pageSize } = {}) {
+  function getAndUpdateTable ({ page, pageSize }) {
     console.log('page bbb: ', page)
 
-    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page: page || listRows.page, pageSize: pageSize || listRows.pageSize }).then(data => {
+    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then(data => {
 
       console.log('executeSql query sql res: ', data)
       if (/^\s*select/i.test(sqlTxt)) {
         console.log('page ccc111: ', listRows.page, page)
         let tableName = getTableName(sqlTxt)
-        updateList({ listData: data, tableName: tableName })
-        setListRows((a) => {
-          return { ...a, page: page }
-        })
-        console.log('page ccc222: ', listRows.page, page)
+        updateList({ listData: data, tableName: tableName, page, pageSize })
       }
     })
   }
@@ -211,7 +90,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
 
-  function updateList ({ listData, tableName }) {
+  function updateList ({ listData, tableName, page, pageSize }) {
     console.log('page dddddd: ', listRows.page)
     setTableName(tableName)
 
@@ -230,43 +109,45 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       ...listRows,
       rows: listData.rows,
       total: listData.total,
-      page: listRows.page,
-      pageSize: listData.pageSize || listRows.pageSize
+      page: page || 1,
+      pageSize: pageSize || listRows.pageSize
     })
 
-    setColumns(listData.columns.map(el => {
-      return {
-        title: el.name,
-        dataIndex: el.name,
-        key: el.name,
-        // ellipsis: true,
-        width: 100,
-        render: (address, a, b, c) => {
-          if (el.name === 'id') return address
-          if (!address) address = ''
-          let s = address
-          if (address.length > 50) {
-            s = address.substring(0, 45) + '...  '
-          }
-          return (< Tooltip placement="topLeft" title={address} >
-            <div className='cellHover'>
-              {s}
-              {<div className='cellPlus' onClick={e => showEditCell(e, { content: address, id: a.id, field: el.name })}>
-                <ZoomInOutlined />
-              </div>}
-            </div>
-          </Tooltip >
-          )
-        },
-        // onCell: (record: DataType) => ({
-        //   record,
-        //   editable: true,
-        //   dataIndex: el.name,
-        //   title: el.name,
-        //   handleSave,
-        // })
-      }
-    }))
+    if (listRows.page === 1) {
+      setColumns(listData.columns.map(el => {
+        return {
+          title: el.name,
+          dataIndex: el.name,
+          key: el.name,
+          // ellipsis: true,
+          width: 100,
+          render: (address, a, b, c) => {
+            if (el.name === 'id') return address
+            if (!address) address = ''
+            let s = address
+            if (address.length > 50) {
+              s = address.substring(0, 45) + '...  '
+            }
+            return (< Tooltip placement="topLeft" title={address} >
+              <div className='cellHover'>
+                {s}
+                {<div className='cellPlus' onClick={e => showEditCell(e, { content: address, id: a.id, field: el.name })}>
+                  <ZoomInOutlined />
+                </div>}
+              </div>
+            </Tooltip >
+            )
+          },
+          // onCell: (record: DataType) => ({
+          //   record,
+          //   editable: true,
+          //   dataIndex: el.name,
+          //   title: el.name,
+          //   handleSave,
+          // })
+        }
+      }))
+    }
   }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -324,6 +205,19 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   function editRowOk () {
 
+    let editData = listRows.rows.find(el => el.id === editRow.data.id)
+    if (!editData) {
+      console.log(`table: ${tableName} edit id: ${editRow.data.id} not exist`)
+      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+      return
+    }
+
+    if (editData[editRow.data.field] === editRow.data.content) {
+      console.log(`table: ${tableName} edit id: ${editRow.data.id} data same`)
+      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+      return
+    }
+
     window.api.updateDate({ tableName: tableName, id: editRow.data.id, data: { field: editRow.data.field, value: editRow.data.content }, type: 2 }).then(data => {
 
       console.log('query sql res: ', data)
@@ -360,17 +254,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     return b.find(el => !!el)
   }
 
-  function resetListRows () {
-    setListRows((a) => {
-      return { ...a, page: 1, pageSize: 10, total: 0 }
-    })
-  }
-
   function sqlHandler () {
     console.log('sqlHandler: ', sqlTxt, defaultSql)
-
-    // if(sqlTxtRef && sqlTxtRef.current && sqlTxtRef.current.getTxt === 'function') {
-    // setSqlTxt(sqlTxt)
 
     window.api.getTableData(
       { ...props.tabData, sql: sqlTxt }
@@ -379,10 +264,6 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       if (/^\s*select/i.test(sqlTxt)) {
         let tableName = getTableName(sqlTxt)
         updateList({ listData: data, tableName })
-        // resetListRows()
-        setListRows((a) => {
-          return { ...a, page: 1 }
-        })
       }
     })
 
@@ -391,6 +272,10 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   function pageChange (page, pageSize) {
     console.log('page num: ', page, pageSize)
+
+    if (pageSize !== listRows.pageSize) {
+      page = 1
+    }
 
     if (!/\blimit\b/i.test(sqlTxt)) {
       getAndUpdateTable({ page, pageSize })
@@ -404,7 +289,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   console.timeEnd('tabcontent')
 
   return (
-    <div style={{ height: window.screen.height - 64 - 360 + 'px', overflow: 'auto' }}>
+    <div style={{ height: window.screen.height - 160 + 'px', overflow: 'auto' }}>
       <TextArea rows={4}
         //  value={sqlTxt} 
         defaultValue={defaultSql}
@@ -412,19 +297,17 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
           console.log('sql txt:', e.target.value)
           setSqlTxt(e.target.value)
         }} />
-      <Flex gap="small" align="flex-start" vertical>
+      <Flex gap="small" align="flex-start" vertical style={{ marginLeft: '5px' }}>
         <Flex gap="small" wrap>
-          <div onClick={() => runSql()} style={{ width: '50px' }}>
-            <RunIcon></RunIcon>
-          </div>
-          <div onClick={() => runSql()} style={{ width: '50px' }}>
-            <AddIcon></AddIcon>
-          </div>
-          <div onClick={() => runSql()} style={{ width: '50px' }}>
-            <MinusIcon></MinusIcon>
-          </div>
-
-
+          <Tooltip title="run">
+            <Button size='small' icon={<CaretRightOutlined />} onClick={runSql} />
+          </Tooltip>
+          <Tooltip title="add">
+            <Button size='small' icon={<PlusOutlined />} onClick={runSql} />
+          </Tooltip>
+          <Tooltip title="delete">
+            <Button size='small' icon={<DeleteOutlined />} onClick={runSql} />
+          </Tooltip>
         </Flex>
       </Flex>
       <Table bordered={true}
@@ -432,9 +315,11 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         size='small'
         pagination={{
           defaultPageSize: listRows.pageSize,
+          pageSize: listRows.pageSize,
           // defaultCurrent: 1,
           current: listRows.page,
-          onChange: pageChange, total: listRows.total
+          onChange: pageChange, total: listRows.total,
+          // pageSizeOptions: listRows.pageSizeList
         }}
         // components={components}
         rowSelection={rowSelection}

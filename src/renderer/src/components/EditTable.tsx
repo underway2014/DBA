@@ -1,8 +1,7 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Form, Input, Modal, Table } from 'antd';
-
-import type { FormInstance, InputRef, TableColumnsType, TableProps } from 'antd';
-import { AddIcon, MinusIcon } from '@renderer/assets/icons/icon';
+import { Button, Flex, Modal, Table, Tooltip } from 'antd';
+import { CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import type { TableColumnsType, TableProps } from 'antd';
 import AddColumnForm from './AddColumnForm';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import CustomContext from '@renderer/utils/context';
@@ -277,12 +276,20 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
     })
   }
 
-  const buttonSize = '40px'
-
-
   return (
     <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
-      <Flex gap="small" align="flex-start" vertical style={{ backgroundColor: '#202020', paddingLeft: '10px' }}>
+      <Flex gap="small" align="flex-start" vertical style={{ marginLeft: '5px' }}>
+        <Flex gap="small" wrap>
+          <Tooltip title="add">
+            <Button size='small' icon={<PlusOutlined />} onClick={addField} />
+          </Tooltip>
+          <Tooltip title="delete">
+            <Button size='small' icon={<DeleteOutlined />} onClick={delField} />
+          </Tooltip>
+        </Flex>
+      </Flex>
+
+      {/* <Flex gap="small" align="flex-start" vertical style={{ backgroundColor: '#202020', paddingLeft: '10px' }}>
         <Flex gap="small" wrap>
           <div onClick={() => addField()} style={{ width: buttonSize, cursor: 'pointer' }}>
             <AddIcon></AddIcon>
@@ -293,7 +300,7 @@ const EditTable: React.FC<selfProps> = (props, parentRef) => {
 
 
         </Flex>
-      </Flex>
+      </Flex> */}
       {/*   */}
       <Table scroll={{ x: 'max-content' }} size='small' pagination={false}
         // components={components} 

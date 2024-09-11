@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Breadcrumb, Drawer, Dropdown, FloatButton, Layout, List, MenuProps, Modal } from 'antd';
+import { Breadcrumb, Button, Drawer, Dropdown, Flex, FloatButton, Layout, List, MenuProps, Modal, Tooltip } from 'antd';
 import ConnectionItem from './ConnectionItem';
 import TabelContent from './TabelContent';
 import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
+import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
+
 import * as _ from 'lodash'
 import { FileTextOutlined } from '@ant-design/icons';
 import moment from 'moment';
@@ -199,11 +201,28 @@ const CLayout: React.FC = () => {
       <CustomContext.Provider value={{ logList, setLogList }}>
         <Header style={{ backgroundColor: 'white', height: '30px' }}>
 
-          <Breadcrumb
-            style={{ marginLeft: '250px' }}
-            separator=">"
-            items={data.dbInfo}
-          />
+          <Flex justify={'space-between'} align={'center'}>
+
+            <Breadcrumb
+              style={{ marginLeft: '250px' }}
+              separator=">"
+              items={data.dbInfo}
+            />
+
+            <Tooltip title="show log">
+              <Button size='small' shape="circle" icon={<EyeOutlined />} onClick={showLog} />
+            </Tooltip>
+
+            {/* <div>
+              <FloatButton
+                icon={<FileTextOutlined />}
+                description="LOG"
+                shape="square"
+                // style={{ insetInlineEnd: 164, float: 'right', marginRight: '10px' }}
+                onClick={showLog}
+              />
+            </div> */}
+          </Flex>
         </Header>
 
         <Layout>
@@ -266,13 +285,7 @@ const CLayout: React.FC = () => {
 
         </Drawer>
 
-        <FloatButton
-          icon={<FileTextOutlined />}
-          description="LOG"
-          shape="square"
-          style={{ insetInlineEnd: 164 }}
-          onClick={showLog}
-        />
+
 
         <Modal title="Add connection" open={data.connectionForm}
           onOk={conOk} onCancel={conCancel}
