@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { alterTable, clearDb, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { addRow, alterTable, clearDb, delRow, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -56,6 +56,14 @@ const api = {
   alterTable: async(val)=> {
     console.log('alterTable: ', val)
      return alterTable(val)
+  },
+  addRow: async(val)=> {
+    console.log('addRow: ', val)
+     return addRow(val)
+  },
+  delRow: async(val)=> {
+    console.log('delRow: ', val)
+     return delRow(val)
   },
 }
 

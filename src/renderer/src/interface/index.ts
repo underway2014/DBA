@@ -6,3 +6,8 @@ export interface ILogItem {
     date: string;
     text: string
 }
+
+export interface IFormItem {
+    name: string;
+    value?: any
+}

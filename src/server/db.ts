@@ -1,4 +1,4 @@
-import {  QueryTypes, Sequelize } from "sequelize";
+import { QueryTypes, Sequelize } from "sequelize";
 import * as _ from 'lodash'
 import { $ } from 'zx'
 import path from "path";
@@ -154,16 +154,14 @@ async function query({sql }) {
     }
 }
 
-function setDb(id) {
-    let db = initDb({id, config: null})
-
-    currentDb = db
+function selectDB(id) {
+    initDb({id, config: null})
 }
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
     console.log('db getTableData: ', data)
-    setDb(data.id)
+    selectDB(data.id)
 
     if(/^\s*select/i.test(data.sql)){
         return getRowAndColumns({sql: data.sql, type: null, total: data.total, page: data.page, pageSize: data.pageSize})
@@ -329,4 +327,26 @@ async function alterTable(data) {
     }
 }
 
-export {clearDb, getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable}
+async function  addRow({id, tableName, fields}) {
+    selectDB(id)
+    let cols = Object.keys(fields)
+    let vals = cols.map(k => `'${fields[k]}'`)
+    const sql = `
+    INSERT INTO ${tableName} (${cols.join(',')})
+    VALUES (${vals.join(',')});
+    `
+
+    console.log('add row sql: ', sql)
+
+    return query({sql})
+}
+
+async function  delRow({tableName, ids}) {
+    const sql = `
+    delete from ${tableName} where id in (${ids})
+    `
+
+    return query({sql})
+}
+
+export {clearDb, getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable, delRow, addRow}

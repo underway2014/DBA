@@ -6,6 +6,7 @@ import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined } from '
 import { LogAction } from '@renderer/utils/constant';
 import { addErrorLog } from '@renderer/utils/errorHelper';
 import CustomContext from '@renderer/utils/context';
+import AddRowForm from './AddRowForm';
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 
@@ -36,6 +37,8 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
 
   console.time('tabcontent')
   const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
+
+  const [addForm, setAddForm] = useState(false)
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   console.time('useEffect')
@@ -214,6 +217,12 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     sqlHandler()
   }
 
+  function addRow () {
+    setAddForm(true)
+  }
+  function cancelAddRow () {
+    setAddForm(false)
+  }
 
   function getTableName (sql) {
     if (!sql) {
@@ -240,6 +249,24 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
     })
 
 
+  }
+
+  function addRowData (data) {
+    window.api.addRow(
+      {
+        tableName,
+        id: props.tabData.id,
+        fields: data
+      }
+    ).then(res => {
+      console.log('addRowData res: ', res,)
+      // if (/^\s*select/i.test(sqlTxt)) {
+      //   let tableName = getTableName(sqlTxt)
+      //   updateList({ listData: data, tableName })
+      // }
+    }).catch(error => {
+      addDbError({ error })
+    })
   }
 
   function pageChange (page, pageSize) {
@@ -275,7 +302,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
             <Button size='small' icon={<CaretRightOutlined />} onClick={runSql} />
           </Tooltip>
           <Tooltip title="add">
-            <Button size='small' icon={<PlusOutlined />} onClick={runSql} />
+            <Button size='small' icon={<PlusOutlined />} onClick={addRow} />
           </Tooltip>
           <Tooltip title="delete">
             <Button size='small' icon={<DeleteOutlined />} onClick={runSql} />
@@ -307,6 +334,19 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
         }} />
 
       </Modal>
+
+      <Modal title="Add Row" open={addForm}
+        onCancel={cancelAddRow}
+        footer={[]}>
+        <AddRowForm addRowData={addRowData} fields={columns.filter(el => el.title !== 'id').map(el => {
+          return {
+            name: el.title
+          }
+        })} />
+
+      </Modal>
+
+
     </div >
   )
 };

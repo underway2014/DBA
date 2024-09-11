@@ -16,31 +16,20 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
     setFormLayout(layout);
   };
 
-  const formItemLayout =
-    formLayout === 'horizontal' ? { labelCol: { span: 4 }, wrapperCol: { span: 14 } } : null;
-
-  const buttonItemLayout =
-    formLayout === 'horizontal' ? { wrapperCol: { span: 14, offset: 4 } } : null;
-
   function submit (val) {
     console.log('submit: ', form.getFieldsValue(), val)
 
     addConnection(form.getFieldsValue())
   }
 
-  // host: '35.220.166.96',
-  //     port: '8001',
+  // host: '35.221.166.196',
+  //     port: '8002',
   //     username: 'postgres',
   //     password: 'ZLKLMqzHy2308jU6',
   //     dialect: 'postgres',
   //     database: 'postgres'
   return (
     <Form
-      // {...formItemLayout}
-      // layout={formLayout}
-      // form={form}
-      // onValuesChange={onFormLayoutChange}
-      // style={{ maxWidth: formLayout === 'inline' ? 'none' : 600 }}
       initialValues={{ ...props.defautValues }}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
