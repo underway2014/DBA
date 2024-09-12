@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { addRow, alterTable, clearDb, delRow, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import { addRow, alterTable, clearDb, closeConnection, delRow, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
 
 // Custom APIs for renderer
 const api = {
@@ -23,23 +23,23 @@ const api = {
   },
   getTables: async(val) => {
     console.log('getTables: ', val)
-    return getTables(val)
+    return ipcRenderer.invoke('getTables', val)
   },
   getSchema: async(val) => {
     console.log('getSchema 222: ', val)
-    return getSchema(val)
+    return ipcRenderer.invoke('getSchema', val)
   },
   querySql: async(sql)=> {
     console.log('querySql: ', sql)
-    return query({ sql})
+    return ipcRenderer.invoke('querySql', {sql})
   },
   updateDate: async(val)=> {
     console.log('updateDate: ', val)
-    return updateDate(val)
+    return ipcRenderer.invoke('updateDate', val)
   },
-  getTableData: async(data)=> {
-    console.log('getTableData: ', data)
-    return getTableData(data)
+  getTableData: async(val)=> {
+    console.log('getTableData: ', val)
+    return ipcRenderer.invoke('getTableData', val)
   },
   dbBackup: async(val)=> {
     console.log('dbBackup: ', val)
@@ -52,18 +52,22 @@ const api = {
   dbCreate: async(val)=> {
     console.log('dbCreate: ', val)
      return ipcRenderer.invoke('db:create', val)
-  },
-  alterTable: async(val)=> {
-    console.log('alterTable: ', val)
-     return alterTable(val)
-  },
-  addRow: async(val)=> {
-    console.log('addRow: ', val)
-     return addRow(val)
-  },
-  delRow: async(val)=> {
-    console.log('delRow: ', val)
-     return delRow(val)
+    },
+    alterTable: async(val)=> {
+      console.log('alterTable: ', val)
+      return ipcRenderer.invoke('alterTable', val)
+    },
+    addRow: async(val)=> {
+      console.log('addRow: ', val)
+      return ipcRenderer.invoke('addRow', val)
+    },
+    delRows: async(val)=> {
+      console.log('delRow: ', val)
+      return ipcRenderer.invoke('delRows', val)
+    },
+    closeConnections: async()=> {
+      console.log('closeConnections: ')
+      return ipcRenderer.invoke('connection:close')
   },
 }
 

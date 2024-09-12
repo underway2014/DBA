@@ -18,7 +18,7 @@ type selfProps = {
 
 const AddRowForm: React.FC<selfProps> = (props) => {
   const [form] = Form.useForm();
-
+  form.resetFields()
   const items = props.fields.map(el => {
     return <Form.Item label={el.name} name={el.name} key={Math.random()}>
       <Input />
@@ -29,10 +29,12 @@ const AddRowForm: React.FC<selfProps> = (props) => {
   function submit (val) {
     console.log('submit: ', form.getFieldsValue(), val)
     props.addRowData(form.getFieldsValue())
+
   }
 
   return (
     <Form
+      // initialValues={{}}
       form={form}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}

@@ -18,6 +18,7 @@ interface ApiFunction {
   editConnection: Function
   addRow: Function
   delRows: Function
+  closeConnections: Function
 }
 
 declare global {

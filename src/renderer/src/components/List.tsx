@@ -2,11 +2,13 @@ import React, { forwardRef, useContext, useEffect, useRef, useState } from 'reac
 import { Flex, Table, Tooltip, Modal, Button } from 'antd';
 import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { LogAction } from '@renderer/utils/constant';
 import { addErrorLog } from '@renderer/utils/errorHelper';
 import CustomContext from '@renderer/utils/context';
 import AddRowForm from './AddRowForm';
+
+const { confirm } = Modal;
 
 type TableRowSelection<T> = TableProps<T>['rowSelection'];
 
@@ -260,13 +262,42 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       }
     ).then(res => {
       console.log('addRowData res: ', res,)
-      // if (/^\s*select/i.test(sqlTxt)) {
-      //   let tableName = getTableName(sqlTxt)
-      //   updateList({ listData: data, tableName })
-      // }
+
+      setAddForm(false)
+      if (/^\s*select/i.test(sqlTxt)) {
+        getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+      }
     }).catch(error => {
       addDbError({ error })
     })
+  }
+
+  function delRow () {
+    confirm({
+      title: 'Do you want to delete these rows?',
+      icon: <ExclamationCircleFilled />,
+      content: '',
+      onOk () {
+        console.log('del OK', listRows, selectedRowKeys);
+
+        let delIds = selectedRowKeys.map(el => {
+          let val = listRows.rows.find(a => a.key === el)
+
+          return val.id
+        })
+
+        console.log('delIds: ', delIds)
+        window.api.delRows({ ...props.tabData, ids: delIds }).then(res => {
+          if (/^\s*select/i.test(sqlTxt)) {
+            getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+          }
+        })
+
+      },
+      onCancel () {
+        console.log('Cancel');
+      },
+    });
   }
 
   function pageChange (page, pageSize) {
@@ -305,7 +336,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
             <Button size='small' icon={<PlusOutlined />} onClick={addRow} />
           </Tooltip>
           <Tooltip title="delete">
-            <Button size='small' icon={<DeleteOutlined />} onClick={runSql} />
+            <Button size='small' icon={<DeleteOutlined />} onClick={delRow} />
           </Tooltip>
         </Flex>
       </Flex>

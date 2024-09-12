@@ -18,6 +18,13 @@ import { app } from "electron";
 
 const dbMap = {}
 let currentDb
+const val = Math.random()
+console.log('main process db: ', val)
+console.log('main process db: ', val)
+console.log('main process db: ', val)
+console.log('main process db: ', val)
+console.log('main process db: ', val)
+console.log('main process db: ', val)
 
 function clearDb({id}) {
     console.log('cleardb: ',id, dbMap)
@@ -25,10 +32,17 @@ function clearDb({id}) {
     console.log('after cleardb: ',id, dbMap)
 }
 
+async function closeConnection() {
+    console.log('closeConnection abc:', Object.keys(dbMap))
+    let works = Object.keys(dbMap).map(k => dbMap[k].close())
+
+    return Promise.all(works)
+}
+
 function initDb({id, config}) {
-    console.log('init db: ', id, config, dbMap)
-    console.log('init db: ', id, config, dbMap)
-    console.log('init db: ', id, config, dbMap)
+    console.log('init db: ', id, config, dbMap, val)
+    console.log('init db: ', id, config, dbMap, val)
+    console.log('init db: ', id, config, dbMap, val)
     let db = dbMap[id]
 
     if(!db){
@@ -249,7 +263,7 @@ async function backup({type, config}) {
 }
 
 async function createDb({dbName, connection}) {
-    console.log('createDatabase: ', dbName,  connection)
+    console.log('createDatabase: ', dbName,  connection, val)
     let appPath = getAppPath()
 
     let pgPath = path.join(appPath, 'resources/bin/mac/createdb')
@@ -341,7 +355,9 @@ async function  addRow({id, tableName, fields}) {
     return query({sql})
 }
 
-async function  delRow({tableName, ids}) {
+async function  delRows({id, tableName, ids}) {
+    selectDB(id)
+
     const sql = `
     delete from ${tableName} where id in (${ids})
     `
@@ -349,4 +365,6 @@ async function  delRow({tableName, ids}) {
     return query({sql})
 }
 
-export {clearDb, getTables, updateDate, query, getColums, getTableData, getSchema, backup, restore, createDb,alterTable, delRow, addRow}
+export {clearDb, getTables, updateDate, query, getColums, 
+    getTableData, getSchema, backup, restore, createDb,alterTable, delRows, 
+    addRow, closeConnection}

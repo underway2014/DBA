@@ -1,6 +1,6 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Flex, Modal, Table, Tooltip } from 'antd';
-import { CaretRightOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { TableColumnsType, TableProps } from 'antd';
 import AddColumnForm from './AddColumnForm';
 import { ExclamationCircleFilled } from '@ant-design/icons';

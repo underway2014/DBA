@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen, ipcRenderer } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,7 +6,7 @@ import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 // import remoteMain from '@electron/remote/main'
-import { backup, createDb, restore } from '../server/db'
+import { addRow, alterTable, backup, closeConnection, createDb, delRows, getSchema, getTableData, getTables, query, restore, updateDate } from '../server/db'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
@@ -29,6 +29,11 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+
+  mainWindow.on('close', async e => {
+    await closeConnection()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -110,6 +115,36 @@ app.whenReady().then(() => {
   ipcMain.handle('db:create', (_, val) => {
     return createDb(val)
   })
+  ipcMain.handle('getSchema', (_, val) => {
+    return getSchema(val)
+  })
+  ipcMain.handle('getTables', (_, val) => {
+    return getTables(val)
+  })
+  ipcMain.handle('querySql', (_, val) => {
+    return query(val)
+  })
+  ipcMain.handle('updateDate', (_, val) => {
+    return updateDate(val)
+  })
+  ipcMain.handle('getTableData', (_, val) => {
+    return getTableData(val)
+  })
+  ipcMain.handle('alterTable', (_, val) => {
+    return alterTable(val)
+  })
+  ipcMain.handle('addRow', (_, val) => {
+    return addRow(val)
+  })
+  ipcMain.handle('delRows', (_, val) => {
+    return delRows(val)
+  })
+  ipcMain.handle('connection:close', (_) => {
+    console.log('connection:close okkk')
+    console.log('connection:close okkk')
+    console.log('connection:close okkk')
+    return closeConnection()
+  })
 
 
   createWindow()
@@ -124,11 +159,22 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async (e) => {
+  // e.preventDefault()
+  console.log('window-all-closed ', process.platform)
+  // let data = ipcMain.emit('connection:close')
+  // console.log('connection data2222: ', data)
+  // await closeConnection()
+  // console.log('connection data22221111: ', data)
   if (process.platform !== 'darwin') {
     app.quit()
   }
+  
 })
+
+// app.on('before-quit', e => {
+//   console.log('before-quit: ', e)
+// })
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

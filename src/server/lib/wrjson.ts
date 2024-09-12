@@ -38,8 +38,6 @@ function readFile () {
 
   let data = fs.readFileSync(getConfigPath(), { encoding: 'utf-8' })
 
-  console.log(data, typeof data)
-
   return JSON.parse(data)
 }
 
