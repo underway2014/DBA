@@ -25,16 +25,20 @@ const AddRowForm: React.FC<selfProps> = (props) => {
     </Form.Item>
   })
 
-
-  function submit (val) {
-    console.log('submit: ', form.getFieldsValue(), val)
+  const onFinish = (values) => {
+    console.log('Success:', values);
     props.addRowData(form.getFieldsValue())
 
-  }
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
 
   return (
     <Form
-      // initialValues={{}}
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
       form={form}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
@@ -44,7 +48,7 @@ const AddRowForm: React.FC<selfProps> = (props) => {
       {items}
 
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button onClick={submit}>Submit</Button>
+        <Button htmlType="submit" >Submit</Button>
       </Form.Item>
 
     </Form>

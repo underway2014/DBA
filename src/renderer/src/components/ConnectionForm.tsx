@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input } from 'antd';
+import { Button, Form, FormProps, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type selfProps = {
@@ -19,8 +19,18 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
   function submit (val) {
     console.log('submit: ', form.getFieldsValue(), val)
 
-    addConnection(form.getFieldsValue())
+
   }
+
+
+  const onFinish = (values) => {
+    console.log('Success:', values);
+    addConnection(form.getFieldsValue())
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
 
   // host: '35.221.166.196',
   //     port: '8002',
@@ -30,39 +40,44 @@ const ConnectionForm: React.FC<selfProps> = (props) => {
   //     database: 'postgres'
   return (
     <Form
-      initialValues={{ ...props.defautValues }}
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
+      initialValues={{ dialect: 'postgres', port: '5432', ...props.defautValues }}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
       layout="horizontal"
       form={form}
       onValuesChange={onFormLayoutChange}
       style={{ maxWidth: 700 }}
+      autoComplete="off"
     >
-      <Form.Item label="name" name="name">
-        <Input placeholder="connection name" />
+      <Form.Item label="name" name="name" rules={[{ required: true, message: 'Please input your password!' }]}>
+        <Input />
       </Form.Item>
-      <Form.Item label="host" name="host">
-        <Input placeholder="input placeholder" />
+      <Form.Item label="host" name="host" rules={[{ required: true }]}>
+        <Input placeholder="host" />
       </Form.Item>
-      <Form.Item label="port" name="port">
-        <Input placeholder="5432" />
+      <Form.Item label="port" name="port" rules={[{ required: true }]}>
+        <Input value="5432" />
       </Form.Item>
-      <Form.Item label="username" name="username">
+      <Form.Item label="username" name="username" rules={[{ required: true }]}>
         <Input placeholder="username" />
       </Form.Item>
-      <Form.Item label="password" name="password">
+      <Form.Item label="password" name="password" rules={[{ required: true }]}>
         <Input placeholder="password" />
       </Form.Item>
-      <Form.Item label="database" name="database">
+      <Form.Item label="database" name="database" rules={[{ required: true }]}>
         <Input placeholder="database" />
       </Form.Item>
-      <Form.Item label="dialect" name="dialect">
-        <Input placeholder="postgres" />
+      <Form.Item label="dialect" name="dialect" rules={[{ required: true }]}>
+        <Input value="postgres" />
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button type="primary" onClick={submit}>Submit</Button>
+        <div style={{ textAlign: 'center' }}>
+          <Button htmlType="submit" >Submit</Button>
+        </div>
       </Form.Item>
-    </Form>
+    </Form >
   );
 };
 

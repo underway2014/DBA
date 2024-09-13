@@ -14,25 +14,18 @@ const CreateDbForm: React.FC<selfProps> = (props) => {
     setFormLayout(layout);
   };
 
-  const formItemLayout =
-    formLayout === 'horizontal' ? { labelCol: { span: 6 }, wrapperCol: { span: 14 } } : null;
-
-  const buttonItemLayout =
-    formLayout === 'horizontal' ? { wrapperCol: { span: 14, offset: 4 } } : null;
-
-  function submit (val) {
-    console.log('submit: ', form.getFieldsValue(), val)
-
+  const onFinish = (values) => {
+    console.log('Success:', values);
     createDatabase(form.getFieldsValue())
-  }
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
   return (
     <Form
-      // {...formItemLayout}
-      // layout={formLayout}
-      // form={form}
-      // initialValues={{ layout: formLayout, owner: 'postgres', encoding: 'UTF8' }}
-      // onValuesChange={onFormLayoutChange}
-      // style={{ maxWidth: formLayout === 'inline' ? 'none' : 700 }}
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
       initialValues={{ owner: 'postgres', encoding: 'UTF8' }}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
@@ -51,7 +44,7 @@ const CreateDbForm: React.FC<selfProps> = (props) => {
         <Input value="UTF8" />
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button type="primary" onClick={submit}>Submit</Button>
+        <Button htmlType="submit" >Submit</Button>
       </Form.Item>
     </Form >
   );

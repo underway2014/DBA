@@ -15,13 +15,17 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
     setFormLayout(layout);
   };
 
-  function submit (val) {
-    console.log('submit: ', form.getFieldsValue(), val)
 
+  const onFinish = (values) => {
+    console.log('Success:', values);
     addColumn(form.getFieldsValue(), props.defautValues)
 
     form.resetFields()
-  }
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
 
   form.setFieldsValue(props.defautValues);
 
@@ -66,13 +70,14 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
 
   return (
     <Form
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
       layout="horizontal"
       initialValues={{ ...props.defautValues }}
       form={form}
       onValuesChange={onFormLayoutChange}
-      // size={componentSize as SizeType}
       style={{ maxWidth: 700 }}
     >
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
@@ -98,8 +103,7 @@ const AddColumnForm: React.FC<selfProps> = (props) => {
         <Input value="" />
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        {/* <Form.Item {...buttonItemLayout}> */}
-        <Button type="primary" onClick={submit}>Submit</Button>
+        <Button htmlType="submit" >Submit</Button>
       </Form.Item>
     </Form>
   );

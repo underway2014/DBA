@@ -256,6 +256,7 @@ const CLayout: React.FC = () => {
           onOk={conOk} onCancel={conCancel}
           footer={[]}>
           <ConnectionForm addConnection={conAddOk}></ConnectionForm>
+
         </Modal>
 
         <Modal title="Create database" open={data.createdbFrom}

@@ -1,5 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Table, Tooltip, Modal, Button } from 'antd';
+import { Flex, Table, Tooltip, Modal, Button, message } from 'antd';
 import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
@@ -247,10 +247,15 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
       if (/^\s*select/i.test(sqlTxt)) {
         let tableName = getTableName(sqlTxt)
         updateList({ listData: data, tableName })
+      } else {
+        message.success({
+          type: 'success',
+          content: 'Update success',
+        })
       }
+    }).catch(error => {
+      addDbError({ error })
     })
-
-
   }
 
   function addRowData (data) {
