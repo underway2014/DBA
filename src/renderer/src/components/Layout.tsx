@@ -6,7 +6,6 @@ import { Header } from 'antd/es/layout/layout';
 import ConnectionForm from './ConnectionForm';
 import CreateDbForm from './CreateDbFrom';
 import { EyeOutlined } from '@ant-design/icons';
-
 import * as _ from 'lodash'
 import CustomContext from '@renderer/utils/context';
 import { ILogItem } from '../interface'
@@ -52,25 +51,11 @@ const CLayout: React.FC = () => {
 
   function updateSlider () {
     window.api.getStore().then(connections => {
-
-      console.log('updateSlider begin connections: ', connections)
-      // let tmp = _.cloneDeep(data)
-      // tmp.connections = connections
-      // setData(null)
       setConnections(connections)
     })
   }
 
   function getTableDataByName (val) {
-    console.log('layout getTableDataByName: ', val)
-
-    // let tableName = getTableName(val)
-
-    // window.api.getTableData(val).then(data => {
-
-    //   console.log('getTableDataByName query sql res: ', data)
-    //   // listRef.current.updateList({ listData: data, tableName })
-    // })
     // type 1-查看表数据 2-编辑表
     tabsRef.current.updateList(val)
   }
@@ -89,16 +74,11 @@ const CLayout: React.FC = () => {
 
   }
 
-
   const items: MenuProps['items'] = [
     {
       label: 'Add Connection',
       key: '5',
-    },
-    // {
-    //   label: 'Create Database',
-    //   key: '10',
-    // }
+    }
   ];
 
   function conOk () {
@@ -133,12 +113,7 @@ const CLayout: React.FC = () => {
     setData({ ...data, connectionForm: false })
     updateSlider()
   }
-  function addDbOk (val) {
-    console.log('add db ok val: ', val)
-    // window.api.dbCreate({ dbName: val.name, connection: props.connection }).then(res => {
-    //   console.log('client dbCreate res: ', res)
-    // })
-
+  function addDbOk () {
     setData({ ...data, createdbFrom: false })
   }
 
@@ -161,14 +136,7 @@ const CLayout: React.FC = () => {
     setLogOpen(true)
   }
 
-  const [logList, setLogList] = useState<ILogItem[]>([
-    // {
-    //   date: moment().format('YYYY-MM-DD hh:mm:ss'),
-    //   action: LogAction.DBCONNECTION,
-    //   type: 1,
-    //   text: `Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.Racing car sprays burning fuel into crowd.`
-    // }
-  ])
+  const [logList, setLogList] = useState<ILogItem[]>([])
 
   return (
     <div>
@@ -214,12 +182,9 @@ const CLayout: React.FC = () => {
             </div>
           </Dropdown>
           <Layout>
-
-
             <Content style={{ height: window.screen.height - 64 - 60 - 200 + 'px' }}>
               <TabelContent ref={tabsRef}></TabelContent>
             </Content>
-
           </Layout>
         </Layout>
 
@@ -229,15 +194,6 @@ const CLayout: React.FC = () => {
           size={'large'}
           onClose={logClose}
           open={logOpen}
-        // extra={
-        //   <Space>
-        //     <Button onClick={onClose}>Cancel</Button>
-        //     <Button type="primary" onClick={onClose}>
-        //       OK
-        //     </Button>
-        //   </Space>
-        // }
-
         >
           <List
             size="small"

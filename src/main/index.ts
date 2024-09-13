@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, screen, ipcRenderer } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -7,6 +7,7 @@ import { addConnection, delConnection, editConnection, getConnections } from '..
 
 // import remoteMain from '@electron/remote/main'
 import { addRow, alterTable, backup, closeConnection, createDb, delRows, getSchema, getTableData, getTables, query, restore, updateDate } from '../server/db'
+import { menuTemplate } from './menuTemplate'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
@@ -18,6 +19,7 @@ function createWindow(): void {
     height,
     show: false,
     autoHideMenuBar: true,
+    darkTheme: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -50,6 +52,13 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // initMenu()
+}
+
+function initMenu() {
+  const menu = Menu.buildFromTemplate(menuTemplate)
+    Menu.setApplicationMenu(menu)
 }
 
 // This method will be called when Electron has finished
@@ -162,10 +171,6 @@ app.whenReady().then(() => {
 app.on('window-all-closed', async (e) => {
   // e.preventDefault()
   console.log('window-all-closed ', process.platform)
-  // let data = ipcMain.emit('connection:close')
-  // console.log('connection data2222: ', data)
-  // await closeConnection()
-  // console.log('connection data22221111: ', data)
   if (process.platform !== 'darwin') {
     app.quit()
   }
