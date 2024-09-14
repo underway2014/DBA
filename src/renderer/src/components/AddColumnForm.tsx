@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { AutoComplete, Button, Checkbox, Flex, Form, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
-type selfProps = {
+type CustomProps = {
   addColumn: Function
   defautValues?: Object
 }
 
-const AddColumnForm: React.FC<selfProps> = (props) => {
+const AddColumnForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
   const { addColumn } = props

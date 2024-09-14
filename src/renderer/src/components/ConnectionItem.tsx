@@ -5,20 +5,20 @@ import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-desi
 import CreateDbForm from './CreateDbFrom';
 import ConnectionForm from './ConnectionForm';
 import CustomContext from '@renderer/utils/context';
-import { LogAction } from '@renderer/utils/constant';
-import { addErrorLog } from '@renderer/utils/errorHelper';
+import { LogAction, LogType, SliderRightMenu } from '@renderer/utils/constant';
+import { addLog } from '@renderer/utils/logHelper';
 const { confirm } = Modal;
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>;
 
-type pgConfig = {
+type ConnectionItemConfig = {
   name: string
   config: any
   id: string
 }
 
-type selfProps = {
-  connection: pgConfig
+type CustomProps = {
+  connection: ConnectionItemConfig
   key: number
   cid: number
   updateSlider: Function
@@ -31,13 +31,13 @@ interface NodeData extends TreeDataNode {
 }
 
 let rightClickItemKey: string = ''
-let backupDbName = null
+let backupDbName = ''
 let restoreType = 2 // 1-struct 2-struct and data
 
-const ConnectionItem: React.FC<selfProps> = (props) => {
+const ConnectionItem: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   console.log('connection item logList: ', logList)
-  const selectSqlFile = useRef()
+  const selectSqlFile = useRef<HTMLInputElement | null>(null)
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
   const [showEditConnectionForm, setShowEditConnectionForm] = useState(false)
@@ -62,13 +62,10 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   };
 
   function addDbError ({ error }) {
-    addErrorLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION })
+    addLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION, type: LogType.ERROR })
   }
 
   const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
-    console.log('Trigger Select', keys, info, props.connection);
-    console.log('treeData Select', treeData);
-
     let treeNow = treeData[0]
 
     let key = String(keys[0])
@@ -76,7 +73,7 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
     let parseKeys = key.split(SP)
 
     let nodeType = parseKeys[0]
-    console.log('node type: ', parseKeys)
+
     if (nodeType === 'connection') {
       window.api.getSchema(props.connection).then(tables => {
         treeNow.children = [{
@@ -100,22 +97,18 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         setTreeData([treeNow])
 
       }).catch(error => {
-        console.log('get error: ', error, typeof error)
         addDbError({ error })
       })
     } else if (nodeType === 'schema') {
       window.api.getTables({ ...props.connection, schema: parseKeys[1] }).then(tables => {
 
-        console.log('api getSchema tables ', tables)
-
         let schemas = treeNow.children
 
-        console.log('schemas length ', schemas?.length, schemas)
         if (!schemas?.length) {
           return false
         }
         let schema = schemas[0].children?.find(el => el.key === key)
-        console.log('now schema key: ', key)
+
         if (schema) {
           console.log('right shcema: ', schema)
           schema.isLeaf = false
@@ -137,7 +130,6 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         ])
         setTreeData([treeNow])
       }).catch(error => {
-        console.log('get error: ', error, typeof error)
         addDbError({ error })
       })
 
@@ -146,13 +138,8 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       const sql = `
       select * from ${parseKeys[1]}
       `
-
-      console.log('table sql: ', sql)
       props.getTableDataByName({ id: props.connection.id, tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql })
-      // window.api.getTableData(sql).then(data => {
 
-      console.log('props.connectio: ', props.connection)
-      // })
       props.setDbInfo([
         props.connection.name,
         props.connection.config.database,
@@ -160,42 +147,26 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
       ])
 
     }
-
-
-
   };
 
   function editConnection (node) {
-    console.log('editConnection: ', node, node.key)
-    // window.api.editStore(node)
-
-    // props.getTableDataByName({})
-
     let parseKeys = node.key.split(SP)
-
     let nodeType = parseKeys[0]
-    console.log('editConnection node type: ', parseKeys)
+
     if (nodeType === 'connection') {
       setShowEditConnectionForm(true)
-      // setConDefaultValues({
-      //   name: 
-      // })
     } else if (nodeType === 'table') {
-      // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3], sql
       props.getTableDataByName({ id: props.connection.id, tableName: parseKeys[1], type: 2, schema: parseKeys[2], dbName: parseKeys[3] })
     }
   }
 
   function delConnection (node) {
-    console.log('delConnection aa', node)
-
     confirm({
       title: `Do you want to delete the ${node.title} connection?`,
       icon: <ExclamationCircleFilled />,
       content: '',
       onOk () {
         window.api.delStore(node.key).then(res => {
-          console.log('del connection res: ', res)
           props.updateSlider()
         })
       },
@@ -203,33 +174,30 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
         console.log('Cancel');
       },
     });
-
-
-
   }
 
   const items: MenuProps['items'] = [
     {
       label: 'Create Database',
-      key: '10',
+      key: SliderRightMenu.CREATEDB,
     },
     {
       type: 'divider',
     },
     {
       label: 'Backup',
-      key: '20',
+      key: SliderRightMenu.BACKUP,
     },
     {
       type: 'divider',
     },
     {
       label: 'Restore struct',
-      key: '30',
+      key: SliderRightMenu.RESTORESTRUCE,
     },
     {
       label: 'Restore struct and data',
-      key: '31',
+      key: SliderRightMenu.RESTOREDATA,
     }
 
   ];
@@ -241,54 +209,60 @@ const ConnectionItem: React.FC<selfProps> = (props) => {
   //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 -s --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
 
   function rightMenuHandler (e) {
-    console.log('rightMenuHandler e: ', e)
     e.domEvent.stopPropagation()
-    console.log('rightClickItemKey: ', rightClickItemKey)
 
     if (!rightClickItemKey) {
       return
     }
     let keyArr = rightClickItemKey.split(SP)
 
-    if (+e.key === 10) {
+    if (+e.key === SliderRightMenu.CREATEDB) {
       setShowCreateFrom(true)
-
-
-    } else if (+e.key === 20) {
+    } else if (+e.key === SliderRightMenu.BACKUP) {
       window.api.dbBackup({ type: 1, name: keyArr[1], config: props.connection }).then((res, a, b) => {
-        console.log('client backup res: ', res, typeof res, res?.exitCode)
-        if (res === 0) {
-          message.success({
-            type: 'success',
-            content: 'Backup success',
+        console.log('db backup res: ', res)
+
+        if (res.code === 0) {
+          addLog({
+            logList, setLogList, text: `database: ${res.dbName} backup success, filePath: ${res.path}`,
+            action: LogAction.DBBACKUP, type: LogType.SUCCESS
           })
+
         } else {
-          message.error({
-            type: 'error',
-            content: 'Backup error',
-          });
+          addLog({
+            logList, setLogList, text: `database: ${res.dbName} backup fail`,
+            action: LogAction.DBBACKUP, type: LogType.ERROR
+          })
         }
+      }).catch(error => {
+        addLog({
+          logList, setLogList, text: `database: ${props.connection.config.database} backup fail, ${error?.message}`,
+          action: LogAction.DBBACKUP, type: LogType.ERROR
+        })
       })
 
-    } else if (+e.key === 30) {
-      console.log('select file: ')
+    } else if (+e.key === SliderRightMenu.RESTORESTRUCE) {
       backupDbName = keyArr[1]
       restoreType = 1
-      selectSqlFile.current.click()
-    } else if (+e.key === 31) {
-      console.log('select file: ')
+      selectSqlFile.current?.click()
+    } else if (+e.key === SliderRightMenu.RESTOREDATA) {
       restoreType = 2
       backupDbName = keyArr[1]
-      selectSqlFile.current.click()
+      selectSqlFile.current?.click()
     }
   }
 
   function selectFile (e) {
-    console.log('selectFile: ', e)
-    console.log('selectFile path: ', e.target.files[0]?.path)
-
     window.api.dbRestore({ type: restoreType, dbName: backupDbName, connection: props.connection, sqlPath: e.target.files[0]?.path }).then(res => {
-      console.log('client dbRestore res: ', res)
+      addLog({
+        logList, setLogList, text: `database: ${res.dbName} restore success, filePath: ${res.path}`,
+        action: LogAction.DBRESTORE, type: LogType.SUCCESS
+      })
+    }).catch(error => {
+      addLog({
+        logList, setLogList, text: `database: ${backupDbName} restore fail, ${error?.message}`,
+        action: LogAction.DBRESTORE, type: LogType.ERROR
+      })
     })
   }
 

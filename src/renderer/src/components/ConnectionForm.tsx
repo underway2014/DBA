@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Button, Form, FormProps, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
-type selfProps = {
+type CustomProps = {
   addConnection: Function
   defautValues?: Object
 }
 
-const ConnectionForm: React.FC<selfProps> = (props) => {
+const ConnectionForm: React.FC<CustomProps> = (props) => {
   console.log('ConnectionForm ', props.defautValues)
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');

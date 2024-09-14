@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Button, Form, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
-type selfProps = {
+type CustomProps = {
   createDatabase: Function
 }
 
-const CreateDbForm: React.FC<selfProps> = (props) => {
+const CreateDbForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
   const { createDatabase } = props

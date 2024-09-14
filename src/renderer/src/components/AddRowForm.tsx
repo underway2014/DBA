@@ -11,12 +11,12 @@ interface FieldData {
 }
 
 
-type selfProps = {
+type CustomProps = {
   fields: FieldData[]
   addRowData: Function
 }
 
-const AddRowForm: React.FC<selfProps> = (props) => {
+const AddRowForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm();
   form.resetFields()
   const items = props.fields.map(el => {

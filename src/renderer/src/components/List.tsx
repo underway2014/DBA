@@ -3,8 +3,8 @@ import { Flex, Table, Tooltip, Modal, Button, message } from 'antd';
 import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
-import { LogAction } from '@renderer/utils/constant';
-import { addErrorLog } from '@renderer/utils/errorHelper';
+import { LogAction, LogType } from '@renderer/utils/constant';
+import { addLog } from '@renderer/utils/logHelper';
 import CustomContext from '@renderer/utils/context';
 import AddRowForm from './AddRowForm';
 
@@ -19,11 +19,11 @@ interface DataType {
   address: string;
 }
 
-type selfProps = {
+type CustomProps = {
   tabData: any
 }
 
-const DataList: React.FC<selfProps> = (props, parentRef) => {
+const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   const inputRef = useRef(null);
   let defaultSql = `select * from ${props.tabData.tableName}`
@@ -207,7 +207,7 @@ const DataList: React.FC<selfProps> = (props, parentRef) => {
   }
 
   function addDbError ({ error }) {
-    addErrorLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION })
+    addLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION, type: LogType.ERROR })
   }
 
   function editRowCancel () {

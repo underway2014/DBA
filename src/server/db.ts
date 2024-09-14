@@ -3,6 +3,7 @@ import * as _ from 'lodash'
 import { $ } from 'zx'
 import path from "path";
 import { app } from "electron";
+import moment from "moment";
 
 
 // import { getConnections } from "./lib/wrjson";
@@ -18,18 +19,9 @@ import { app } from "electron";
 
 const dbMap = {}
 let currentDb
-const val = Math.random()
-console.log('main process db: ', val)
-console.log('main process db: ', val)
-console.log('main process db: ', val)
-console.log('main process db: ', val)
-console.log('main process db: ', val)
-console.log('main process db: ', val)
 
 function clearDb({id}) {
-    console.log('cleardb: ',id, dbMap)
     delete dbMap[id]
-    console.log('after cleardb: ',id, dbMap)
 }
 
 async function closeConnection() {
@@ -40,9 +32,6 @@ async function closeConnection() {
 }
 
 function initDb({id, config}) {
-    console.log('init db: ', id, config, dbMap, val)
-    console.log('init db: ', id, config, dbMap, val)
-    console.log('init db: ', id, config, dbMap, val)
     let db = dbMap[id]
 
     if(!db){
@@ -110,7 +99,6 @@ async function getColums(tableName) {
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
 async function getTables({name, id, config, schema = 'public'}) {
-    console.log('db getTables ', arguments)
      initDb({id, config})
     let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`)
 
@@ -147,12 +135,10 @@ async function getRowAndColumns({sql, type, total, page, pageSize}) {
                 `
         }
     }
-    console.log('getRowAndColumns: ', sql)
+
     let data = await currentDb.query(sql, {type: QueryTypes.RAW})
-    console.log('data1: ',data)
     res.rows = data[0]
     res.columns = data[1].fields
-    
 
     return res
 }
@@ -245,7 +231,11 @@ async function restore({type, connection, dbName, sqlPath}) {
 
     const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${option} --dbname=${connection.config.database}  ${sqlPath}`
     console.log('restore res: ', res, res.exitCode)
-    return res
+    return {
+        code: res.exitCode,
+        dbName: connection.config.database,
+        path: sqlPath
+    }
 }
 
 //type 1-database 2-table
@@ -254,12 +244,16 @@ async function backup({type, config}) {
     let appPath =  getAppPath()
     let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
     console.log('pgDumpPath: ', pgPath)
-    let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${new Date().getTime()}.sql`)
+    let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`)
     console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
     const res = await $`export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
     console.log('backup res: ', res, res.exitCode)
     
-    return res?.exitCode
+    return {
+        code: res?.exitCode,
+        path: downPath,
+        dbName: config.config.database
+    }
 }
 
 async function createDb({dbName, connection}) {
@@ -269,7 +263,10 @@ async function createDb({dbName, connection}) {
     let pgPath = path.join(appPath, 'resources/bin/mac/createdb')
     console.log('pgDumpPath: ', pgPath)
     const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
-    return res
+    return {
+        code: res.exitCode,
+        dbName
+    }
 }
 
 

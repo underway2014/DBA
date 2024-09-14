@@ -17,11 +17,11 @@ interface DataType {
 }
 
 
-type selfProps = {
+type CustomProps = {
   tabData: any
 }
 
-const EditTable: React.FC<selfProps> = (props, parentRef) => {
+const EditTable: React.FC<CustomProps> = (props, parentRef) => {
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,

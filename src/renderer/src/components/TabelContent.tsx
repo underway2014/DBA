@@ -16,7 +16,7 @@ const defaultPanes = new Array(1).fill(null).map((_, index) => {
     };
 });
 
-const TabelContent: React.FC = (props, parentRef) => {
+const TabelContent: React.FC = (_, parentRef) => {
     const [activeKey, setActiveKey] = useState(defaultPanes[0].key);
     const [items, setItems] = useState(defaultPanes);
     const newTabIndex = useRef(0);

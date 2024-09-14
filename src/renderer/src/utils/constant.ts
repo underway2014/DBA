@@ -5,8 +5,15 @@ export enum LogType {
 }
 
 
-export enum LogAction {
-    DBCONNECTION = 1,
-    DBBACKUP,
-    DBRESTORE
+export const LogAction = {
+    DBCONNECTION: 'connection',
+    DBBACKUP: 'backup',
+    DBRESTORE: 'restore'
+}
+
+export const SliderRightMenu = {
+    CREATEDB: 10,
+    BACKUP: 20,
+    RESTORESTRUCE: 30,
+    RESTOREDATA: 31
 }

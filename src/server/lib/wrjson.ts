@@ -1,13 +1,12 @@
 import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
-// console.log('wrjosn test: ', app.getPath('userData'))
 // const getConfigPath() = path.join(app.getPath('userData'), './config.json')
-console.log('path1: ', __dirname, app.getPath('userData'))
-console.log('path2: ', __dirname, app.getPath('home'))
-console.log('path3: ', __dirname, app.getPath('appData'))
-console.log('path3: ', __dirname, app.getPath('exe'))
-console.log('path3: ', __dirname, app.getAppPath())
+// console.log('path1: ', __dirname, app.getPath('userData'))
+// console.log('path2: ', __dirname, app.getPath('home'))
+// console.log('path3: ', __dirname, app.getPath('appData'))
+// console.log('path3: ', __dirname, app.getPath('exe'))
+// console.log('path3: ', __dirname, app.getAppPath())
 function getConfigPath() {
     return path.join(app.getPath('userData'), './config.json')
 }
