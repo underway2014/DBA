@@ -8,7 +8,7 @@ type CustomProps = {
 
 const CreateDbForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm();
-  const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
+  const [_, setFormLayout] = useState<LayoutType>('horizontal');
   const { createDatabase } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
     setFormLayout(layout);

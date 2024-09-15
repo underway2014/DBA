@@ -1,10 +1,17 @@
 import { message } from 'antd';
 import moment from 'moment';
 import { LogType } from './constant';
-import { act } from 'react';
+import { ILogItem } from '@renderer/interface';
 
+type LogOpt = {
+  logList: ILogItem[];
+  setLogList: Function;
+  text: string;
+  action: string;
+  type: number
+}
 
-export const addLog = ({logList, setLogList, text, action, type}) => {
+export const addLog = ({logList, setLogList, text, action, type}: LogOpt) => {
       setLogList([...logList,{
         type,
         action,

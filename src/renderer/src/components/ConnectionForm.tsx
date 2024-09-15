@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, FormProps, Input } from 'antd';
+import { Button, Form, Input } from 'antd';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 type CustomProps = {
@@ -10,18 +10,11 @@ type CustomProps = {
 const ConnectionForm: React.FC<CustomProps> = (props) => {
   console.log('ConnectionForm ', props.defautValues)
   const [form] = Form.useForm();
-  const [formLayout, setFormLayout] = useState<LayoutType>('horizontal');
+  const [_, setFormLayout] = useState<LayoutType>('horizontal');
   const { addConnection } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
     setFormLayout(layout);
   };
-
-  function submit (val) {
-    console.log('submit: ', form.getFieldsValue(), val)
-
-
-  }
-
 
   const onFinish = (values) => {
     console.log('Success:', values);
@@ -51,7 +44,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       style={{ maxWidth: 700 }}
       autoComplete="off"
     >
-      <Form.Item label="name" name="name" rules={[{ required: true, message: 'Please input your password!' }]}>
+      <Form.Item label="name" name="name" rules={[{ required: true }]}>
         <Input />
       </Form.Item>
       <Form.Item label="host" name="host" rules={[{ required: true }]}>

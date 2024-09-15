@@ -8,7 +8,8 @@ export enum LogType {
 export const LogAction = {
     DBCONNECTION: 'connection',
     DBBACKUP: 'backup',
-    DBRESTORE: 'restore'
+    DBRESTORE: 'restore',
+    ALTERCOLUMN: 'alter'
 }
 
 export const SliderRightMenu = {

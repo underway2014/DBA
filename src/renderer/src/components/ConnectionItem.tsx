@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState } from 'react';
-import { Dropdown, Modal, Space, Tree, message } from 'antd';
+import { Dropdown, Modal, Space, Tree } from 'antd';
 import type { GetProps, MenuProps, TreeDataNode } from 'antd';
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import CreateDbForm from './CreateDbFrom';
@@ -36,7 +36,6 @@ let restoreType = 2 // 1-struct 2-struct and data
 
 const ConnectionItem: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
-  console.log('connection item logList: ', logList)
   const selectSqlFile = useRef<HTMLInputElement | null>(null)
 
   const [showCreateFrom, setShowCreateFrom] = useState(false)
