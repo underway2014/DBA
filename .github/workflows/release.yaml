@@ -31,9 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: |
-            ./dist/DBA-1.0.0-mac.zip
-            ./dis/DBA-1.0.0.dmg
+          path: dist
 
   release:
     needs: build
