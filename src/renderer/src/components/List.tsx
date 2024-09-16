@@ -4,9 +4,9 @@ import type { TableProps } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { LogAction, LogType } from '@renderer/utils/constant';
-import { addLog } from '@renderer/utils/logHelper';
 import CustomContext from '@renderer/utils/context';
 import AddRowForm from './AddRowForm';
+import { addLog } from '@renderer/utils/logHelper';
 
 const { confirm } = Modal;
 
@@ -259,6 +259,7 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function addRowData (data) {
+    setAddForm(false)
     window.api.addRow(
       {
         tableName,
@@ -268,7 +269,6 @@ const DataList: React.FC<CustomProps> = (props) => {
     ).then(res => {
       console.log('addRowData res: ', res,)
 
-      setAddForm(false)
       if (/^\s*select/i.test(sqlTxt)) {
         getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
       }
