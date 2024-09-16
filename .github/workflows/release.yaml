@@ -32,7 +32,7 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            dis/DBA-1.0.0.dmg
+            dist/DBA-1.0.0.dmg
 
   release:
     needs: build
