@@ -31,7 +31,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: dist
+          path: |
+            ./dist/DBA-1.0.0-mac.zip
+            ./dis/DBA-1.0.0.dmg
 
   release:
     needs: build
@@ -59,12 +61,21 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset
+      - name: Upload zip Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./
+          asset_path: ./DBA-1.0.0-mac.zip
+          asset_name: build-artifacts.zip
+          asset_content_type: application/zip
+      - name: Upload dmg Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./DBA-1.0.0.dmg
           asset_name: build-artifacts.zip
           asset_content_type: application/zip
