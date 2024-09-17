@@ -1,5 +1,5 @@
 {
-  "name": "DBA",
+  "name": "dba",
   "version": "1.0.1",
   "description": "A PostgreSQL tool",
   "main": "./out/main/index.js",
