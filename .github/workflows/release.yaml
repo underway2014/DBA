@@ -42,7 +42,10 @@ jobs:
           name: build-artifacts
 
       - name: Display structure of downloaded files
-        run: ls -al
+        run: |
+          ls -al
+          echo "github.ref is ${{ github.ref }}"
+          echo "github.ref is ${{ github.ref }}"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -53,9 +56,7 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
-        run: |
-          echo "github.ref is ${{ github.ref }}"
-          echo "github.ref is ${{ github.ref }}"
+        
 
       # - name: Create GitHub Release
       #   id: create_release
