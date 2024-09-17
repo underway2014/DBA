@@ -27,6 +27,8 @@ jobs:
         run: |
           ls dist
           echo "github.ref is ${{ github.ref }}"
+          echo "github.ref_name is ${{ github.ref_name }}"
+          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
@@ -35,52 +37,52 @@ jobs:
           path: |
             dist/DBA-${{github.ref}}.dmg
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
+  # release:
+  #   needs: build
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
+  #   steps:
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-artifacts
 
-      - name: Display structure of downloaded files
-        run: |
-          ls -al
-          echo "github.ref is ${{ github.ref }}"
-          echo "github.ref is ${{ github.ref }}"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
+  #     - name: Display structure of downloaded files
+  #       run: |
+  #         ls -al
+  #         echo "github.ref is ${{ github.ref }}"
+  #         echo "github.ref is ${{ github.ref }}"
+  #     - name: Create Release
+  #       id: create_release
+  #       uses: actions/create-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         tag_name: ${{ github.ref }}
+  #         release_name: ${{ github.ref }}
+  #         draft: false
+  #         prerelease: false
         
 
-      # - name: Create GitHub Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: v1.0.1
-      #     release_name: Release v1.0.1
-      #     body: |
-      #       Release notes for v1.0.1
-      #     draft: false
-      #     prerelease: false
+  #     # - name: Create GitHub Release
+  #     #   id: create_release
+  #     #   uses: actions/create-release@v1
+  #     #   env:
+  #     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     #   with:
+  #     #     tag_name: v1.0.1
+  #     #     release_name: Release v1.0.1
+  #     #     body: |
+  #     #       Release notes for v1.0.1
+  #     #     draft: false
+  #     #     prerelease: false
 
-      - name: Upload dmg Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: DBA-${{github.ref}}.dmg
-          asset_name: DBA-${{github.ref}}.dmg
-          asset_content_type: application/zip
+  #     - name: Upload dmg Asset
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         upload_url: ${{ steps.create_release.outputs.upload_url }}
+  #         asset_path: DBA-${{github.ref}}.dmg
+  #         asset_name: DBA-${{github.ref}}.dmg
+  #         asset_content_type: application/zip
