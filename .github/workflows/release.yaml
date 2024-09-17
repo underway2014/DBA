@@ -23,6 +23,10 @@ jobs:
 
       - name: Build project
         run: npm run build:mac
+      - name: Display structure of downloaded files
+        run: |
+          ls -al
+          echo "github.ref is ${{ github.ref }}"
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
