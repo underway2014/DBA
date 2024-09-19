@@ -4,7 +4,7 @@ import { $ } from 'zx'
 import path from "path";
 import { app } from "electron";
 import moment from "moment";
-
+// import execa = require('execa')
 
 // import { getConnections } from "./lib/wrjson";
 // const sequelize = new Sequelize({
@@ -221,9 +221,8 @@ function getAppPath() {
 // type 1-struct 2-struct and data
 async function restore({type, connection, dbName, sqlPath}) {
     console.log('restore: ', type, connection, dbName, sqlPath)
-    let appPath =  getAppPath()
-    let pgPath = path.join(appPath, 'resources/bin/mac/pg_restore')
-    console.log('pgDumpPath: ', pgPath)
+    let pgPath = getToolPath({type: 1})
+
     let option = ''
     if(type === 1) {
         option = '-s'
@@ -241,9 +240,7 @@ async function restore({type, connection, dbName, sqlPath}) {
 //type 1-database 2-table
 async function backup({type, config}) {
     console.log('backup: ', type,  config, process.env.NODE_ENV)
-    let appPath =  getAppPath()
-    let pgPath = path.join(appPath, 'resources/bin/mac/pg_dump')
-    console.log('pgDumpPath: ', pgPath)
+    let pgPath = getToolPath({type: 2})
     let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`)
     console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
     const res = await $`export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
@@ -256,13 +253,67 @@ async function backup({type, config}) {
     }
 }
 
-async function createDb({dbName, connection}) {
-    console.log('createDatabase: ', dbName,  connection, val)
-    let appPath = getAppPath()
 
-    let pgPath = path.join(appPath, 'resources/bin/mac/createdb')
-    console.log('pgDumpPath: ', pgPath)
-    const res = await $`export PGPASSWORD='${connection.config.password}' && ${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
+function getPlatform() {
+    console.log('getPlatform: ', process.platform)
+    switch(process.platform) {
+        case 'win32':
+           return 'win'
+        default:
+            return 'mac'
+    }
+}
+
+//type 1-createdb 2-backup 3-restore
+function getToolPath({type}) {
+    let appPath = getAppPath()
+    const os = getPlatform()
+   let tool = ''
+    switch(type) {
+        case 1:
+            tool = 'createdb'
+            break
+        case 2:
+            tool = 'pg_dump'
+            break
+        case 3:
+            tool = 'pg_restore'
+            default:
+                break
+    }
+
+
+    if(os === 'win') {
+        tool += '.exe'
+    }
+
+    let toolPath = path.join(appPath, 'resources', 'bin', os, tool)
+
+    // if(os === 'win') {
+    //     toolPath = toolPath.replace()
+    // }
+
+    console.log('toolPath: ', toolPath)
+    return toolPath
+}
+
+// async function createDb({dbName, connection}) {
+//     console.log('createDatabase: ', dbName,  connection)
+    
+//     let pgPath = getToolPath({type: 1})
+//     const res = await execa({env: {PGPASSWORD: connection.config.password}})`export PGPASSWORD='${connection.config.password}' && "${pgPath}" -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
+//     return {
+//         code: res.exitCode,
+//         dbName
+//     }
+// }
+
+async function createDb({dbName, connection}) {
+    console.log('createDatabase: ', dbName,  connection)
+    const execa = ((await import('execa')).execa)
+    
+    let pgPath = getToolPath({type: 1})
+    const res = await execa({env: {PGPASSWORD: connection.config.password}})`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
     return {
         code: res.exitCode,
         dbName
