@@ -5,3 +5,4 @@ out
 *.log*
 test
 *.sql
+package-lock.json
