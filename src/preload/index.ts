@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { addRow, alterTable, clearDb, closeConnection, delRow, getSchema, getTableData, getTables, query, updateDate } from '../server/db'
+import {  clearDb} from '../server/db'
 
 // Custom APIs for renderer
 const api = {

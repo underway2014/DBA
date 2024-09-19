@@ -4,7 +4,8 @@
     "electron.vite.config.*",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/config/**/*"
+    "src/config/**/*",
+    "src/server/**/*"
   ],
   "compilerOptions": {
     "composite": true,

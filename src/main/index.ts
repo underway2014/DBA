@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, screen, Menu } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -7,7 +7,7 @@ import { addConnection, delConnection, editConnection, getConnections } from '..
 
 // import remoteMain from '@electron/remote/main'
 import { addRow, alterTable, backup, closeConnection, createDb, delRows, getSchema, getTableData, getTables, query, restore, updateDate } from '../server/db'
-import { menuTemplate } from './menuTemplate'
+// import { menuTemplate } from './menuTemplate'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
@@ -34,7 +34,7 @@ function createWindow(): void {
   })
 
 
-  mainWindow.on('close', async e => {
+  mainWindow.on('close', async () => {
     await closeConnection()
   })
 
@@ -56,10 +56,10 @@ function createWindow(): void {
   // initMenu()
 }
 
-function initMenu() {
-  const menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(menu)
-}
+// function initMenu() {
+//   const menu = Menu.buildFromTemplate(menuTemplate)
+//     Menu.setApplicationMenu(menu)
+// }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -168,7 +168,7 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', async (e) => {
+app.on('window-all-closed', async () => {
   // e.preventDefault()
   console.log('window-all-closed ', process.platform)
   if (process.platform !== 'darwin') {

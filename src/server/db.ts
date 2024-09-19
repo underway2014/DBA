@@ -41,14 +41,14 @@ function initDb({id, config}) {
     return db
 }
 
-async function testConnection(db) {
-    try {
-        await db.authenticate();
-        console.log('Connection has been established successfully.');
-      } catch (error) {
-        console.error('Unable to connect to the database:', error);
-      }
-}
+// async function testConnection(db) {
+//     try {
+//         await db.authenticate();
+//         console.log('Connection has been established successfully.');
+//       } catch (error) {
+//         console.error('Unable to connect to the database:', error);
+//       }
+// }
 
 async function getSchema({id, config}) {
       initDb({id, config})
@@ -95,7 +95,7 @@ async function getColums(tableName) {
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({name, id, config, schema = 'public'}) {
+async function getTables({id, config, schema = 'public'}) {
      initDb({id, config})
     let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`)
 
@@ -105,7 +105,7 @@ async function getTables({name, id, config, schema = 'public'}) {
 
 }
 
-async function getRowAndColumns({sql, type, total, page, pageSize}) {
+async function getRowAndColumns({sql, total, page, pageSize}) {
     let res = {rows: [], columns: [], total}
     if(!total) {
         if(!/\blimit\b/i.test(sql)) {
@@ -161,7 +161,7 @@ async function getTableData(data) {
     selectDB(data.id)
 
     if(/^\s*select/i.test(data.sql)){
-        return getRowAndColumns({sql: data.sql, type: null, total: data.total, page: data.page, pageSize: data.pageSize})
+        return getRowAndColumns({sql: data.sql, total: data.total, page: data.page, pageSize: data.pageSize})
     }else {
         return query({sql: data.sql})
 
@@ -240,8 +240,10 @@ async function backup({type, config}) {
     let pgPath = getToolPath({type: 2})
     let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`)
     console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
-    // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', config.config.database, '>' + downPath]}`
-    const res = await execa({env: {PGPASSWORD: config.config.password, DY: '>'}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
+    const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', '-f', downPath, config.config.database]}`
+    // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
+    // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
+
     console.log('backup res: ', res, res.exitCode)
     
     return {
