@@ -6,3 +6,4 @@ out
 test
 *.sql
 package-lock.json
+tsconfig.*.tsbuildinfo
