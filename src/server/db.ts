@@ -1,44 +1,44 @@
-import { QueryTypes, Sequelize } from "sequelize";
+import { QueryTypes, Sequelize } from 'sequelize'
 import * as _ from 'lodash'
-import path from "path";
-import { app } from "electron";
-import moment from "moment";
+import path from 'path'
+import { app } from 'electron'
+import moment from 'moment'
 // const sequelize = new Sequelize({
-    //     host: '127.0.0.1',
-    //     port: 5432,
-    //     username: 'postgres',
-    //     password: 'postgres',
-    //     dialect: 'postgres',
-    //     database: 'db'
-    // })
-    // await sequelize.authenticate();
-    
+//     host: '127.0.0.1',
+//     port: 5432,
+//     username: 'postgres',
+//     password: 'postgres',
+//     dialect: 'postgres',
+//     database: 'db'
+// })
+// await sequelize.authenticate();
+
 const dbMap = {}
 let execa
 let currentDb
 
-function clearDb({id}) {
-    delete dbMap[id]
+function clearDb({ id }) {
+  delete dbMap[id]
 }
 
 async function closeConnection() {
-    console.log('closeConnection abc:', Object.keys(dbMap))
-    let works = Object.keys(dbMap).map(k => dbMap[k].close())
+  console.log('closeConnection abc:', Object.keys(dbMap))
+  const works = Object.keys(dbMap).map((k) => dbMap[k].close())
 
-    return Promise.all(works)
+  return Promise.all(works)
 }
 
-function initDb({id, config}) {
-    let db = dbMap[id]
+function initDb({ id, config }) {
+  let db = dbMap[id]
 
-    if(!db){
-        db = new Sequelize(config)
-    }
+  if (!db) {
+    db = new Sequelize(config)
+  }
 
-    dbMap[id] = db
-    currentDb = db
+  dbMap[id] = db
+  currentDb = db
 
-    return db
+  return db
 }
 
 // async function testConnection(db) {
@@ -50,18 +50,18 @@ function initDb({id, config}) {
 //       }
 // }
 
-async function getSchema({id, config}) {
-      initDb({id, config})
+async function getSchema({ id, config }) {
+  initDb({ id, config })
 
-    let sql = `
+  const sql = `
     select schema_name as name from information_schema.schemata
     `
 
-    return query({sql})
+  return query({ sql })
 }
 
 async function getColums(tableName) {
-    let sql = `
+  const sql = `
     SELECT
         table_name,
         column_name,
@@ -73,233 +73,243 @@ async function getColums(tableName) {
     table_name = '${tableName}' LIMIT 1000
     `
 
-    let columns = await query({sql})
+  let columns = await query({ sql })
 
-    let idEl = null
-    columns = columns.filter(el => {
-        if(el.column_name === 'id') {
-            idEl = el
-            return false
-        }
-        return true
-    })
-    
-
-    columns = _.sortBy(columns, ['column_name'])
-
-    if(idEl) {
-        columns.unshift(idEl)
+  let idEl = null
+  columns = columns.filter((el) => {
+    if (el.column_name === 'id') {
+      idEl = el
+      return false
     }
+    return true
+  })
 
-    return columns
+  columns = _.sortBy(columns, ['column_name'])
+
+  if (idEl) {
+    columns.unshift(idEl)
+  }
+
+  return columns
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({id, config, schema = 'public'}) {
-     initDb({id, config})
-    let tables = await currentDb.query(`select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`)
+async function getTables({ id, config, schema = 'public' }) {
+  initDb({ id, config })
+  const tables = await currentDb.query(
+    `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
+  )
 
-    console.log('tabels:', tables)
+  console.log('tabels:', tables)
 
-    return  _.sortBy(tables[0], ['table_name'])
-
+  return _.sortBy(tables[0], ['table_name'])
 }
 
-async function getRowAndColumns({sql, total, page, pageSize}) {
-    let res = {rows: [], columns: [], total}
-    if(!total) {
-        if(!/\blimit\b/i.test(sql)) {
-            let totalSql = sql.replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
-        
-            console.log('totalSql: ', totalSql)
-            let totalRes = await query({sql: totalSql})
-            console.log('totalRes: ', totalRes)
-    
-            res.total =  totalRes[0].count || 0
+async function getRowAndColumns({ sql, total, page, pageSize }) {
+  const res = { rows: [], columns: [], total }
+  if (!total) {
+    if (!/\blimit\b/i.test(sql)) {
+      const totalSql = sql
+        .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
+        .replace(/order by.*(asc|desc)/i, '')
+        .replace(/order by.*(?=limit)/i, '')
+        .replace(/order by.*/i, '')
 
-        }
+      console.log('totalSql: ', totalSql)
+      const totalRes = await query({ sql: totalSql })
+
+      res.total = totalRes[0].count || 0
     }
+  }
 
-    if(page && pageSize && !/\blimit\b/i.test(sql)) {
-        sql = `
+  if (page && pageSize && !/\blimit\b/i.test(sql)) {
+    sql = `
             ${sql}
             limit ${pageSize}
                 `
-        if(!/\boffset\b/i.test(sql)) {
-            sql = `
+    if (!/\boffset\b/i.test(sql)) {
+      sql = `
                 ${sql}
-                offset ${(pageSize * (page - 1))}
+                offset ${pageSize * (page - 1)}
                 `
-        }
     }
+  }
 
-    let data = await currentDb.query(sql, {type: QueryTypes.RAW})
-    res.rows = data[0]
-    res.columns = data[1].fields
+  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+  res.rows = data[0]
+  res.columns = data[1].fields
 
-    return res
+  return res
 }
 
-async function query({sql }) {
-    console.log('query: ',  sql)
-    try {
-        let data = await currentDb.query(sql, {type: QueryTypes.SELECT})
-        
-        return data
-    } catch (error) {
-        throw error
-    }
+async function query({ sql }) {
+  console.log('query: ', sql)
+  const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
+
+  return data
 }
 
 function selectDB(id) {
-    initDb({id, config: null})
+  initDb({ id, config: null })
 }
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
-    console.log('db getTableData: ', data)
-    selectDB(data.id)
+  console.log('db getTableData: ', data)
+  selectDB(data.id)
 
-    if(/^\s*select/i.test(data.sql)){
-        return getRowAndColumns({sql: data.sql, total: data.total, page: data.page, pageSize: data.pageSize})
-    }else {
-        return query({sql: data.sql})
-
-    }
-
+  if (/^\s*select/i.test(data.sql)) {
+    return getRowAndColumns({
+      sql: data.sql,
+      total: data.total,
+      page: data.page,
+      pageSize: data.pageSize
+    })
+  } else {
+    return query({ sql: data.sql })
+  }
 }
 
-async function updateOneField({tableName, id, field, value}) {
-    let sql = `
+async function updateOneField({ tableName, id, field, value }) {
+  const sql = `
     update ${tableName} set ${field} = '${value}'
     where id = ${id}
     `
 
-    console.log('updateOneField sql: ', sql)
+  console.log('updateOneField sql: ', sql)
 
-
-    await query({sql})
+  await query({ sql })
 }
 
-async function updateDate({tableName, id, data, type}) {
+async function updateDate({ tableName, id, data, type }) {
+  if (type === 2) {
+    return updateOneField({ tableName, id, ...data })
+  }
+  const updateFields = Object.keys(data)
+    .map((key) => {
+      if (Number.isInteger(data[key])) {
+        return `${key} = ${data[key]}`
+      } else {
+        return `${key} = '${data[key]}'`
+      }
+    })
+    .join(',')
 
-    if(type === 2) {
-        return updateOneField({tableName, id, ...data})
-    }
-    let updateFields = Object.keys(data).map(key => {
-        if(Number.isInteger(data[key])) {
-            return `${key} = ${data[key]}`
-        }else {
-            return `${key} = '${data[key]}'`
-        }
-    }).join(',')
-    
-    let sql = `
+  const sql = `
     update ${tableName} set ${updateFields}
     where id = ${id}
     `
 
-    console.log('updateDate sql: ', sql, tableName,id, data)
+  console.log('updateDate sql: ', sql, tableName, id, data)
 
-    await query({sql})
+  await query({ sql })
 }
 
 function getAppPath() {
-    let appPath =  app.getAppPath()
-    if(process.env.NODE_ENV !== 'development') {
-        appPath += '.unpacked'
-    }
+  let appPath = app.getAppPath()
+  if (process.env.NODE_ENV !== 'development') {
+    appPath += '.unpacked'
+  }
 
-    console.log('getAppPath: ', appPath)
+  console.log('getAppPath: ', appPath)
 
-    return appPath
+  return appPath
 }
 
 // type 1-struct 2-struct and data
-async function restore({type, connection, dbName, sqlPath}) {
-    console.log('restore: ', type, connection, dbName, sqlPath)
-    let pgPath = getToolPath({type: 3})
+async function restore({ type, connection, dbName, sqlPath }) {
+  console.log('restore: ', type, connection, dbName, sqlPath)
+  const pgPath = getToolPath({ type: 3 })
 
-    let params: string[] =[]
-    if(type === 1) {
-        params.push('-s')
-    }
+  const params: string[] = []
+  if (type === 1) {
+    params.push('-s')
+  }
 
-    const res = await execa({env: {PGPASSWORD: connection.config.password}})`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${params} --dbname=${connection.config.database}  ${sqlPath}`
-    console.log('restore res: ', res, res.exitCode)
-    return {
-        code: res.exitCode,
-        dbName: connection.config.database,
-        path: sqlPath
-    }
+  const res = await execa({
+    env: { PGPASSWORD: connection.config.password }
+  })`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${params} --dbname=${connection.config.database}  ${sqlPath}`
+  console.log('restore res: ', res, res.exitCode)
+  return {
+    code: res.exitCode,
+    dbName: connection.config.database,
+    path: sqlPath
+  }
 }
 
 //type 1-database 2-table
-async function backup({type, config}) {
-    console.log('backup: ', type,  config, process.env.NODE_ENV)
-    let pgPath = getToolPath({type: 2})
-    let downPath = path.join(app.getPath('downloads'), `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`)
-    console.log('downPath: ', `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`)
-    const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', '-f', downPath, config.config.database]}`
-    // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
-    // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
+async function backup({ type, config }) {
+  console.log('backup: ', type, config, process.env.NODE_ENV)
+  const pgPath = getToolPath({ type: 2 })
+  const downPath = path.join(
+    app.getPath('downloads'),
+    `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`
+  )
+  console.log(
+    'downPath: ',
+    `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
+  )
+  const res = await execa({
+    env: { PGPASSWORD: config.config.password }
+  })`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', '-f', downPath, config.config.database]}`
+  // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
+  // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
 
-    console.log('backup res: ', res, res.exitCode)
-    
-    return {
-        code: res?.exitCode,
-        path: downPath,
-        dbName: config.config.database
-    }
+  console.log('backup res: ', res, res.exitCode)
+
+  return {
+    code: res?.exitCode,
+    path: downPath,
+    dbName: config.config.database
+  }
 }
 
-
 function getPlatform() {
-    console.log('getPlatform: ', process.platform)
-    switch(process.platform) {
-        case 'win32':
-           return 'win'
-        default:
-            return 'mac'
-    }
+  console.log('getPlatform: ', process.platform)
+  switch (process.platform) {
+    case 'win32':
+      return 'win'
+    default:
+      return 'mac'
+  }
 }
 
 //type 1-createdb 2-backup 3-restore
-function getToolPath({type}) {
-    let appPath = getAppPath()
-    const os = getPlatform()
-   let tool = ''
-    switch(type) {
-        case 1:
-            tool = 'createdb'
-            break
-        case 2:
-            tool = 'pg_dump'
-            break
-        case 3:
-            tool = 'pg_restore'
-            default:
-                break
-    }
+function getToolPath({ type }) {
+  const appPath = getAppPath()
+  const os = getPlatform()
+  let tool = ''
+  switch (type) {
+    case 1:
+      tool = 'createdb'
+      break
+    case 2:
+      tool = 'pg_dump'
+      break
+    case 3:
+      tool = 'pg_restore'
+      break
+    default:
+      break
+  }
 
+  if (os === 'win') {
+    tool += '.exe'
+  }
 
-    if(os === 'win') {
-        tool += '.exe'
-    }
+  const toolPath = path.join(appPath, 'resources', 'bin', os, tool)
 
-    let toolPath = path.join(appPath, 'resources', 'bin', os, tool)
+  // if(os === 'win') {
+  //     toolPath = toolPath.replace()
+  // }
 
-    // if(os === 'win') {
-    //     toolPath = toolPath.replace()
-    // }
-
-    console.log('toolPath: ', toolPath)
-    return toolPath
+  console.log('toolPath: ', toolPath)
+  return toolPath
 }
 
 // async function createDb({dbName, connection}) {
 //     console.log('createDatabase: ', dbName,  connection)
-    
+
 //     let pgPath = getToolPath({type: 1})
 //     const res = await execa({env: {PGPASSWORD: connection.config.password}})`export PGPASSWORD='${connection.config.password}' && "${pgPath}" -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
 //     return {
@@ -308,114 +318,127 @@ function getToolPath({type}) {
 //     }
 // }
 
-(async function initExeca() {
-     execa = ((await import('execa')).execa)
+;(async function initExeca() {
+  execa = (await import('execa')).execa
 })()
 
-async function createDb({dbName, connection}) {
-    console.log('createDatabase: ', dbName,  connection)
-    
-    let pgPath = getToolPath({type: 1})
-    const res = await execa({env: {PGPASSWORD: connection.config.password}})`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
-    return {
-        code: res.exitCode,
-        dbName
-    }
+async function createDb({ dbName, connection }) {
+  console.log('createDatabase: ', dbName, connection)
+
+  const pgPath = getToolPath({ type: 1 })
+  const res = await execa({
+    env: { PGPASSWORD: connection.config.password }
+  })`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
+  return {
+    code: res.exitCode,
+    dbName
+  }
 }
 
+// ALTER TABLE active
+// ADD COLUMN aa4 INTEGER NOT null
+// DEFAULT 0;
+async function addField({ tableName, column, dataType, defaltValue, comment, notnull }) {
+  let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
 
-    // ALTER TABLE active
-    // ADD COLUMN aa4 INTEGER NOT null
-    // DEFAULT 0;
-async function addField({tableName, column, dataType, defaltValue, comment, notnull}) {
-    let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
+  if (notnull) {
+    sql = `${sql} NOT NULL`
+  }
 
-    if(notnull) {
-        sql = `${sql} NOT NULL`
-    }
+  if (defaltValue) {
+    sql = `${sql} default ${defaltValue}`
+  }
 
-    if(defaltValue) {
-        sql = `${sql} default ${defaltValue}`
-    }
+  const res = await query({ sql })
+  if (comment) {
+    const commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
+    await query({ sql: commentSql })
+  }
 
-    let res = await query({sql})
-    if(comment){
-        let commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
-        await query({sql: commentSql})
-    }
-
-    return res
+  return res
 }
 
-async function delField({tableName, column}) {
-    let dropSql = column.map(el => {
-        return `drop column ${el}`
-    })
-    const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
+async function delField({ tableName, column }) {
+  const dropSql = column.map((el) => {
+    return `drop column ${el}`
+  })
+  const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
-    return query({sql})
+  return query({ sql })
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function alterColumn(data) {
-    console.log('alterColumn data: ', data)
-    if(data.dataType !== data.oldValue.dataType) {
-        await query({
-            sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
-        })
-    }
+  console.log('alterColumn data: ', data)
+  if (data.dataType !== data.oldValue.dataType) {
+    await query({
+      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
+    })
+  }
 
-    if(data.notnull !== data.oldValue.notnull) {
-        console.log('data.notnull: ', !!data.notnull, data.notnull)
-        let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
-        if(data.notnull) {
-            sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
-        }
-       let res = await query({sql})
-        console.log('alter sql: ', sql, res)
+  if (data.notnull !== data.oldValue.notnull) {
+    console.log('data.notnull: ', !!data.notnull, data.notnull)
+    let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
+    if (data.notnull) {
+      sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
     }
-    
-    if(data.column !== data.oldValue.column) {
-        await query({
-            sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`
-        })
-    }
+    const res = await query({ sql })
+    console.log('alter sql: ', sql, res)
+  }
 
+  if (data.column !== data.oldValue.column) {
+    await query({
+      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`
+    })
+  }
 }
 
 async function alterTable(data) {
-    if(data.type === 1) {
-        return addField(data)
-    }else if(data.type === 2) {
-        return delField(data)
-    }else if(data.type === 3) {
-        return alterColumn(data)
-    }
+  if (data.type === 1) {
+    return addField(data)
+  } else if (data.type === 2) {
+    return delField(data)
+  } else if (data.type === 3) {
+    return alterColumn(data)
+  }
 }
 
-async function  addRow({id, tableName, fields}) {
-    selectDB(id)
-    let cols = Object.keys(fields)
-    let vals = cols.map(k => `'${fields[k]}'`)
-    const sql = `
+async function addRow({ id, tableName, fields }) {
+  selectDB(id)
+  const cols = Object.keys(fields)
+  const vals = cols.map((k) => `'${fields[k]}'`)
+  const sql = `
     INSERT INTO ${tableName} (${cols.join(',')})
     VALUES (${vals.join(',')});
     `
 
-    console.log('add row sql: ', sql)
+  console.log('add row sql: ', sql)
 
-    return query({sql})
+  return query({ sql })
 }
 
-async function  delRows({id, tableName, ids}) {
-    selectDB(id)
+async function delRows({ id, tableName, ids }) {
+  selectDB(id)
 
-    const sql = `
+  const sql = `
     delete from ${tableName} where id in (${ids})
     `
 
-    return query({sql})
+  return query({ sql })
 }
 
-export {clearDb, getTables, updateDate, query, getColums, 
-    getTableData, getSchema, backup, restore, createDb,alterTable, delRows, 
-    addRow, closeConnection}
+export {
+  clearDb,
+  getTables,
+  updateDate,
+  query,
+  getColums,
+  getTableData,
+  getSchema,
+  backup,
+  restore,
+  createDb,
+  alterTable,
+  delRows,
+  addRow,
+  closeConnection
+}
