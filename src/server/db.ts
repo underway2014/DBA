@@ -158,6 +158,10 @@ async function getTableData(data) {
   console.log('db getTableData: ', data)
   selectDB(data.id)
 
+  if (/(pg_terminate_backend|nextval)\(/i.test(data.sql)) {
+    return query({ sql: data.sql })
+  }
+
   if (/^\s*select/i.test(data.sql)) {
     return getRowAndColumns({
       sql: data.sql,
