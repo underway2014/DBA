@@ -8,7 +8,7 @@ import * as path from 'path'
 // console.log('path3: ', __dirname, app.getPath('exe'))
 // console.log('path3: ', __dirname, app.getAppPath())
 function getConfigPath() {
-    return path.join(app.getPath('userData'), './config.json')
+  return path.join(app.getPath('userData'), './config.json')
 }
 // {
 //     "version": "1.0.0",
@@ -27,72 +27,72 @@ function getConfigPath() {
 //       }
 //     ]
 //   }
-function readFile () {
-    if(!fs.existsSync(getConfigPath())) {
-        fs.writeFileSync(getConfigPath(), JSON.stringify({
-            version: '1.0.0',
-            connections: []
-        }))
-    }
+function readFile() {
+  if (!fs.existsSync(getConfigPath())) {
+    fs.writeFileSync(
+      getConfigPath(),
+      JSON.stringify({
+        version: '1.0.0',
+        connections: []
+      })
+    )
+  }
 
-  let data = fs.readFileSync(getConfigPath(), { encoding: 'utf-8' })
+  const data = fs.readFileSync(getConfigPath(), { encoding: 'utf-8' })
 
   return JSON.parse(data)
 }
 
-
-function writeFile (obj: object) {
-    fs.writeFileSync(getConfigPath(), JSON.stringify(obj))
+function writeFile(obj: object) {
+  fs.writeFileSync(getConfigPath(), JSON.stringify(obj))
 }
 
 export const getConnections = () => {
-    let data = readFile()
+  const data = readFile()
 
-    return data.connections
+  return data.connections
 }
 
 export const delConnection = (connectionStr) => {
-    // connection@t1_local2@1723166257140
-    console.log('delConnection ww: ', connectionStr)
-    let a = connectionStr.split('@')
-    let id = a[a.length - 1]
-    let data = readFile()
-    let connections = data.connections.filter(el => {
-        if(el.id === id) {
-            return false
-        }
+  // connection@t1_local2@1723166257140
+  console.log('delConnection ww: ', connectionStr)
+  const a = connectionStr.split('@')
+  const id = a[a.length - 1]
+  const data = readFile()
+  const connections = data.connections.filter((el) => {
+    if (el.id === id) {
+      return false
+    }
 
-        return true
-    })
+    return true
+  })
 
-    data.connections = connections
+  data.connections = connections
 
-    return writeFile(data)
+  return writeFile(data)
 }
 
-export const editConnection = function(val) {
-    const data = readFile()
-    const list = data.connections.map(el => {
-        if(el.id + '' === val.id + '') {
-            return val
-        }
+export const editConnection = function (val) {
+  const data = readFile()
+  const list = data.connections.map((el) => {
+    if (el.id + '' === val.id + '') {
+      return val
+    }
 
-        return el
-    })
-    
+    return el
+  })
 
-    data.connections = list
-    writeFile(data)
-
+  data.connections = list
+  writeFile(data)
 }
 
-export const addConnection = function(val) {
-    const data = readFile()
-    const list = data.connections || []
-    val.id = new Date().getTime() + ''
-    list.push(val)
+export const addConnection = function (val) {
+  const data = readFile()
+  const list = data.connections || []
+  val.id = new Date().getTime() + ''
+  list.push(val)
 
-    data.connections = list
+  data.connections = list
 
-    writeFile(data)
+  writeFile(data)
 }
