@@ -6,13 +6,26 @@ import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 
 // import remoteMain from '@electron/remote/main'
-import { addRow, alterTable, backup, closeConnection, createDb, delRows, getSchema, getTableData, getTables, query, restore, updateDate } from '../server/db'
+import {
+  addRow,
+  alterTable,
+  backup,
+  closeConnection,
+  createDb,
+  delRows,
+  getSchema,
+  getTableData,
+  getTables,
+  query,
+  restore,
+  updateDate
+} from '../server/db'
 // import { menuTemplate } from './menuTemplate'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
 
 function createWindow(): void {
-  const {width, height} = screen.getPrimaryDisplay().bounds
+  const { width, height } = screen.getPrimaryDisplay().bounds
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width,
@@ -24,7 +37,7 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
-    },
+    }
     // fullscreen: true,
     // maximizable
   })
@@ -32,7 +45,6 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
-
 
   mainWindow.on('close', async () => {
     await closeConnection()
@@ -65,10 +77,9 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  
   // server()
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('electron.viki.com')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -80,13 +91,12 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => {
     console.log('pong')
-  }
-  )
+  })
 
   ipcMain.handle('store:get', (_, val) => {
     console.log('store:get', val)
 
-    let data = getConnections()
+    const data = getConnections()
     console.log('connection data: ', data)
 
     return data
@@ -155,7 +165,6 @@ app.whenReady().then(() => {
     return closeConnection()
   })
 
-
   createWindow()
 
   app.on('activate', function () {
@@ -174,7 +183,6 @@ app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-  
 })
 
 // app.on('before-quit', e => {

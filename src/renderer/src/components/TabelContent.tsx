@@ -6,6 +6,12 @@ import List from './List'
 import EditTable from './EditTable'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string
+type TabItem = {
+  label: string | JSX.Element
+  children: JSX.Element
+  key: string
+  icon?: JSX.Element
+}
 
 const defaultPanes = new Array(1).fill(null).map((_, index) => {
   const id = String(index + 1)
@@ -20,8 +26,9 @@ const defaultPanes = new Array(1).fill(null).map((_, index) => {
 
 const TabelContent: React.FC = (_, parentRef) => {
   const [activeKey, setActiveKey] = useState(defaultPanes[0].key)
-  const [items, setItems] = useState(defaultPanes)
+  const [items, setItems] = useState<TabItem[]>([])
   const newTabIndex = useRef(0)
+  const nowItems = useRef(items)
 
   useImperativeHandle(parentRef, () => {
     return {
@@ -35,19 +42,55 @@ const TabelContent: React.FC = (_, parentRef) => {
     console.log('tab onchane key: ', key)
     setActiveKey(key)
   }
-  function rightMenuHandler(e) {
-    console.log('tab content rightMenuHandler: ', e)
+
+  function rightMenuHandler(e, key) {
+    e.domEvent.stopPropagation()
+    console.log('tab content rightMenuHandler: ', e, key, typeof e.key)
+    console.log('items: ', items)
+    let newItems: TabItem[] = []
+    if (+e.key === 5) {
+      newItems = nowItems.current.filter((el) => el.key !== key)
+      console.log('newItems11: ', newItems)
+      if (newItems.length) {
+        setActiveKey(newItems[0].key)
+      }
+    } else if (+e.key === 6) {
+      newItems = nowItems.current.filter((el) => {
+        console.log('el.key: ', el.key, key, el.key === key)
+
+        return el.key === key
+      })
+
+      if (newItems.length) {
+        setActiveKey(key)
+      }
+    }
+
+    console.log('newItems: ', newItems)
+
+    setItems(newItems)
+    nowItems.current = newItems
   }
+
   const tabRightItems: MenuProps['items'] = [
     {
-      label: 'colose tab',
-      key: '5'
+      label: 'Close',
+      key: 5
+    },
+    {
+      label: 'Close Others',
+      key: 6
+    },
+    {
+      label: 'Close All',
+      key: 7
     }
   ]
-  function genTabTitle(title) {
+  const genTabTitle = function ({ title, key }) {
     return (
       <Dropdown
-        menu={{ items: tabRightItems, onClick: rightMenuHandler }}
+        // menu={{ items: tabRightItems, onClick: rightMenuHandler }}
+        menu={{ items: tabRightItems, onClick: (e) => rightMenuHandler(e, key, items) }}
         trigger={['contextMenu']}
       >
         <span style={{ userSelect: 'none', width: '100%', display: 'inline-block' }}>{title}</span>
@@ -56,34 +99,35 @@ const TabelContent: React.FC = (_, parentRef) => {
   }
 
   const addTab = (data) => {
-    const newActiveKey = `newTab${newTabIndex.current++}`
+    const newActiveKey = `tab${newTabIndex.current++}`
     // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
     console.log('add data: ', data)
+    const newItems = [...items]
     if (data.type === 1) {
-      setItems([
-        ...items,
-        {
-          label: genTabTitle(data.tableName),
-          icon: <UnorderedListOutlined />,
-          children: <List tabData={data}></List>,
-          key: newActiveKey
-        }
-      ])
+      newItems.push({
+        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        icon: <UnorderedListOutlined />,
+        children: <List tabData={data}></List>,
+        key: newActiveKey
+      })
     } else if (data.type === 2) {
-      setItems([
-        ...items,
-        {
-          label: genTabTitle(data.tableName),
-          icon: <EditOutlined />,
-          children: <EditTable tabData={data}></EditTable>,
-          key: newActiveKey
-        }
-      ])
+      newItems.push({
+        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        icon: <EditOutlined />,
+        children: <EditTable tabData={data}></EditTable>,
+        key: newActiveKey
+      })
     }
     setActiveKey(newActiveKey)
+    setItems(newItems)
+
+    nowItems.current = newItems
+
+    console.log('after add items: ', items)
   }
 
   const remove = (targetKey: TargetKey) => {
+    console.log('remove: ', items, targetKey)
     const targetIndex = items.findIndex((pane) => pane.key === targetKey)
     const newPanes = items.filter((pane) => pane.key !== targetKey)
     if (newPanes.length && targetKey === activeKey) {
@@ -91,9 +135,11 @@ const TabelContent: React.FC = (_, parentRef) => {
       setActiveKey(key)
     }
     setItems(newPanes)
+    nowItems.current = newPanes
   }
 
   const onEdit = (targetKey: TargetKey, action: 'add' | 'remove') => {
+    console.log('on edit: ', targetKey)
     if (action === 'add') {
       // add();
     } else {
@@ -101,22 +147,10 @@ const TabelContent: React.FC = (_, parentRef) => {
     }
   }
 
-  function tabRightClick(e) {
-    console.log('tab content tabRightClick: ', e, e.target.id)
-    console.log('tab content tabRightClick2: ', e.currentTarget)
-    // console.log('tab content tabRightClick3: ', e.target.__reactFiber$nh8hlbxh0nq.return.key, e.target.__reactFiber$nh8hlbxh0nq.return.return.key, e.target.__reactFiber$nh8hlbxh0nq.return.return?.key)
-    // __reactFiber$nh8hlbxh0nq
-  }
-
   const renderTabBar: TabsProps['renderTabBar'] = (props, DefaultTabBar) => {
     console.log('tab bar: ', props, props.activeKey)
     return (
-      //   <Dropdown
-      //     menu={{ items: tabRightItems, onClick: rightMenuHandler }}
-      //     trigger={['contextMenu']}
-      //   >
-      //   </Dropdown>
-      <div id={props.activeKey} data-a={props.activeKey} onContextMenu={tabRightClick}>
+      <div id={props.activeKey} data-a={props.activeKey}>
         <DefaultTabBar {...props} />
       </div>
     )
