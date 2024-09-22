@@ -2,10 +2,9 @@ import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-// import server from '../server'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
+import updater from './updater'
 
-// import remoteMain from '@electron/remote/main'
 import {
   addRow,
   alterTable,
@@ -65,6 +64,7 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
+  updater(mainWindow)
   // initMenu()
 }
 
@@ -159,9 +159,6 @@ app.whenReady().then(() => {
     return delRows(val)
   })
   ipcMain.handle('connection:close', (_) => {
-    console.log('connection:close okkk')
-    console.log('connection:close okkk')
-    console.log('connection:close okkk')
     return closeConnection()
   })
 
