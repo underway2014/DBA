@@ -30,7 +30,7 @@ jobs:
       - name: win
         if: startsWith(matrix.os, 'win')
         run: npm run build:win
-       - name: Cleanup Artifacts for Windows
+      - name: Cleanup Artifacts for Windows
         if: startsWith(matrix.os, 'win')
         run: |
           npx del-cli "dist/*" "!dist/*.exe" "!dist/*.zip" "!dist/*.yml"
