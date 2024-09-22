@@ -42,7 +42,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name:  ${{ matrix.os }}
-          path: dist/DBA*
+          path: |
+            dist/DBA*.exe
+            dist/DBA*.dmg
 
       - name: Release
         uses: softprops/action-gh-release@v2
