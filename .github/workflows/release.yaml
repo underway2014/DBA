@@ -41,41 +41,13 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name:  ${{ matrix.os }}
           path: dist
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: build-artifacts
-
-      - name: Display structure of downloaded files
-        run: |
-          ls -al
-          echo "github.ref is ${{ github.ref_name }}"
-          echo "github.ref is ${{ github.ref }}"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+          files: "dist/**"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-        
-      - name: Upload dmg Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/
-          asset_name: build-artifacts.zip
-          asset_content_type: application/zip

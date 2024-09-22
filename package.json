@@ -1,6 +1,6 @@
 {
   "name": "DBA",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A PostgreSQL tool",
   "main": "./out/main/index.js",
   "author": "viki",
