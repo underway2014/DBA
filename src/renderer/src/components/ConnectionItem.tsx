@@ -119,7 +119,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           const schema = schemas[0].children?.find((el) => el.key === key)
 
           if (schema) {
-            console.log('right shcema: ', schema)
             schema.isLeaf = false
             schema.children = tables.map((el, index) => {
               return {
@@ -129,7 +128,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               }
             })
           } else {
-            console.log('not find schema')
           }
 
           props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[1]])
@@ -182,9 +180,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           props.updateSlider()
         })
       },
-      onCancel() {
-        console.log('Cancel')
-      }
+      onCancel() {}
     })
   }
 
@@ -233,8 +229,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       window.api
         .dbBackup({ type: 1, name: keyArr[1], config: props.connection })
         .then((res, a, b) => {
-          console.log('db backup res: ', res)
-
           if (res.code === 0) {
             addLog({
               logList,
@@ -303,15 +297,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   // node connection-jogo_gaming_dev-1720530577574
   function treeRightHandler({ event, node }) {
-    console.log('treeRightHandler: ', event, node)
     event.stopPropagation()
 
     rightClickItemKey = node.key
   }
 
   function titleRender(nodeData) {
-    // console.log('title render: ', nodeData)
-
     let editButtons
     if (!/^schema/.test(nodeData.key)) {
       let delButton
@@ -321,7 +312,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           <DeleteOutlined
             className="marginlr20"
             onClick={(e) => {
-              console.log('delete', e)
               e.stopPropagation()
               delConnection(nodeData)
             }}
@@ -334,7 +324,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           {delButton}
           <EditOutlined
             onClick={(e) => {
-              console.log('edit connection: ', nodeData)
               e.stopPropagation()
 
               editConnection(nodeData)
@@ -366,7 +355,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   async function editConnectionSumit(val) {
-    console.log('editConnectionSumit>>>', val)
     window.api
       .editStore({
         name: val.name,
@@ -381,7 +369,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         }
       })
       .then((res) => {
-        console.log('editStore res: ', res)
         props.updateSlider()
         setShowEditConnectionForm(false)
 
@@ -392,16 +379,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           }
         ])
       })
-    console.log('after editStore res: ')
   }
 
   async function addOk(val) {
-    console.log('crate db add ok.>>>', val)
     setShowCreateFrom(false)
 
-    window.api.dbCreate({ dbName: val.name, connection: props.connection }).then((res) => {
-      console.log('client dbCreate res: ', res)
-    })
+    window.api.dbCreate({ dbName: val.name, connection: props.connection }).then((res) => {})
   }
 
   return (

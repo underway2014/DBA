@@ -22,7 +22,6 @@ function clearDb({ id }) {
 }
 
 async function closeConnection() {
-  console.log('closeConnection abc:', Object.keys(dbMap))
   const works = Object.keys(dbMap).map((k) => dbMap[k].close())
 
   return Promise.all(works)
@@ -44,7 +43,6 @@ function initDb({ id, config }) {
 // async function testConnection(db) {
 //     try {
 //         await db.authenticate();
-//         console.log('Connection has been established successfully.');
 //       } catch (error) {
 //         console.error('Unable to connect to the database:', error);
 //       }
@@ -100,8 +98,6 @@ async function getTables({ id, config, schema = 'public' }) {
     `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
   )
 
-  console.log('tabels:', tables)
-
   return _.sortBy(tables[0], ['table_name'])
 }
 
@@ -115,7 +111,6 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
         .replace(/order by.*(?=limit)/i, '')
         .replace(/order by.*/i, '')
 
-      console.log('totalSql: ', totalSql)
       const totalRes = await query({ sql: totalSql })
 
       res.total = totalRes[0].count || 0
@@ -143,7 +138,6 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
 }
 
 async function query({ sql }) {
-  console.log('query: ', sql)
   const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
 
   return data
@@ -155,7 +149,6 @@ function selectDB(id) {
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
-  console.log('db getTableData: ', data)
   selectDB(data.id)
 
   if (/(pg_terminate_backend|nextval)\(/i.test(data.sql)) {
@@ -180,8 +173,6 @@ async function updateOneField({ tableName, id, field, value }) {
     where id = ${id}
     `
 
-  console.log('updateOneField sql: ', sql)
-
   await query({ sql })
 }
 
@@ -204,8 +195,6 @@ async function updateDate({ tableName, id, data, type }) {
     where id = ${id}
     `
 
-  console.log('updateDate sql: ', sql, tableName, id, data)
-
   await query({ sql })
 }
 
@@ -215,14 +204,11 @@ function getAppPath() {
     appPath += '.unpacked'
   }
 
-  console.log('getAppPath: ', appPath)
-
   return appPath
 }
 
 // type 1-struct 2-struct and data
 async function restore({ type, connection, dbName, sqlPath }) {
-  console.log('restore: ', type, connection, dbName, sqlPath)
   const pgPath = getToolPath({ type: 3 })
 
   const params: string[] = []
@@ -233,7 +219,7 @@ async function restore({ type, connection, dbName, sqlPath }) {
   const res = await execa({
     env: { PGPASSWORD: connection.config.password }
   })`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${params} --dbname=${connection.config.database}  ${sqlPath}`
-  console.log('restore res: ', res, res.exitCode)
+
   return {
     code: res.exitCode,
     dbName: connection.config.database,
@@ -243,7 +229,6 @@ async function restore({ type, connection, dbName, sqlPath }) {
 
 //type 1-database 2-table
 async function backup({ type, config }) {
-  console.log('backup: ', type, config, process.env.NODE_ENV)
   const pgPath = getToolPath({ type: 2 })
   const downPath = path.join(
     app.getPath('downloads'),
@@ -259,8 +244,6 @@ async function backup({ type, config }) {
   // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
   // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
 
-  console.log('backup res: ', res, res.exitCode)
-
   return {
     code: res?.exitCode,
     path: downPath,
@@ -269,7 +252,6 @@ async function backup({ type, config }) {
 }
 
 function getPlatform() {
-  console.log('getPlatform: ', process.platform)
   switch (process.platform) {
     case 'win32':
       return 'win'
@@ -307,12 +289,10 @@ function getToolPath({ type }) {
   //     toolPath = toolPath.replace()
   // }
 
-  console.log('toolPath: ', toolPath)
   return toolPath
 }
 
 // async function createDb({dbName, connection}) {
-//     console.log('createDatabase: ', dbName,  connection)
 
 //     let pgPath = getToolPath({type: 1})
 //     const res = await execa({env: {PGPASSWORD: connection.config.password}})`export PGPASSWORD='${connection.config.password}' && "${pgPath}" -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
@@ -327,8 +307,6 @@ function getToolPath({ type }) {
 })()
 
 async function createDb({ dbName, connection }) {
-  console.log('createDatabase: ', dbName, connection)
-
   const pgPath = getToolPath({ type: 1 })
   const res = await execa({
     env: { PGPASSWORD: connection.config.password }
@@ -372,7 +350,6 @@ async function delField({ tableName, column }) {
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function alterColumn(data) {
-  console.log('alterColumn data: ', data)
   if (data.dataType !== data.oldValue.dataType) {
     await query({
       sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
@@ -380,13 +357,11 @@ async function alterColumn(data) {
   }
 
   if (data.notnull !== data.oldValue.notnull) {
-    console.log('data.notnull: ', !!data.notnull, data.notnull)
     let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
     if (data.notnull) {
       sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
     }
     const res = await query({ sql })
-    console.log('alter sql: ', sql, res)
   }
 
   if (data.column !== data.oldValue.column) {
@@ -414,8 +389,6 @@ async function addRow({ id, tableName, fields }) {
     INSERT INTO ${tableName} (${cols.join(',')})
     VALUES (${vals.join(',')});
     `
-
-  console.log('add row sql: ', sql)
 
   return query({ sql })
 }

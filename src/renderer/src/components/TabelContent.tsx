@@ -39,25 +39,21 @@ const TabelContent: React.FC = (_, parentRef) => {
   })
 
   const onChange = (key: string) => {
-    console.log('tab onchane key: ', key)
     setActiveKey(key)
   }
 
   function rightMenuHandler(e, key) {
     e.domEvent.stopPropagation()
-    console.log('tab content rightMenuHandler: ', e, key, typeof e.key)
-    console.log('items: ', items)
+
     let newItems: TabItem[] = []
     if (+e.key === 5) {
       newItems = nowItems.current.filter((el) => el.key !== key)
-      console.log('newItems11: ', newItems)
+
       if (newItems.length) {
         setActiveKey(newItems[0].key)
       }
     } else if (+e.key === 6) {
       newItems = nowItems.current.filter((el) => {
-        console.log('el.key: ', el.key, key, el.key === key)
-
         return el.key === key
       })
 
@@ -65,8 +61,6 @@ const TabelContent: React.FC = (_, parentRef) => {
         setActiveKey(key)
       }
     }
-
-    console.log('newItems: ', newItems)
 
     setItems(newItems)
     nowItems.current = newItems
@@ -101,7 +95,7 @@ const TabelContent: React.FC = (_, parentRef) => {
   const addTab = (data) => {
     const newActiveKey = `tab${newTabIndex.current++}`
     // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
-    console.log('add data: ', data)
+
     const newItems = [...items]
     if (data.type === 1) {
       newItems.push({
@@ -122,12 +116,9 @@ const TabelContent: React.FC = (_, parentRef) => {
     setItems(newItems)
 
     nowItems.current = newItems
-
-    console.log('after add items: ', items)
   }
 
   const remove = (targetKey: TargetKey) => {
-    console.log('remove: ', items, targetKey)
     const targetIndex = items.findIndex((pane) => pane.key === targetKey)
     const newPanes = items.filter((pane) => pane.key !== targetKey)
     if (newPanes.length && targetKey === activeKey) {
@@ -139,7 +130,6 @@ const TabelContent: React.FC = (_, parentRef) => {
   }
 
   const onEdit = (targetKey: TargetKey, action: 'add' | 'remove') => {
-    console.log('on edit: ', targetKey)
     if (action === 'add') {
       // add();
     } else {
@@ -148,7 +138,6 @@ const TabelContent: React.FC = (_, parentRef) => {
   }
 
   const renderTabBar: TabsProps['renderTabBar'] = (props, DefaultTabBar) => {
-    console.log('tab bar: ', props, props.activeKey)
     return (
       <div id={props.activeKey} data-a={props.activeKey}>
         <DefaultTabBar {...props} />

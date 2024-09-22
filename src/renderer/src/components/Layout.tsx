@@ -55,24 +55,21 @@ const CLayout: React.FC = () => {
   const tabsRef = useRef<any>()
 
   useEffect(() => {
-    console.log('useEffect')
     updateSlider()
   }, [])
 
-  function updateSlider () {
+  function updateSlider() {
     window.api.getStore().then((connections) => {
-      console.log('get new connections:', connections)
       setConnections(connections)
     })
   }
 
-  function getTableDataByName (val) {
+  function getTableDataByName(val) {
     // type 1-查看表数据 2-编辑表
     tabsRef.current.updateList(val)
   }
 
-  function rightMenuHandler (e) {
-    console.log('rightMenuHandler e: ', e)
+  function rightMenuHandler(e) {
     e.domEvent.stopPropagation()
 
     if (+e.key === 5) {
@@ -89,23 +86,23 @@ const CLayout: React.FC = () => {
     }
   ]
 
-  function conOk () {
+  function conOk() {
     setData({ ...data, connectionForm: false })
   }
 
-  function conCancel () {
+  function conCancel() {
     setData({ ...data, connectionForm: false })
   }
 
-  function createdbCacel () {
+  function createdbCacel() {
     setData({ ...data, createdbFrom: false })
   }
 
-  function createdbOk () {
+  function createdbOk() {
     setData({ ...data, createdbFrom: false })
   }
 
-  function conAddOk (val) {
+  function conAddOk(val) {
     window.api.addStore({
       name: val.name,
       config: {
@@ -121,12 +118,11 @@ const CLayout: React.FC = () => {
     setData({ ...data, connectionForm: false })
     updateSlider()
   }
-  function addDbOk () {
+  function addDbOk() {
     setData({ ...data, createdbFrom: false })
   }
 
-  function setDbInfo (val) {
-    console.log('set db info: ', val)
+  function setDbInfo(val) {
     const a = val.map((el) => {
       return {
         title: el
@@ -136,11 +132,11 @@ const CLayout: React.FC = () => {
   }
 
   const [logOpen, setLogOpen] = useState(false)
-  function logClose () {
+  function logClose() {
     setLogOpen(false)
   }
 
-  function showLog () {
+  function showLog() {
     setLogOpen(true)
   }
 
@@ -165,13 +161,9 @@ const CLayout: React.FC = () => {
               <Sider
                 breakpoint="lg"
                 collapsedWidth="0"
-                onBreakpoint={(broken) => {
-                  console.log(broken)
-                }}
+                onBreakpoint={(broken) => {}}
                 width={300}
-                onCollapse={(collapsed, type) => {
-                  console.log(collapsed, type)
-                }}
+                onCollapse={(collapsed, type) => {}}
                 style={{ backgroundColor: 'white' }}
               >
                 {connections.map((el, index) => {

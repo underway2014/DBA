@@ -82,12 +82,9 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
 
   const selectKeys: React.Key[] = []
 
-  console.log('tableName: ', tableName)
-  // console.log('init current sql: ', currentSql)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
 
   useEffect(() => {
-    console.log('use effect sqlTxt: ', sql)
     getTableData()
   }, [])
 
@@ -98,7 +95,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
         sql
       })
       .then((data) => {
-        console.log('executeSql query sql res: ', sql)
         updateList({ listData: data, tableName: props.tabData.tableName })
       })
   }
@@ -109,8 +105,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
     listData.rows.forEach(
       (el) => (el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
     )
-
-    console.log('column rows: ', listData.columns, listData.rows)
 
     const cms = columnsStr.map((el) => {
       return {
@@ -144,8 +138,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
   }
 
   function editHandler(record) {
-    console.log('editHandler: ', record)
-
     setAlterModal({
       ...alterModal,
       alter: true,
@@ -159,7 +151,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
   }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys)
     setSelectedRowKeys(newSelectedRowKeys)
 
     selectKeys.length = 0
@@ -212,8 +203,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
       icon: <ExclamationCircleFilled />,
       content: '',
       onOk() {
-        console.log('del OK', listRows, selectKeys, selectedRowKeys)
-
         const delFields: Array<string> = []
         const leftRows: RowDataType[] = []
         for (const el of listRows) {
@@ -224,21 +213,17 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
           }
         }
 
-        console.log('delFields: ', delFields)
         const opt = {
           tableName: tableName,
           column: delFields,
           type: 2
         }
         window.api.alterTable(opt).then((res) => {
-          console.log('client del field res: ', res)
           selectKeys.length = 0
           setListRows(leftRows)
         })
       },
-      onCancel() {
-        console.log('Cancel')
-      }
+      onCancel() {}
     })
   }
 
@@ -250,7 +235,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
   }
 
   function addColumn(val, oldValue) {
-    console.log('addColumn: ', val, oldValue)
     const type = alterModal.add ? 1 : 3
     setAlterModal({ ...alterModal, add: false, alter: false })
     //type 1-add 2-del  3-alter
@@ -281,8 +265,6 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
     window.api
       .alterTable(opt)
       .then((res) => {
-        console.log('client alterTable res: ', res)
-
         getTableData()
       })
       .catch((error) => {

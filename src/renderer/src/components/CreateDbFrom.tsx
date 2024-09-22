@@ -15,13 +15,10 @@ const CreateDbForm: React.FC<CustomProps> = (props) => {
   }
 
   const onFinish = (values) => {
-    console.log('Success:', values)
     createDatabase(form.getFieldsValue())
   }
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo)
-  }
+  const onFinishFailed = (errorInfo) => {}
   return (
     <Form
       onFinish={onFinish}

@@ -16,15 +16,12 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
   }
 
   const onFinish = (values) => {
-    console.log('Success:', values)
     addColumn(form.getFieldsValue(), props.defautValues)
 
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo)
-  }
+  const onFinishFailed = (errorInfo) => {}
 
   form.setFieldsValue(props.defautValues)
 

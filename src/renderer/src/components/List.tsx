@@ -51,7 +51,6 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   console.time('useEffect')
   useEffect(() => {
-    console.log('use effect sqlTxt: ', sqlTxt)
     getAndUpdateTable(listRows)
   }, [])
 
@@ -59,12 +58,8 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   console.time('getAndUpdateTable')
   function getAndUpdateTable({ page, pageSize }) {
-    console.log('page bbb: ', page)
-
     window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then((data) => {
-      console.log('executeSql query sql res: ', data)
       if (/^\s*select/i.test(sqlTxt)) {
-        console.log('page ccc111: ', listRows.page, page)
         const tableName = getTableName(sqlTxt)
         updateList({ listData: data, tableName: tableName, page, pageSize })
       }
@@ -76,20 +71,16 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [columns, setColumns] = useState<React.Key[]>([])
 
   function showEditCell(e, data) {
-    console.log('showEditCell cell: ', e, data)
-
     setEditRow({ data, show: true })
   }
 
   function updateList({ listData, tableName, page, pageSize }) {
-    console.log('page dddddd: ', listRows.page)
     setTableName(tableName)
 
     listData.rows.forEach(
       (el) => (el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
     )
 
-    console.log('column rows: ', listData, listData.page, listRows.page)
     listData.rows.forEach((el) => {
       Object.keys(el).forEach((key) => {
         if (el[key] && typeof el[key] === 'object') {
@@ -146,7 +137,6 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys)
     setSelectedRowKeys(newSelectedRowKeys)
   }
 
@@ -192,13 +182,11 @@ const DataList: React.FC<CustomProps> = (props) => {
   function editRowOk() {
     const editData = listRows.rows.find((el) => el.id === editRow.data.id)
     if (!editData) {
-      console.log(`table: ${tableName} edit id: ${editRow.data.id} not exist`)
       setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
       return
     }
 
     if (editData[editRow.data.field] === editRow.data.content) {
-      console.log(`table: ${tableName} edit id: ${editRow.data.id} data same`)
       setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
       return
     }
@@ -211,13 +199,11 @@ const DataList: React.FC<CustomProps> = (props) => {
         type: 2
       })
       .then((data) => {
-        console.log('query sql res: ', data)
         // setListRows(newData);
 
         setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
 
         window.api.getTableData(props.tabData).then((data) => {
-          console.log('executeSql query sql res: ', data)
           updateList({ listData: data, tableName: props.tabData.tableName })
         })
       })
@@ -263,12 +249,9 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function sqlHandler() {
-    console.log('sqlHandler: ', sqlTxt, defaultSql)
-
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt })
       .then((data) => {
-        console.log('query sql res: ', data, listRows.page)
         if (/^\s*select/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName })
@@ -293,8 +276,6 @@ const DataList: React.FC<CustomProps> = (props) => {
         fields: data
       })
       .then((res) => {
-        console.log('addRowData res: ', res)
-
         if (/^\s*select/i.test(sqlTxt)) {
           getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
         }
@@ -310,30 +291,23 @@ const DataList: React.FC<CustomProps> = (props) => {
       icon: <ExclamationCircleFilled />,
       content: '',
       onOk() {
-        console.log('del OK', listRows, selectedRowKeys)
-
         const delIds = selectedRowKeys.map((el) => {
           const val = listRows.rows.find((a) => a.key === el)
 
           return val.id
         })
 
-        console.log('delIds: ', delIds)
         window.api.delRows({ ...props.tabData, ids: delIds }).then((res) => {
           if (/^\s*select/i.test(sqlTxt)) {
             getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
           }
         })
       },
-      onCancel() {
-        console.log('Cancel')
-      }
+      onCancel() {}
     })
   }
 
   function pageChange(page, pageSize) {
-    console.log('page num: ', page, pageSize)
-
     if (pageSize !== listRows.pageSize) {
       page = 1
     }
@@ -356,7 +330,6 @@ const DataList: React.FC<CustomProps> = (props) => {
         //  value={sqlTxt}
         defaultValue={defaultSql}
         onChange={(e) => {
-          console.log('sql txt:', e.target.value)
           setSqlTxt(e.target.value)
         }}
       />

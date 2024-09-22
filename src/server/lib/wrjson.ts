@@ -2,11 +2,7 @@ import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
 // const getConfigPath() = path.join(app.getPath('userData'), './config.json')
-// console.log('path1: ', __dirname, app.getPath('userData'))
-// console.log('path2: ', __dirname, app.getPath('home'))
-// console.log('path3: ', __dirname, app.getPath('appData'))
-// console.log('path3: ', __dirname, app.getPath('exe'))
-// console.log('path3: ', __dirname, app.getAppPath())
+
 function getConfigPath() {
   return path.join(app.getPath('userData'), './config.json')
 }
@@ -55,7 +51,7 @@ export const getConnections = () => {
 
 export const delConnection = (connectionStr) => {
   // connection@t1_local2@1723166257140
-  console.log('delConnection ww: ', connectionStr)
+
   const a = connectionStr.split('@')
   const id = a[a.length - 1]
   const data = readFile()

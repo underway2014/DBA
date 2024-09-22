@@ -89,38 +89,24 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', () => {
-    console.log('pong')
-  })
+  ipcMain.on('ping', () => {})
 
   ipcMain.handle('store:get', (_, val) => {
-    console.log('store:get', val)
-
     const data = getConnections()
-    console.log('connection data: ', data)
 
     return data
   })
   ipcMain.handle('store:add', (_, val) => {
-    // console.log('store:set', event)
-    console.log('store:add val', val)
-
     // return {name: 1, age: 3333}
 
     addConnection(val)
   })
   ipcMain.handle('store:edit', (_, val) => {
-    // console.log('store:set', event)
-    console.log('store:edit val', val)
-
     // return {name: 1, age: 3333}
 
     editConnection(val)
   })
   ipcMain.handle('store:del', (_, val) => {
-    // console.log('store:set', event)
-    console.log('store:del val', val)
-
     // return {name: 1, age: 3333}
 
     return delConnection(val)
@@ -176,14 +162,14 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 app.on('window-all-closed', async () => {
   // e.preventDefault()
-  console.log('window-all-closed ', process.platform)
+
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 
 // app.on('before-quit', e => {
-//   console.log('before-quit: ', e)
+
 // })
 
 // In this file you can include the rest of your app"s specific main process

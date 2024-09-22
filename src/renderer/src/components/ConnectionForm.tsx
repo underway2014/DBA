@@ -8,7 +8,6 @@ type CustomProps = {
 }
 
 const ConnectionForm: React.FC<CustomProps> = (props) => {
-  console.log('ConnectionForm ', props.defautValues)
   const [form] = Form.useForm()
   const [_, setFormLayout] = useState<LayoutType>('horizontal')
   const { addConnection } = props
@@ -17,13 +16,10 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
   }
 
   const onFinish = (values) => {
-    console.log('Success:', values)
     addConnection(form.getFieldsValue())
   }
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo)
-  }
+  const onFinishFailed = (errorInfo) => {}
 
   // host: '35.221.166.196',
   //     port: '8002',
