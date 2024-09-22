@@ -1,5 +1,4 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import { Interface } from 'readline'
 
 interface ApiFunction {
   addStore: Function

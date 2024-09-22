@@ -62,7 +62,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     setShowEditConnectionForm(false)
   }
 
-  function addDbError ({ error }) {
+  function addDbError({ error }) {
     addLog({
       logList,
       setLogList,
@@ -155,7 +155,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   }
 
-  function editConnection (node) {
+  function editConnection(node) {
     const parseKeys = node.key.split(SP)
     const nodeType = parseKeys[0]
 
@@ -172,17 +172,17 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   }
 
-  function delConnection (node) {
+  function delConnection(node) {
     confirm({
       title: `Do you want to delete the ${node.title} connection?`,
       icon: <ExclamationCircleFilled />,
       content: '',
-      onOk () {
+      onOk() {
         window.api.delStore(node.key).then((res) => {
           props.updateSlider()
         })
       },
-      onCancel () {
+      onCancel() {
         console.log('Cancel')
       }
     })
@@ -219,7 +219,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   //下面只恢复表结构
   //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 -s --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
 
-  function rightMenuHandler (e) {
+  function rightMenuHandler(e) {
     e.domEvent.stopPropagation()
 
     if (!rightClickItemKey) {
@@ -273,7 +273,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   }
 
-  function selectFile (e) {
+  function selectFile(e) {
     window.api
       .dbRestore({
         type: restoreType,
@@ -302,14 +302,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   // node connection-jogo_gaming_dev-1720530577574
-  function treeRightHandler ({ event, node }) {
+  function treeRightHandler({ event, node }) {
     console.log('treeRightHandler: ', event, node)
     event.stopPropagation()
 
     rightClickItemKey = node.key
   }
 
-  function titleRender (nodeData) {
+  function titleRender(nodeData) {
     // console.log('title render: ', nodeData)
 
     let editButtons
@@ -365,7 +365,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     )
   }
 
-  async function editConnectionSumit (val) {
+  async function editConnectionSumit(val) {
     console.log('editConnectionSumit>>>', val)
     window.api
       .editStore({
@@ -395,7 +395,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     console.log('after editStore res: ')
   }
 
-  async function addOk (val) {
+  async function addOk(val) {
     console.log('crate db add ok.>>>', val)
     setShowCreateFrom(false)
 

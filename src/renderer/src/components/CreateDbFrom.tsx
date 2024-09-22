@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import { Button, Form, Input } from 'antd';
+import React, { useState } from 'react'
+import { Button, Form, Input } from 'antd'
 
-type LayoutType = Parameters<typeof Form>[0]['layout'];
+type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   createDatabase: Function
 }
 
 const CreateDbForm: React.FC<CustomProps> = (props) => {
-  const [form] = Form.useForm();
-  const [_, setFormLayout] = useState<LayoutType>('horizontal');
+  const [form] = Form.useForm()
+  const [_, setFormLayout] = useState<LayoutType>('horizontal')
   const { createDatabase } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
-    setFormLayout(layout);
-  };
+    setFormLayout(layout)
+  }
 
   const onFinish = (values) => {
-    console.log('Success:', values);
+    console.log('Success:', values)
     createDatabase(form.getFieldsValue())
-  };
+  }
 
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
+    console.log('Failed:', errorInfo)
+  }
   return (
     <Form
       onFinish={onFinish}
@@ -44,10 +44,10 @@ const CreateDbForm: React.FC<CustomProps> = (props) => {
         <Input value="UTF8" />
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button htmlType="submit" >Submit</Button>
+        <Button htmlType="submit">Submit</Button>
       </Form.Item>
-    </Form >
-  );
-};
+    </Form>
+  )
+}
 
-export default CreateDbForm;
+export default CreateDbForm

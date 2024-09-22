@@ -1,33 +1,32 @@
-import React, { useState } from 'react';
-import { AutoComplete, Button, Checkbox, Flex, Form, Input } from 'antd';
+import React, { useState } from 'react'
+import { AutoComplete, Button, Checkbox, Form, Input } from 'antd'
 
-type LayoutType = Parameters<typeof Form>[0]['layout'];
+type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   addColumn: Function
   defautValues?: Object
 }
 
 const AddColumnForm: React.FC<CustomProps> = (props) => {
-  const [form] = Form.useForm();
-  const [_, setFormLayout] = useState<LayoutType>('horizontal');
+  const [form] = Form.useForm()
+  const [_, setFormLayout] = useState<LayoutType>('horizontal')
   const { addColumn } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
-    setFormLayout(layout);
-  };
-
+    setFormLayout(layout)
+  }
 
   const onFinish = (values) => {
-    console.log('Success:', values);
+    console.log('Success:', values)
     addColumn(form.getFieldsValue(), props.defautValues)
 
     form.resetFields()
-  };
+  }
 
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
+    console.log('Failed:', errorInfo)
+  }
 
-  form.setFieldsValue(props.defautValues);
+  form.setFieldsValue(props.defautValues)
 
   const options = [
     { value: 'int2' },
@@ -66,7 +65,7 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
     { value: 'txid_snapshot' },
     { value: 'uuid' },
     { value: 'xml' }
-  ];
+  ]
 
   return (
     <Form
@@ -93,7 +92,12 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
           }
         />
       </Form.Item>
-      <Form.Item wrapperCol={{ offset: 6, span: 16 }} style={{ marginTop: "-20px" }} name="notnull" valuePropName="checked">
+      <Form.Item
+        wrapperCol={{ offset: 6, span: 16 }}
+        style={{ marginTop: '-20px' }}
+        name="notnull"
+        valuePropName="checked"
+      >
         <Checkbox>Not Null</Checkbox>
       </Form.Item>
       <Form.Item label="default" name="default">
@@ -103,10 +107,10 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
         <Input value="" />
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button htmlType="submit" >Submit</Button>
+        <Button htmlType="submit">Submit</Button>
       </Form.Item>
     </Form>
-  );
-};
+  )
+}
 
-export default AddColumnForm;
+export default AddColumnForm

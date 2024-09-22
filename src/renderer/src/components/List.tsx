@@ -1,22 +1,28 @@
-import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import { Flex, Table, Tooltip, Modal, Button, message } from 'antd';
-import type { TableProps } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
-import { EditOutlined, CaretRightOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
-import { LogAction, LogType } from '@renderer/utils/constant';
-import CustomContext from '@renderer/utils/context';
-import AddRowForm from './AddRowForm';
-import { addLog } from '@renderer/utils/logHelper';
+import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react'
+import { Flex, Table, Tooltip, Modal, Button, message } from 'antd'
+import type { TableProps } from 'antd'
+import TextArea from 'antd/es/input/TextArea'
+import {
+  EditOutlined,
+  CaretRightOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  ExclamationCircleFilled
+} from '@ant-design/icons'
+import { LogAction, LogType } from '@renderer/utils/constant'
+import CustomContext from '@renderer/utils/context'
+import AddRowForm from './AddRowForm'
+import { addLog } from '@renderer/utils/logHelper'
 
-const { confirm } = Modal;
+const { confirm } = Modal
 
-type TableRowSelection<T> = TableProps<T>['rowSelection'];
+type TableRowSelection<T> = TableProps<T>['rowSelection']
 
 interface DataType {
-  key: React.Key;
-  name: string;
-  age: number;
-  address: string;
+  key: React.Key
+  name: string
+  age: number
+  address: string
 }
 
 type CustomProps = {
@@ -25,15 +31,15 @@ type CustomProps = {
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
-  const inputRef = useRef(null);
-  let defaultSql = `select * from ${props.tabData.tableName}`
+  const inputRef = useRef(null)
+  const defaultSql = `select * from ${props.tabData.tableName}`
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState({
     rows: [],
     page: 1,
     pageSize: 10,
-    // pageSizeList: 
+    // pageSizeList:
     total: 0
   })
 
@@ -42,7 +48,7 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   const [addForm, setAddForm] = useState(false)
 
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   console.time('useEffect')
   useEffect(() => {
     console.log('use effect sqlTxt: ', sqlTxt)
@@ -52,15 +58,14 @@ const DataList: React.FC<CustomProps> = (props) => {
   console.timeEnd('useEffect')
 
   console.time('getAndUpdateTable')
-  function getAndUpdateTable ({ page, pageSize }) {
+  function getAndUpdateTable({ page, pageSize }) {
     console.log('page bbb: ', page)
 
-    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then(data => {
-
+    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then((data) => {
       console.log('executeSql query sql res: ', data)
       if (/^\s*select/i.test(sqlTxt)) {
         console.log('page ccc111: ', listRows.page, page)
-        let tableName = getTableName(sqlTxt)
+        const tableName = getTableName(sqlTxt)
         updateList({ listData: data, tableName: tableName, page, pageSize })
       }
     })
@@ -68,24 +73,25 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   console.timeEnd('getAndUpdateTable')
 
-  const [columns, setColumns] = useState<React.Key[]>([]);
+  const [columns, setColumns] = useState<React.Key[]>([])
 
-  function showEditCell (e, data) {
+  function showEditCell(e, data) {
     console.log('showEditCell cell: ', e, data)
 
     setEditRow({ data, show: true })
   }
 
-
-  function updateList ({ listData, tableName, page, pageSize }) {
+  function updateList({ listData, tableName, page, pageSize }) {
     console.log('page dddddd: ', listRows.page)
     setTableName(tableName)
 
-    listData.rows.forEach(el => el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+    listData.rows.forEach(
+      (el) => (el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+    )
 
     console.log('column rows: ', listData, listData.page, listRows.page)
-    listData.rows.forEach(el => {
-      Object.keys(el).forEach(key => {
+    listData.rows.forEach((el) => {
+      Object.keys(el).forEach((key) => {
         if (el[key] && typeof el[key] === 'object') {
           el[key] = JSON.stringify(el[key])
         }
@@ -101,39 +107,48 @@ const DataList: React.FC<CustomProps> = (props) => {
     })
 
     if (listRows.page === 1) {
-      setColumns(listData.columns.map(el => {
-        return {
-          title: el.name,
-          dataIndex: el.name,
-          key: el.name,
-          // ellipsis: true,
-          width: 100,
-          render: (address, a, b, c) => {
-            if (el.name === 'id') return address
-            if (!address) address = ''
-            let s = address
-            if (address.length > 50) {
-              s = address.substring(0, 45) + '...  '
-            }
-            return (
-              <div className='cellHover'>
-                {s}
+      setColumns(
+        listData.columns.map((el) => {
+          return {
+            title: el.name,
+            dataIndex: el.name,
+            key: el.name,
+            // ellipsis: true,
+            width: 100,
+            render: (address, a, b, c) => {
+              if (el.name === 'id') return address
+              if (!address) address = ''
+              let s = address
+              if (address.length > 50) {
+                s = address.substring(0, 45) + '...  '
+              }
+              return (
+                <div className="cellHover">
+                  {s}
 
-                {<div className='cellPlus' onClick={e => showEditCell(e, { content: address, id: a.id, field: el.name })}>
-                  <EditOutlined />
-                </div>}
-              </div>
-            )
+                  {
+                    <div
+                      className="cellPlus"
+                      onClick={(e) =>
+                        showEditCell(e, { content: address, id: a.id, field: el.name })
+                      }
+                    >
+                      <EditOutlined />
+                    </div>
+                  }
+                </div>
+              )
+            }
           }
-        }
-      }))
+        })
+      )
     }
   }
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
+    console.log('selectedRowKeys changed: ', newSelectedRowKeys)
+    setSelectedRowKeys(newSelectedRowKeys)
+  }
 
   console.time('rowSelection')
   const rowSelection: TableRowSelection<DataType> = {
@@ -147,36 +162,35 @@ const DataList: React.FC<CustomProps> = (props) => {
         key: 'odd',
         text: 'Select Odd Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
+          const newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
-              return false;
+              return false
             }
-            return true;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
+            return true
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
       },
       {
         key: 'even',
         text: 'Select Even Row',
         onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
+          const newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
             if (index % 2 !== 0) {
-              return true;
+              return true
             }
-            return false;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
-      },
-    ],
+            return false
+          })
+          setSelectedRowKeys(newSelectedRowKeys)
+        }
+      }
+    ]
   }
 
   console.timeEnd('rowSelection')
 
-  function editRowOk () {
-
-    let editData = listRows.rows.find(el => el.id === editRow.data.id)
+  function editRowOk() {
+    const editData = listRows.rows.find((el) => el.id === editRow.data.id)
     if (!editData) {
       console.log(`table: ${tableName} edit id: ${editRow.data.id} not exist`)
       setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
@@ -189,123 +203,135 @@ const DataList: React.FC<CustomProps> = (props) => {
       return
     }
 
-    window.api.updateDate({ tableName: tableName, id: editRow.data.id, data: { field: editRow.data.field, value: editRow.data.content }, type: 2 }).then(data => {
-
-      console.log('query sql res: ', data)
-      // setListRows(newData);
-
-      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
-
-      window.api.getTableData(props.tabData).then(data => {
-
-        console.log('executeSql query sql res: ', data)
-        updateList({ listData: data, tableName: props.tabData.tableName })
+    window.api
+      .updateDate({
+        tableName: tableName,
+        id: editRow.data.id,
+        data: { field: editRow.data.field, value: editRow.data.content },
+        type: 2
       })
-    }).catch(error => {
-      addDbError({ error })
+      .then((data) => {
+        console.log('query sql res: ', data)
+        // setListRows(newData);
+
+        setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+
+        window.api.getTableData(props.tabData).then((data) => {
+          console.log('executeSql query sql res: ', data)
+          updateList({ listData: data, tableName: props.tabData.tableName })
+        })
+      })
+      .catch((error) => {
+        addDbError({ error })
+      })
+  }
+
+  function addDbError({ error }) {
+    addLog({
+      logList,
+      setLogList,
+      text: error?.message,
+      action: LogAction.DBCONNECTION,
+      type: LogType.ERROR
     })
   }
 
-  function addDbError ({ error }) {
-    addLog({ logList, setLogList, text: error?.message, action: LogAction.DBCONNECTION, type: LogType.ERROR })
-  }
-
-  function editRowCancel () {
+  function editRowCancel() {
     setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
-
   }
 
-  function runSql () {
+  function runSql() {
     sqlHandler()
   }
 
-  function addRow () {
+  function addRow() {
     setAddForm(true)
   }
-  function cancelAddRow () {
+  function cancelAddRow() {
     setAddForm(false)
   }
 
-  function getTableName (sql) {
+  function getTableName(sql) {
     if (!sql) {
       throw new Error(`${sql} error`)
     }
 
-    let a = sql.replaceAll('\n', '').split(/from/i)
-    let b = a[1].split(' ')
+    const a = sql.replaceAll('\n', '').split(/from/i)
+    const b = a[1].split(' ')
 
-    return b.find(el => !!el)
+    return b.find((el) => !!el)
   }
 
-  function sqlHandler () {
+  function sqlHandler() {
     console.log('sqlHandler: ', sqlTxt, defaultSql)
 
-    window.api.getTableData(
-      { ...props.tabData, sql: sqlTxt }
-    ).then(data => {
-      console.log('query sql res: ', data, listRows.page)
-      if (/^\s*select/i.test(sqlTxt)) {
-        let tableName = getTableName(sqlTxt)
-        updateList({ listData: data, tableName })
-      } else {
-        message.success({
-          type: 'success',
-          content: 'Update success',
-        })
-      }
-    }).catch(error => {
-      addDbError({ error })
-    })
+    window.api
+      .getTableData({ ...props.tabData, sql: sqlTxt })
+      .then((data) => {
+        console.log('query sql res: ', data, listRows.page)
+        if (/^\s*select/i.test(sqlTxt)) {
+          const tableName = getTableName(sqlTxt)
+          updateList({ listData: data, tableName })
+        } else {
+          message.success({
+            type: 'success',
+            content: 'Update success'
+          })
+        }
+      })
+      .catch((error) => {
+        addDbError({ error })
+      })
   }
 
-  function addRowData (data) {
+  function addRowData(data) {
     setAddForm(false)
-    window.api.addRow(
-      {
+    window.api
+      .addRow({
         tableName,
         id: props.tabData.id,
         fields: data
-      }
-    ).then(res => {
-      console.log('addRowData res: ', res,)
+      })
+      .then((res) => {
+        console.log('addRowData res: ', res)
 
-      if (/^\s*select/i.test(sqlTxt)) {
-        getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
-      }
-    }).catch(error => {
-      addDbError({ error })
-    })
+        if (/^\s*select/i.test(sqlTxt)) {
+          getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+        }
+      })
+      .catch((error) => {
+        addDbError({ error })
+      })
   }
 
-  function delRow () {
+  function delRow() {
     confirm({
       title: 'Do you want to delete these rows?',
       icon: <ExclamationCircleFilled />,
       content: '',
-      onOk () {
-        console.log('del OK', listRows, selectedRowKeys);
+      onOk() {
+        console.log('del OK', listRows, selectedRowKeys)
 
-        let delIds = selectedRowKeys.map(el => {
-          let val = listRows.rows.find(a => a.key === el)
+        const delIds = selectedRowKeys.map((el) => {
+          const val = listRows.rows.find((a) => a.key === el)
 
           return val.id
         })
 
         console.log('delIds: ', delIds)
-        window.api.delRows({ ...props.tabData, ids: delIds }).then(res => {
+        window.api.delRows({ ...props.tabData, ids: delIds }).then((res) => {
           if (/^\s*select/i.test(sqlTxt)) {
             getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
           }
         })
-
       },
-      onCancel () {
-        console.log('Cancel');
-      },
-    });
+      onCancel() {
+        console.log('Cancel')
+      }
+    })
   }
 
-  function pageChange (page, pageSize) {
+  function pageChange(page, pageSize) {
     console.log('page num: ', page, pageSize)
 
     if (pageSize !== listRows.pageSize) {
@@ -325,67 +351,75 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   return (
     <div style={{ height: window.screen.height - 160 + 'px', overflow: 'auto' }}>
-      <TextArea rows={4}
-        //  value={sqlTxt} 
+      <TextArea
+        rows={4}
+        //  value={sqlTxt}
         defaultValue={defaultSql}
-        onChange={e => {
+        onChange={(e) => {
           console.log('sql txt:', e.target.value)
           setSqlTxt(e.target.value)
-        }} />
+        }}
+      />
       <Flex gap="small" align="flex-start" vertical style={{ marginLeft: '5px' }}>
         <Flex gap="small" wrap>
           <Tooltip title="run">
-            <Button size='small' icon={<CaretRightOutlined />} onClick={runSql} />
+            <Button size="small" icon={<CaretRightOutlined />} onClick={runSql} />
           </Tooltip>
           <Tooltip title="add">
-            <Button size='small' icon={<PlusOutlined />} onClick={addRow} />
+            <Button size="small" icon={<PlusOutlined />} onClick={addRow} />
           </Tooltip>
           <Tooltip title="delete">
-            <Button size='small' icon={<DeleteOutlined />} onClick={delRow} />
+            <Button size="small" icon={<DeleteOutlined />} onClick={delRow} />
           </Tooltip>
         </Flex>
       </Flex>
-      <Table bordered={true}
+      <Table
+        bordered={true}
         scroll={{ x: 'max-content' }}
-        size='small'
+        size="small"
         pagination={{
           defaultPageSize: listRows.pageSize,
           pageSize: listRows.pageSize,
           // defaultCurrent: 1,
           current: listRows.page,
-          onChange: pageChange, total: listRows.total,
+          onChange: pageChange,
+          total: listRows.total
           // pageSizeOptions: listRows.pageSizeList
         }}
         // components={components}
         rowSelection={rowSelection}
-        columns={columns} dataSource={listRows.rows} ref={inputRef} />
+        columns={columns}
+        dataSource={listRows.rows}
+        ref={inputRef}
+      />
 
-
-      <Modal title="Edit Data" open={editRow.show}
-        onOk={editRowOk} onCancel={editRowCancel}>
-        <TextArea rows={4} value={editRow.data.content} onChange={e => {
-          let data = editRow.data
-          data.content = e.target.value
-          setEditRow({ ...editRow, data })
-        }} />
-
+      <Modal title="Edit Data" open={editRow.show} onOk={editRowOk} onCancel={editRowCancel}>
+        <TextArea
+          rows={4}
+          value={editRow.data.content}
+          onChange={(e) => {
+            const data = editRow.data
+            data.content = e.target.value
+            setEditRow({ ...editRow, data })
+          }}
+        />
       </Modal>
 
-      <Modal title="Add Row" open={addForm}
-        onCancel={cancelAddRow}
-        footer={[]}>
-        <AddRowForm addRowData={addRowData} fields={columns.filter(el => el.title !== 'id').map(el => {
-          return {
-            name: el.title
-          }
-        })} />
-
+      <Modal title="Add Row" open={addForm} onCancel={cancelAddRow} footer={[]}>
+        <AddRowForm
+          addRowData={addRowData}
+          fields={columns
+            .filter((el) => el.title !== 'id')
+            .map((el) => {
+              return {
+                name: el.title
+              }
+            })}
+        />
       </Modal>
-
-
-    </div >
+    </div>
   )
-};
+}
 
 // export default DataList;
-export default forwardRef(DataList);
+export default forwardRef(DataList)

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Button, Form, Input } from 'antd';
+import React, { useState } from 'react'
+import { Button, Form, Input } from 'antd'
 
-type LayoutType = Parameters<typeof Form>[0]['layout'];
+type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   addConnection: Function
   defautValues?: Object
@@ -9,21 +9,21 @@ type CustomProps = {
 
 const ConnectionForm: React.FC<CustomProps> = (props) => {
   console.log('ConnectionForm ', props.defautValues)
-  const [form] = Form.useForm();
-  const [_, setFormLayout] = useState<LayoutType>('horizontal');
+  const [form] = Form.useForm()
+  const [_, setFormLayout] = useState<LayoutType>('horizontal')
   const { addConnection } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
-    setFormLayout(layout);
-  };
+    setFormLayout(layout)
+  }
 
   const onFinish = (values) => {
-    console.log('Success:', values);
+    console.log('Success:', values)
     addConnection(form.getFieldsValue())
-  };
+  }
 
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
+    console.log('Failed:', errorInfo)
+  }
 
   // host: '35.221.166.196',
   //     port: '8002',
@@ -67,11 +67,11 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       </Form.Item>
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <div style={{ textAlign: 'center' }}>
-          <Button htmlType="submit" >Submit</Button>
+          <Button htmlType="submit">Submit</Button>
         </div>
       </Form.Item>
-    </Form >
-  );
-};
+    </Form>
+  )
+}
 
-export default ConnectionForm;
+export default ConnectionForm
