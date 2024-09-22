@@ -76,7 +76,6 @@ export default (win: BrowserWindow) => {
       })
       .then((res) => {
         if (res.response === 0) {
-          // 退出并安装更新
           autoUpdater.quitAndInstall()
         }
       })
@@ -94,7 +93,7 @@ export default (win: BrowserWindow) => {
       })
       .then((res) => {
         if (res.response === 0) {
-          shell.openExternal('https://github.com/owner/xxx/releases')
+          shell.openExternal('https://github.com/underway2014/dba/releases')
         }
       })
   })
