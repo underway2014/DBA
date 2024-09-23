@@ -37,6 +37,13 @@ function readFile() {
 
   const data = fs.readFileSync(getConfigPath(), { encoding: 'utf-8' })
 
+  if (!data) {
+    return {
+      version: '1.0.0',
+      connections: []
+    }
+  }
+
   return JSON.parse(data)
 }
 

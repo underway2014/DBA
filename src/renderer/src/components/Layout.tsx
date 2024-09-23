@@ -9,7 +9,8 @@ import {
   List,
   MenuProps,
   Modal,
-  Tooltip
+  Tooltip,
+  Typography
 } from 'antd'
 import ConnectionItem from './ConnectionItem'
 import TabelContent from './TabelContent'
@@ -22,8 +23,11 @@ import CustomContext from '@renderer/utils/context'
 import { ILogItem } from '../interface'
 const { Content, Sider } = Layout
 
+const { Text } = Typography
+
 const CLayout: React.FC = () => {
   const [connections, setConnections] = useState([])
+  const [noCons, setNoCons] = useState(true)
   const [data, setData] = useState({
     showForm: false,
     connections: [
@@ -61,6 +65,9 @@ const CLayout: React.FC = () => {
   function updateSlider() {
     window.api.getStore().then((connections) => {
       setConnections(connections)
+      if (connections.length) {
+        setNoCons(false)
+      }
     })
   }
 
@@ -157,7 +164,14 @@ const CLayout: React.FC = () => {
 
         <Layout>
           <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
-            <div style={{ height: window.screen.height - 64 - 60 + 'px', overflow: 'auto' }}>
+            <div
+              style={{
+                height: window.screen.height - 64 - 60 + 'px',
+                overflow: 'auto',
+                backgroundColor: '#ffffff',
+                border: '2px inset #f5f5f5'
+              }}
+            >
               <Sider
                 breakpoint="lg"
                 collapsedWidth="0"
@@ -166,18 +180,22 @@ const CLayout: React.FC = () => {
                 onCollapse={(collapsed, type) => {}}
                 style={{ backgroundColor: 'white' }}
               >
-                {connections.map((el, index) => {
-                  return (
-                    <ConnectionItem
-                      setDbInfo={setDbInfo}
-                      getTableDataByName={getTableDataByName}
-                      cid={index}
-                      key={el.id}
-                      connection={el}
-                      updateSlider={updateSlider}
-                    ></ConnectionItem>
-                  )
-                })}
+                {noCons ? (
+                  <Text type="secondary">Right click to add connection</Text>
+                ) : (
+                  connections.map((el, index) => {
+                    return (
+                      <ConnectionItem
+                        setDbInfo={setDbInfo}
+                        getTableDataByName={getTableDataByName}
+                        cid={index}
+                        key={el.id}
+                        connection={el}
+                        updateSlider={updateSlider}
+                      ></ConnectionItem>
+                    )
+                  })
+                )}
               </Sider>
             </div>
           </Dropdown>
