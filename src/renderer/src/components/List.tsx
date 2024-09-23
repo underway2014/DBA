@@ -75,7 +75,9 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function updateList({ listData, tableName, page, pageSize }) {
-    setTableName(tableName)
+    if (tableName) {
+      setTableName(tableName)
+    }
 
     listData.rows.forEach(
       (el) => (el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
@@ -140,7 +142,6 @@ const DataList: React.FC<CustomProps> = (props) => {
     setSelectedRowKeys(newSelectedRowKeys)
   }
 
-  console.time('rowSelection')
   const rowSelection: TableRowSelection<DataType> = {
     selectedRowKeys,
     onChange: onSelectChange,
@@ -176,8 +177,6 @@ const DataList: React.FC<CustomProps> = (props) => {
       }
     ]
   }
-
-  console.timeEnd('rowSelection')
 
   function editRowOk() {
     const editData = listRows.rows.find((el) => el.id === editRow.data.id)
@@ -243,6 +242,9 @@ const DataList: React.FC<CustomProps> = (props) => {
     }
 
     const a = sql.replaceAll('\n', '').split(/from/i)
+    if (a.length < 2) {
+      return ''
+    }
     const b = a[1].split(' ')
 
     return b.find((el) => !!el)
@@ -252,7 +254,8 @@ const DataList: React.FC<CustomProps> = (props) => {
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt })
       .then((data) => {
-        if (/^\s*select/i.test(sqlTxt)) {
+        console.log('run sql res: ', data)
+        if (/^\s*(select|show\s+max_connections)/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName })
         } else {

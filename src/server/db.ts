@@ -155,6 +155,14 @@ async function getTableData(data) {
     return query({ sql: data.sql })
   }
 
+  if (/show\s+max_connections/i.test(data.sql)) {
+    const rows = await query({ sql: data.sql })
+    return {
+      rows,
+      columns: [{ name: 'max_connections' }]
+    }
+  }
+
   if (/^\s*select/i.test(data.sql)) {
     return getRowAndColumns({
       sql: data.sql,
