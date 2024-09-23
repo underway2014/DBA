@@ -16,7 +16,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
   }
 
   const onFinish = (values) => {
-    addConnection(form.getFieldsValue())
+    addConnection({ ...form.getFieldsValue(), id: props.defautValues?.id })
   }
 
   const onFinishFailed = (errorInfo) => {}

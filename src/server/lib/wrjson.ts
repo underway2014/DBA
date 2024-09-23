@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
+import { clearDb } from '../db'
 // const getConfigPath() = path.join(app.getPath('userData'), './config.json')
 
 function getConfigPath() {
@@ -49,37 +50,38 @@ export const getConnections = () => {
   return data.connections
 }
 
-export const delConnection = (connectionStr) => {
+export const delConnection = async (connectionStr) => {
   // connection@t1_local2@1723166257140
 
   const a = connectionStr.split('@')
   const id = a[a.length - 1]
   const data = readFile()
   const connections = data.connections.filter((el) => {
-    if (el.id === id) {
-      return false
-    }
-
-    return true
+    return el.id !== id
   })
+
+  await clearDb({ id })
 
   data.connections = connections
 
   return writeFile(data)
 }
 
-export const editConnection = function (val) {
+export const editConnection = async function (val) {
   const data = readFile()
-  const list = data.connections.map((el) => {
-    if (el.id + '' === val.id + '') {
-      return val
-    }
-
-    return el
+  const list = data.connections.filter((el) => {
+    return el.id + '' !== val.id + ''
   })
 
+  await clearDb({ id: val.id })
+
   data.connections = list
+  val.id = new Date().getTime() + ''
+  list.push(val)
+
   writeFile(data)
+
+  // return val
 }
 
 export const addConnection = function (val) {

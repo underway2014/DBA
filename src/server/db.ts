@@ -17,8 +17,15 @@ const dbMap = {}
 let execa
 let currentDb
 
-function clearDb({ id }) {
-  delete dbMap[id]
+async function clearDb({ id }) {
+  if (dbMap[id]) {
+    try {
+      const con = dbMap[id]
+      await con.close()
+
+      delete dbMap[id]
+    } catch (error) {}
+  }
 }
 
 async function closeConnection() {

@@ -371,13 +371,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       .then((res) => {
         props.updateSlider()
         setShowEditConnectionForm(false)
-
-        setTreeData([
-          {
-            title: val.name,
-            key: `connection${SP}${val.name}${SP}${props.connection.id}`
-          }
-        ])
       })
   }
 
@@ -420,7 +413,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         footer={[]}
       >
         <ConnectionForm
-          defautValues={{ name: props.connection.name, ...props.connection.config }}
+          defautValues={{
+            name: props.connection.name,
+            ...props.connection.config,
+            id: props.connection.id
+          }}
           addConnection={editConnectionSumit}
         ></ConnectionForm>
       </Modal>
