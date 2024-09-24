@@ -1,9 +1,10 @@
-import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
 import updater from './updater'
+import { menuTemplate } from './menuTemplate'
 
 import {
   addRow,
@@ -64,13 +65,13 @@ function createWindow(): void {
   }
 
   updater(mainWindow)
-  // initMenu()
+  initMenu()
 }
 
-// function initMenu() {
-//   const menu = Menu.buildFromTemplate(menuTemplate)
-//     Menu.setApplicationMenu(menu)
-// }
+function initMenu() {
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

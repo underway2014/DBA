@@ -3,61 +3,61 @@ export const menuTemplate = [
     label: 'DBA',
     submenu: [
       {
-        label: 'about',
+        label: 'About',
         role: 'about'
       },
       {
         type: 'separator'
       },
       {
-        label: 'hide',
+        label: 'Hide',
         role: 'hide'
       },
       {
-        label: 'hideOthers',
+        label: 'HideOthers',
         role: 'hideOthers'
       },
       {
         type: 'separator'
       },
       {
-        label: 'quit',
+        label: 'Quit',
         role: 'quit'
       }
     ]
   },
   {
-    label: 'edit',
+    label: 'Edit',
     submenu: [
       {
-        label: 'undo',
+        label: 'Undo',
         role: 'undo'
       },
       {
-        label: 'redo',
+        label: 'Redo',
         role: 'redo'
       },
       {
         type: 'separator'
       },
       {
-        label: 'cut',
+        label: 'Cut',
         role: 'cut'
       },
       {
-        label: 'copy',
+        label: 'Copy',
         role: 'copy'
       },
       {
-        label: 'paste',
+        label: 'Paste',
         role: 'paste'
       },
       {
-        label: 'delete',
+        label: 'Delete',
         role: 'delete'
       },
       {
-        label: 'selectAll',
+        label: 'SelectAll',
         role: 'selectAll'
       }
     ]
@@ -66,16 +66,28 @@ export const menuTemplate = [
     label: 'Window',
     submenu: [
       {
-        label: 'minimize',
+        label: 'Minimize',
         role: 'minimize'
       },
       {
-        label: 'close',
+        label: 'Close',
         role: 'close'
       },
       {
-        label: 'togglefullscreen',
+        label: 'Togglefullscreen',
         role: 'togglefullscreen'
+      }
+    ]
+  },
+  {
+    role: 'Help',
+    submenu: [
+      {
+        label: 'DBA Community',
+        click: async () => {
+          const { shell } = require('electron')
+          await shell.openExternal('https://github.com/underway2014/DBA')
+        }
       }
     ]
   }
