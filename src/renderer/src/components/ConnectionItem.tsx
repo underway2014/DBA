@@ -377,7 +377,28 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   async function addOk(val) {
     setShowCreateFrom(false)
 
-    window.api.dbCreate({ dbName: val.name, connection: props.connection }).then((res) => {})
+    window.api
+      .dbCreate({ dbName: val.name, connection: props.connection })
+      .then((res) => {
+        if (res.code === 0) {
+          addLog({
+            logList,
+            setLogList,
+            text: `database: ${res.dbName} create success`,
+            action: LogAction.DBCREATE,
+            type: LogType.SUCCESS
+          })
+        }
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          text: `database: ${val.name} create fail, ${error?.message}`,
+          action: LogAction.DBCREATE,
+          type: LogType.ERROR
+        })
+      })
   }
 
   return (

@@ -247,7 +247,7 @@ async function backup({ type, config }) {
   const pgPath = getToolPath({ type: 2 })
   const downPath = path.join(
     app.getPath('downloads'),
-    `${config.config.database}_${moment().format('YYYYMMDDhhmmss')}.dba`
+    `${config.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
   )
   console.log(
     'downPath: ',
@@ -306,16 +306,6 @@ function getToolPath({ type }) {
 
   return toolPath
 }
-
-// async function createDb({dbName, connection}) {
-
-//     let pgPath = getToolPath({type: 1})
-//     const res = await execa({env: {PGPASSWORD: connection.config.password}})`export PGPASSWORD='${connection.config.password}' && "${pgPath}" -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
-//     return {
-//         code: res.exitCode,
-//         dbName
-//     }
-// }
 
 ;(async function initExeca() {
   execa = (await import('execa')).execa

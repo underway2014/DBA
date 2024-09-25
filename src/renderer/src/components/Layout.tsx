@@ -21,6 +21,8 @@ import { EyeOutlined } from '@ant-design/icons'
 import * as _ from 'lodash'
 import CustomContext from '@renderer/utils/context'
 import { ILogItem } from '../interface'
+import { LogAction, LogType } from '@renderer/utils/constant'
+import moment from 'moment'
 const { Content, Sider } = Layout
 
 const { Text } = Typography
@@ -147,7 +149,14 @@ const CLayout: React.FC = () => {
     setLogOpen(true)
   }
 
-  const [logList, setLogList] = useState<ILogItem[]>([])
+  const [logList, setLogList] = useState<ILogItem[]>([
+    {
+      text: 'Here, we will output some operation logs',
+      type: LogType.NORMAL,
+      date: moment().format('YYYY-MM-DD HH:mm:ss'),
+      action: LogAction.INIT
+    }
+  ])
 
   return (
     <div>

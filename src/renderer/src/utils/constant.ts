@@ -1,14 +1,17 @@
 export enum LogType {
-  ERROR = 1,
+  NORMAL = 1,
+  ERROR,
   WARN,
   SUCCESS
 }
 
 export const LogAction = {
+  INIT: 'init',
   DBCONNECTION: 'connection',
   DBBACKUP: 'backup',
   DBRESTORE: 'restore',
-  ALTERCOLUMN: 'alter'
+  ALTERCOLUMN: 'alter',
+  DBCREATE: 'create'
 }
 
 export const SliderRightMenu = {
