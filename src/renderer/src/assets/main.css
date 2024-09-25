@@ -1,6 +1,7 @@
-/* @import './base.css'; */
+@import './base.css';
 body {
   overflow: hidden;
+  /* background-color: white; */
 }
 
 .treeTitle {

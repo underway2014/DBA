@@ -166,10 +166,9 @@ const CLayout: React.FC = () => {
           <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
             <div
               style={{
-                height: window.screen.height - 64 - 60 + 'px',
+                height: window.screen.height - 64 - 30 + 'px',
                 overflow: 'auto',
-                backgroundColor: '#ffffff',
-                border: '2px inset #f5f5f5'
+                backgroundColor: '#ffffff'
               }}
             >
               <Sider
@@ -181,7 +180,7 @@ const CLayout: React.FC = () => {
                 style={{ backgroundColor: 'white' }}
               >
                 {noCons ? (
-                  <Text type="secondary">Right click to add connection</Text>
+                  <Text>Right click to add connection</Text>
                 ) : (
                   connections.map((el, index) => {
                     return (
@@ -200,7 +199,7 @@ const CLayout: React.FC = () => {
             </div>
           </Dropdown>
           <Layout>
-            <Content style={{ height: window.screen.height - 64 - 60 - 200 + 'px' }}>
+            <Content style={{ height: window.screen.height - 64 - 30 + 'px' }}>
               <TabelContent ref={tabsRef}></TabelContent>
             </Content>
           </Layout>

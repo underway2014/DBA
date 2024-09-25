@@ -43,7 +43,6 @@ const DataList: React.FC<CustomProps> = (props) => {
     total: 0
   })
 
-  console.time('tabcontent')
   const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
 
   const [addForm, setAddForm] = useState(false)
@@ -261,7 +260,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         } else {
           message.success({
             type: 'success',
-            content: 'Update success'
+            content: 'Success'
           })
         }
       })
@@ -323,8 +322,6 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
     }
   }
-
-  console.timeEnd('tabcontent')
 
   return (
     <div style={{ height: window.screen.height - 160 + 'px', overflow: 'auto' }}>

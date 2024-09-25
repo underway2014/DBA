@@ -279,7 +279,7 @@ const EditTable: React.FC<CustomProps> = (props, parentRef) => {
   }
 
   return (
-    <div style={{ height: window.screen.height - 64 - 160 + 'px', overflow: 'auto' }}>
+    <div style={{ height: window.screen.height - 64 - 86 + 'px', overflow: 'auto' }}>
       <Flex gap="small" align="flex-start" vertical style={{ marginLeft: '5px' }}>
         <Flex gap="small" wrap>
           <Tooltip title="add">
