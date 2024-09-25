@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-12, windows-2019]
+        os: [macos-12, windows-2019, macos-14]
 
     steps:
       - name: Checkout repository
