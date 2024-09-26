@@ -1,10 +1,23 @@
 # DBA
 
-Hi there,Welcome to my open-source database tool! I'm thrilled to share this project with you all. If you encounter any issues or have suggestions while using it, please feel free to raise an issue on GitHub. Our goal is to improve this tool together, making it more powerful and user-friendly. Looking forward to your contributions!
+Hello, and welcome to my newly released open-source PostgreSQL desktop tool! This tool is currently available for both macOS and Windows, offering developers and database administrators a simple yet efficient way to manage PostgreSQL databases.
 
-# Screenshot
+Our goal is to create a powerful and user-friendly tool that helps you handle data more easily and boosts your productivity. As the project is still in continuous development and optimization, your feedback and suggestions are incredibly valuable to us. If you encounter any issues or have ideas for feature improvements, performance enhancements, or any other aspect, feel free to raise an issue or contribute on GitHub.
 
-![](https://github.com/underway2014/DBA/blob/main/screenshot/1.jpg)
+With everyone’s collective effort, we hope to make this tool an even more complete and robust solution. We truly look forward to your participation and support!
+
+
+## Download
+
+You can download prebuilt binaries from <a href="https://github.com/underway2014/DBA/releases">GitHub releases</a>.  
+
+
+## Screenshot
+
+<a href="https://github.com/underway2014/DBA/blob/main/screenshot/1.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/1.jpg" width="400"/></a>
+<a href="https://github.com/underway2014/DBA/blob/main/screenshot/2.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/2.jpg" width="400"/></a>
+
+## Build from sources
 
 ### Install
 
