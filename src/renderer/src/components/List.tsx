@@ -48,14 +48,10 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [addForm, setAddForm] = useState(false)
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
-  console.time('useEffect')
   useEffect(() => {
     getAndUpdateTable(listRows)
   }, [])
 
-  console.timeEnd('useEffect')
-
-  console.time('getAndUpdateTable')
   function getAndUpdateTable({ page, pageSize }) {
     window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then((data) => {
       if (/^\s*select/i.test(sqlTxt)) {
@@ -64,8 +60,6 @@ const DataList: React.FC<CustomProps> = (props) => {
       }
     })
   }
-
-  console.timeEnd('getAndUpdateTable')
 
   const [columns, setColumns] = useState<React.Key[]>([])
 

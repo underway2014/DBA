@@ -1,9 +1,10 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { Dropdown, MenuProps, Tabs, TabsProps } from 'antd'
-import { UnorderedListOutlined, EditOutlined } from '@ant-design/icons'
+import { UnorderedListOutlined, EditOutlined, HighlightOutlined } from '@ant-design/icons'
 
 import List from './List'
 import EditTable from './EditTable'
+import EditIndex from './EditIndex'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string
 type TabItem = {
@@ -96,6 +97,7 @@ const TabelContent: React.FC = (_, parentRef) => {
     const newActiveKey = `tab${newTabIndex.current++}`
     // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
 
+    console.log('table content data: ', data)
     const newItems = [...items]
     if (data.type === 1) {
       newItems.push({
@@ -109,6 +111,13 @@ const TabelContent: React.FC = (_, parentRef) => {
         label: genTabTitle({ title: data.tableName, key: newActiveKey }),
         icon: <EditOutlined />,
         children: <EditTable tabData={data}></EditTable>,
+        key: newActiveKey
+      })
+    } else if (data.type === 3) {
+      newItems.push({
+        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        icon: <HighlightOutlined />,
+        children: <EditIndex tabData={data}></EditIndex>,
         key: newActiveKey
       })
     }

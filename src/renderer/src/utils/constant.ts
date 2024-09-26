@@ -11,7 +11,8 @@ export const LogAction = {
   DBBACKUP: 'backup',
   DBRESTORE: 'restore',
   ALTERCOLUMN: 'alter',
-  DBCREATE: 'create'
+  DBCREATE: 'create',
+  DBEDITINDEX: 'editindex'
 }
 
 export const SliderRightMenu = {

@@ -13,6 +13,9 @@ import {
   closeConnection,
   createDb,
   delRows,
+  editIndex,
+  getColums,
+  getIndexs,
   getSchema,
   getTableData,
   getTables,
@@ -146,6 +149,18 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('connection:close', (_) => {
     return closeConnection()
+  })
+  ipcMain.handle('db:indexs', (_, val) => {
+    console.log('db:indexs val: ', val)
+    return getIndexs(val)
+  })
+  ipcMain.handle('db:editindexs', (_, val) => {
+    console.log('db:editindexs val: ', val)
+    return editIndex(val)
+  })
+  ipcMain.handle('db:getcolumns', (_, val) => {
+    console.log('db:getcolumns val: ', val)
+    return getColums(val)
   })
 
   createWindow()

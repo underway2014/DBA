@@ -93,7 +93,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               children: tables.map((el, index) => {
                 return {
                   isLeaf: true,
-                  key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${new Date().getTime()}`,
+                  key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
                   title: el.name
                 }
               })
@@ -123,7 +123,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
             schema.children = tables.map((el, index) => {
               return {
                 isLeaf: true,
-                key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${new Date().getTime()}`,
+                key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
                 title: el.table_name
               }
             })
@@ -184,6 +184,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     })
   }
 
+  const tableMenuItems: MenuProps['items'] = [
+    {
+      label: 'Edit indexs',
+      key: 10
+    }
+  ]
+
   const items: MenuProps['items'] = [
     {
       label: 'Create Database',
@@ -215,6 +222,24 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   //下面只恢复表结构
   //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 -s --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
 
+  function tableRightMenuHandler(e, nodeData) {
+    console.log('tableRightMenuHandler: ', e, nodeData)
+    //nodeData.key = "table@affiliate_stats@public@m1-local@1727260565573"
+    e.domEvent.stopPropagation()
+
+    const keys = nodeData.key.split(SP)
+    console.log('keys: ', keys)
+
+    props.getTableDataByName({
+      id: keys[4],
+      tableName: keys[1],
+      type: 3,
+      schema: keys[2]
+    })
+    // window.api.getIndexs({ id: keys[4], schema: keys[2], tableNmae: keys[1] }).then((res) => {
+    //   console.log('getindexs res: ', res)
+    // })
+  }
   function rightMenuHandler(e) {
     e.domEvent.stopPropagation()
 
@@ -342,6 +367,17 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     if (/connection/.test(nodeData.key)) {
       item = (
         <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+          {item}
+        </Dropdown>
+      )
+    }
+
+    if (/table/.test(nodeData.key)) {
+      item = (
+        <Dropdown
+          menu={{ items: tableMenuItems, onClick: (e) => tableRightMenuHandler(e, nodeData) }}
+          trigger={['contextMenu']}
+        >
           {item}
         </Dropdown>
       )

@@ -52,6 +52,15 @@ const api = {
   },
   closeConnections: async () => {
     return ipcRenderer.invoke('connection:close')
+  },
+  getIndexs: async (val) => {
+    return ipcRenderer.invoke('db:indexs', val)
+  },
+  editIndex: async (val) => {
+    return ipcRenderer.invoke('db:editindexs', val)
+  },
+  getColums: async (val) => {
+    return ipcRenderer.invoke('db:getcolumns', val)
   }
 }
 

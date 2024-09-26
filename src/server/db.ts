@@ -65,7 +65,8 @@ async function getSchema({ id, config }) {
   return query({ sql })
 }
 
-async function getColums(tableName) {
+async function getColums({ tableName, id }) {
+  selectDB(id)
   const sql = `
     SELECT
         table_name,
@@ -78,22 +79,22 @@ async function getColums(tableName) {
     table_name = '${tableName}' LIMIT 1000
     `
 
-  let columns = await query({ sql })
+  const columns = await query({ sql })
 
-  let idEl = null
-  columns = columns.filter((el) => {
-    if (el.column_name === 'id') {
-      idEl = el
-      return false
-    }
-    return true
-  })
+  // let idEl = null
+  // columns = columns.filter((el) => {
+  //   if (el.column_name === 'id') {
+  //     idEl = el
+  //     return false
+  //   }
+  //   return true
+  // })
 
-  columns = _.sortBy(columns, ['column_name'])
+  // columns = _.sortBy(columns, ['column_name'])
 
-  if (idEl) {
-    columns.unshift(idEl)
-  }
+  // if (idEl) {
+  //   columns.unshift(idEl)
+  // }
 
   return columns
 }
@@ -145,6 +146,7 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
 }
 
 async function query({ sql }) {
+  console.log('query sql: ', sql)
   const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
 
   return data
@@ -408,6 +410,57 @@ async function delRows({ id, tableName, ids }) {
   return query({ sql })
 }
 
+async function getIndexs({ id, schema, tableName }) {
+  selectDB(id)
+  const sql = `
+      select 
+        c.relnamespace::regnamespace as schema_name,
+        c.relname as table_name,
+        i.indexrelid::regclass as index_name,
+        i.indisprimary as is_pk,
+        i.indisunique as is_unique
+    from pg_index i
+    join pg_class c on c.oid = i.indrelid
+    where c.relname = '${tableName}' LIMIT 100
+  `
+
+  const indexs = await query({ sql })
+
+  console.log('indexs: ', indexs)
+
+  return {
+    rows: indexs,
+    columns: indexs.length
+      ? Object.keys(indexs[0]).map((el) => {
+          return {
+            name: el
+          }
+        })
+      : []
+  }
+}
+
+//http://www.postgres.cn/docs/15/sql-createindex.html
+//create index index_name on schema.table_name using btree (column_1, column_2)
+async function editIndex({ type, unique, indexName, schema, tableName, indexType, columns }) {
+  let sql
+  if (type === 1) {
+    //add
+    sql = `
+CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'public'}.${tableName} USING ${indexType ? indexType : 'btree'} (${columns.join(',')})
+`
+  } else {
+    //del
+    sql = `
+    DROP INDEX ${indexName}
+    `
+  }
+
+  console.log('edit index sql: ', sql)
+
+  return query({ sql })
+}
+
 export {
   clearDb,
   getTables,
@@ -422,5 +475,7 @@ export {
   alterTable,
   delRows,
   addRow,
-  closeConnection
+  closeConnection,
+  getIndexs,
+  editIndex
 }

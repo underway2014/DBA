@@ -74,7 +74,7 @@ const CLayout: React.FC = () => {
   }
 
   function getTableDataByName(val) {
-    // type 1-查看表数据 2-编辑表
+    // type 1-查看表数据 2-编辑表 3-indexs
     tabsRef.current.updateList(val)
   }
 
@@ -151,7 +151,7 @@ const CLayout: React.FC = () => {
 
   const [logList, setLogList] = useState<ILogItem[]>([
     {
-      text: 'Here, we will output some operation logs',
+      text: 'Here will output some operation logs',
       type: LogType.NORMAL,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
       action: LogAction.INIT
@@ -162,7 +162,7 @@ const CLayout: React.FC = () => {
     <div>
       <CustomContext.Provider value={{ logList, setLogList }}>
         <Header style={{ backgroundColor: 'white', height: '30px' }}>
-          <Flex justify={'space-between'} align={'center'}>
+          <Flex justify={'space-between'} align={'center'} style={{ height: '30px' }}>
             <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
 
             <Tooltip title="show log">
