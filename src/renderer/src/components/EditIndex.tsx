@@ -190,11 +190,22 @@ const EditIndex: React.FC<CustomProps> = (props) => {
           type: 2
         }
         console.log('del index opt: ', opt)
-        window.api.editIndex(opt).then((res) => {
-          console.log('del index res: ', res)
-          selectKeys.length = 0
-          setListRows(leftRows)
-        })
+        window.api
+          .editIndex(opt)
+          .then((res) => {
+            console.log('del index res: ', res)
+            selectKeys.length = 0
+            setListRows(leftRows)
+          })
+          .catch((error) => {
+            addLog({
+              logList,
+              setLogList,
+              text: error.message,
+              action: LogAction.DBEDITINDEX,
+              type: LogType.ERROR
+            })
+          })
       },
       onCancel() {}
     })

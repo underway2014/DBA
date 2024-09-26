@@ -61,6 +61,9 @@ const api = {
   },
   getColums: async (val) => {
     return ipcRenderer.invoke('db:getcolumns', val)
+  },
+  editTable: async (val) => {
+    return ipcRenderer.invoke('db:edittable', val)
   }
 }
 

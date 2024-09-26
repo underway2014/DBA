@@ -461,6 +461,19 @@ CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'pub
   return query({ sql })
 }
 
+//type 1-drop 2-truncate
+async function editTable({ type, tableName, id }) {
+  selectDB(id)
+  let sql
+  if (type === 1) {
+    sql = `DROP TABLE ${tableName}`
+  } else {
+    sql = `TRUNCATE ${tableName}`
+  }
+
+  return query({ sql })
+}
+
 export {
   clearDb,
   getTables,
@@ -477,5 +490,6 @@ export {
   addRow,
   closeConnection,
   getIndexs,
-  editIndex
+  editIndex,
+  editTable
 }

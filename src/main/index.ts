@@ -14,6 +14,7 @@ import {
   createDb,
   delRows,
   editIndex,
+  editTable,
   getColums,
   getIndexs,
   getSchema,
@@ -161,6 +162,10 @@ app.whenReady().then(() => {
   ipcMain.handle('db:getcolumns', (_, val) => {
     console.log('db:getcolumns val: ', val)
     return getColums(val)
+  })
+  ipcMain.handle('db:edittable', (_, val) => {
+    console.log('db:edittable val: ', val)
+    return editTable(val)
   })
 
   createWindow()

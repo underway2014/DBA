@@ -12,7 +12,8 @@ export const LogAction = {
   DBRESTORE: 'restore',
   ALTERCOLUMN: 'alter',
   DBCREATE: 'create',
-  DBEDITINDEX: 'editindex'
+  DBEDITINDEX: 'editindex',
+  EDITTABLE: 'edittable'
 }
 
 export const SliderRightMenu = {
@@ -20,4 +21,10 @@ export const SliderRightMenu = {
   BACKUP: 20,
   RESTORESTRUCE: 30,
   RESTOREDATA: 31
+}
+
+export const TableMenu = {
+  EDITINDEX: 10,
+  DROPTABLE: 20,
+  TRUNCATE: 21
 }

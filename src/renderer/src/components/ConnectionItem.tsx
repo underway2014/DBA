@@ -5,7 +5,7 @@ import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-desi
 import CreateDbForm from './CreateDbFrom'
 import ConnectionForm from './ConnectionForm'
 import CustomContext from '@renderer/utils/context'
-import { LogAction, LogType, SliderRightMenu } from '@renderer/utils/constant'
+import { LogAction, LogType, SliderRightMenu, TableMenu } from '@renderer/utils/constant'
 import { addLog } from '@renderer/utils/logHelper'
 const { confirm } = Modal
 
@@ -188,6 +188,17 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     {
       label: 'Edit indexs',
       key: 10
+    },
+    {
+      type: 'divider'
+    },
+    {
+      label: 'Drop',
+      key: 20
+    },
+    {
+      label: 'Truncat table',
+      key: 21
     }
   ]
 
@@ -230,15 +241,49 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     const keys = nodeData.key.split(SP)
     console.log('keys: ', keys)
 
-    props.getTableDataByName({
-      id: keys[4],
-      tableName: keys[1],
-      type: 3,
-      schema: keys[2]
-    })
-    // window.api.getIndexs({ id: keys[4], schema: keys[2], tableNmae: keys[1] }).then((res) => {
-    //   console.log('getindexs res: ', res)
-    // })
+    if (+e.key === TableMenu.EDITINDEX) {
+      props.getTableDataByName({
+        id: keys[4],
+        tableName: keys[1],
+        type: 3,
+        schema: keys[2]
+      })
+    } else if ([TableMenu.TRUNCATE, TableMenu.DROPTABLE].includes(+e.key)) {
+      confirm({
+        title: `Do you want to ${+e.key === TableMenu.TRUNCATE ? 'truncate' : 'drop'} ${keys[1]}?`,
+        icon: <ExclamationCircleFilled />,
+        content: '',
+        onOk() {
+          let type = 1
+          if (+e.key === TableMenu.TRUNCATE) {
+            type = 2
+          }
+
+          window.api
+            .editTable({ id: keys[4], schema: keys[2], tableName: keys[1], type })
+            .then((res) => {
+              console.log('getindexs drop res: ', res)
+              addLog({
+                logList,
+                setLogList,
+                text: `${+e.key === TableMenu.TRUNCATE ? 'truncate' : 'drop'} ${keys[1]} success`,
+                type: LogType.SUCCESS,
+                action: LogAction.EDITTABLE
+              })
+            })
+            .catch((error) => {
+              addLog({
+                logList,
+                setLogList,
+                text: error.message,
+                type: LogType.ERROR,
+                action: LogAction.EDITTABLE
+              })
+            })
+        },
+        onCancel() {}
+      })
+    }
   }
   function rightMenuHandler(e) {
     e.domEvent.stopPropagation()

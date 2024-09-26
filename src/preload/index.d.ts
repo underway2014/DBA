@@ -21,6 +21,7 @@ interface ApiFunction {
   getIndexs: Function
   editIndex: Function
   getColums: Function
+  editTable: Function
 }
 
 declare global {
