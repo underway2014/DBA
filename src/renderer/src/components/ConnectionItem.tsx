@@ -211,6 +211,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       type: 'divider'
     },
     {
+      label: 'Disconnect',
+      key: SliderRightMenu.DISCONNECT
+    },
+    {
+      type: 'divider'
+    },
+    {
       label: 'Backup',
       key: SliderRightMenu.BACKUP
     },
@@ -293,6 +300,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
     const keyArr = rightClickItemKey.split(SP)
 
+    console.log('keyArr: ', keyArr)
+
     if (+e.key === SliderRightMenu.CREATEDB) {
       setShowCreateFrom(true)
     } else if (+e.key === SliderRightMenu.BACKUP) {
@@ -334,6 +343,17 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       restoreType = 2
       backupDbName = keyArr[1]
       selectSqlFile.current?.click()
+    } else if (+e.key === SliderRightMenu.DISCONNECT) {
+      window.api.closeConnections({ id: keyArr[2] }).then((res, a, b) => {
+        console.log('disconnect res: ', res)
+        setTreeData([
+          {
+            title: props.connection.name,
+            key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`
+            // children: []
+          }
+        ])
+      })
     }
   }
 

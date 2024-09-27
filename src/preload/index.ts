@@ -50,8 +50,8 @@ const api = {
   delRows: async (val) => {
     return ipcRenderer.invoke('delRows', val)
   },
-  closeConnections: async () => {
-    return ipcRenderer.invoke('connection:close')
+  closeConnections: async (val) => {
+    return ipcRenderer.invoke('connection:close', val)
   },
   getIndexs: async (val) => {
     return ipcRenderer.invoke('db:indexs', val)

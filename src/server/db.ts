@@ -28,10 +28,14 @@ async function clearDb({ id }) {
   }
 }
 
-async function closeConnection() {
-  const works = Object.keys(dbMap).map((k) => dbMap[k].close())
+async function closeConnection(data) {
+  if (data?.id) {
+    return clearDb(data)
+  } else {
+    const works = Object.keys(dbMap).map((k) => dbMap[k].close())
 
-  return Promise.all(works)
+    return Promise.all(works)
+  }
 }
 
 function initDb({ id, config }) {
@@ -251,10 +255,7 @@ async function backup({ type, config }) {
     app.getPath('downloads'),
     `${config.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
   )
-  console.log(
-    'downPath: ',
-    `export PGPASSWORD='${config.config.password}' && ${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} > ${downPath}`
-  )
+
   const res = await execa({
     env: { PGPASSWORD: config.config.password }
   })`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', '-f', downPath, config.config.database]}`

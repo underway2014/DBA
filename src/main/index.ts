@@ -148,8 +148,8 @@ app.whenReady().then(() => {
   ipcMain.handle('delRows', (_, val) => {
     return delRows(val)
   })
-  ipcMain.handle('connection:close', (_) => {
-    return closeConnection()
+  ipcMain.handle('connection:close', (_, val) => {
+    return closeConnection(val)
   })
   ipcMain.handle('db:indexs', (_, val) => {
     console.log('db:indexs val: ', val)
