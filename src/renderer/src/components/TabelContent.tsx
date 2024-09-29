@@ -5,6 +5,7 @@ import { UnorderedListOutlined, EditOutlined, HighlightOutlined } from '@ant-des
 import List from './List'
 import EditTable from './EditTable'
 import EditIndex from './EditIndex'
+import { IGetTabData } from '@renderer/interface'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string
 type TabItem = {
@@ -33,7 +34,7 @@ const TabelContent: React.FC = (_, parentRef) => {
 
   useImperativeHandle(parentRef, () => {
     return {
-      updateList(tabData) {
+      updateList(tabData: IGetTabData) {
         addTab(tabData)
       }
     }
@@ -93,7 +94,7 @@ const TabelContent: React.FC = (_, parentRef) => {
     )
   }
 
-  const addTab = (data) => {
+  const addTab = (data: IGetTabData) => {
     const newActiveKey = `tab${newTabIndex.current++}`
     // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
 

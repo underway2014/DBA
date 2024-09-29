@@ -7,23 +7,18 @@ import ConnectionForm from './ConnectionForm'
 import CustomContext from '@renderer/utils/context'
 import { LogAction, LogType, SliderRightMenu, TableMenu } from '@renderer/utils/constant'
 import { addLog } from '@renderer/utils/logHelper'
+import { IConnection, IGetTabData } from '@renderer/interface'
 const { confirm } = Modal
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>
 
-type ConnectionItemConfig = {
-  name: string
-  config: any
-  id: string
-}
-
 type CustomProps = {
-  connection: ConnectionItemConfig
+  connection: IConnection
   key: string
   cid: number
-  updateSlider: Function
-  getTableDataByName: Function
-  setDbInfo: Function
+  updateSlider: () => void
+  getTableDataByName: (a: IGetTabData) => void
+  setDbInfo: (a: string[]) => void
 }
 
 interface NodeData extends TreeDataNode {
@@ -72,7 +67,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     })
   }
 
-  const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
+  const onSelect: DirectoryTreeProps['onSelect'] = (keys) => {
     const treeNow = treeData[0]
 
     const key = String(keys[0])
@@ -90,7 +85,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               isLeaf: false,
               key: `schemas${SP}${props.connection.id}`,
               title: 'schemas',
-              children: tables.map((el, index) => {
+              children: tables.map((el) => {
                 return {
                   isLeaf: true,
                   key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
@@ -110,7 +105,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     } else if (nodeType === 'schema') {
       window.api
         .getTables({ ...props.connection, schema: parseKeys[1] })
-        .then((tables) => {
+        .then((res) => {
           const schemas = treeNow.children
 
           if (!schemas?.length) {
@@ -120,14 +115,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
           if (schema) {
             schema.isLeaf = false
-            schema.children = tables.map((el, index) => {
+            schema.children = res.map((el) => {
               return {
                 isLeaf: true,
                 key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
                 title: el.table_name
               }
             })
-          } else {
           }
 
           props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[1]])
@@ -176,11 +170,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       icon: <ExclamationCircleFilled />,
       content: '',
       onOk() {
-        window.api.delStore(node.key).then((res) => {
+        window.api.delStore(node.key).then(() => {
           props.updateSlider()
         })
-      },
-      onCancel() {}
+      }
     })
   }
 
@@ -288,7 +281,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               })
             })
         },
-        onCancel() {}
+        onCancel() {
+          console.log('do nothing')
+        }
       })
     }
   }
@@ -307,7 +302,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     } else if (+e.key === SliderRightMenu.BACKUP) {
       window.api
         .dbBackup({ type: 1, name: keyArr[1], config: props.connection })
-        .then((res, a, b) => {
+        .then((res) => {
           if (res.code === 0) {
             addLog({
               logList,
@@ -344,7 +339,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       backupDbName = keyArr[1]
       selectSqlFile.current?.click()
     } else if (+e.key === SliderRightMenu.DISCONNECT) {
-      window.api.closeConnections({ id: keyArr[2] }).then((res, a, b) => {
+      window.api.closeConnections({ id: keyArr[2] }).then((res) => {
         console.log('disconnect res: ', res)
         setTreeData([
           {
@@ -469,7 +464,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           database: val.database
         }
       })
-      .then((res) => {
+      .then(() => {
         props.updateSlider()
         setShowEditConnectionForm(false)
       })
@@ -516,6 +511,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         onSelect={onSelect}
         treeData={treeData}
         titleRender={titleRender}
+        rootStyle={{ borderRadius: 0 }}
       />
       <Modal
         title="Create database"

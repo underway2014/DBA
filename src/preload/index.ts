@@ -64,6 +64,9 @@ const api = {
   },
   editTable: async (val) => {
     return ipcRenderer.invoke('db:edittable', val)
+  },
+  toggleTheme: (val) => {
+    return ipcRenderer.invoke('dark-mode:toggle', val)
   }
 }
 
@@ -74,6 +77,11 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+
+    // contextBridge.exposeInMainWorld('darkMode', {
+    //   toggle: () => ipcRenderer.invoke('dark-mode:toggle'),
+    //   system: () => ipcRenderer.invoke('dark-mode:system')
+    // })
   } catch (error) {
     console.error(error)
   }

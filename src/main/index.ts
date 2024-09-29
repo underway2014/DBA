@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, screen, Menu } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen, Menu, nativeTheme } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -166,6 +166,16 @@ app.whenReady().then(() => {
   ipcMain.handle('db:edittable', (_, val) => {
     console.log('db:edittable val: ', val)
     return editTable(val)
+  })
+
+  ipcMain.handle('dark-mode:toggle', (_, val) => {
+    console.log('dark-mode:toggle', val)
+    nativeTheme.themeSource = val
+    // if (nativeTheme.shouldUseDarkColors) {
+    // } else {
+    //   nativeTheme.themeSource = 'dark'
+    // }
+    return nativeTheme.shouldUseDarkColors
   })
 
   createWindow()

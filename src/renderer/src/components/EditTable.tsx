@@ -7,6 +7,7 @@ import { ExclamationCircleFilled } from '@ant-design/icons'
 import CustomContext from '@renderer/utils/context'
 import { addLog } from '@renderer/utils/logHelper'
 import { LogAction, LogType } from '@renderer/utils/constant'
+import { IGetTabData } from '@renderer/interface'
 
 const { confirm } = Modal
 type TableRowSelection<T> = TableProps<T>['rowSelection']
@@ -43,10 +44,10 @@ type RowDataType = {
 }
 
 type CustomProps = {
-  tabData: any
+  tabData: IGetTabData
 }
 
-const EditTable: React.FC<CustomProps> = (props, parentRef) => {
+const EditTable: React.FC<CustomProps> = (props) => {
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,
