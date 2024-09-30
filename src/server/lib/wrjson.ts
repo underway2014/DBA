@@ -30,6 +30,7 @@ function readFile() {
       getConfigPath(),
       JSON.stringify({
         version: '1.0.0',
+        theme: 'light',
         connections: []
       })
     )
@@ -40,6 +41,7 @@ function readFile() {
   if (!data) {
     return {
       version: '1.0.0',
+      theme: 'light',
       connections: []
     }
   }
@@ -54,7 +56,7 @@ function writeFile(obj: object) {
 export const getConnections = () => {
   const data = readFile()
 
-  return data.connections
+  return data
 }
 
 export const delConnection = async (connectionStr) => {
@@ -98,6 +100,13 @@ export const addConnection = function (val) {
   list.push(val)
 
   data.connections = list
+
+  writeFile(data)
+}
+
+export const changeMode = function (val) {
+  const data = readFile()
+  data.theme = val
 
   writeFile(data)
 }

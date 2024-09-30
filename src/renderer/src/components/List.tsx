@@ -7,7 +7,8 @@ import {
   CaretRightOutlined,
   DeleteOutlined,
   PlusOutlined,
-  ExclamationCircleFilled
+  ExclamationCircleFilled,
+  DownloadOutlined
 } from '@ant-design/icons'
 import { LogAction, LogType } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
@@ -243,6 +244,32 @@ const DataList: React.FC<CustomProps> = (props) => {
     return b.find((el) => !!el)
   }
 
+  function exportData() {
+    window.api
+      .exportFile({ ...props.tabData, sql: sqlTxt })
+      .then((res) => {
+        console.log('exportData res', res)
+        if (res.code === 0) {
+          addLog({
+            logList,
+            setLogList,
+            type: LogType.SUCCESS,
+            text: `export data success, path: ${res.path}`,
+            action: LogAction.EXPORTDATA
+          })
+        }
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          type: LogType.ERROR,
+          text: `export data fail, ${error.message}`,
+          action: LogAction.EXPORTDATA
+        })
+      })
+  }
+
   function sqlHandler() {
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt })
@@ -337,6 +364,9 @@ const DataList: React.FC<CustomProps> = (props) => {
           </Tooltip>
           <Tooltip title="delete">
             <Button size="small" icon={<DeleteOutlined />} onClick={delRow} />
+          </Tooltip>
+          <Tooltip title="export">
+            <Button size="small" icon={<DownloadOutlined />} onClick={exportData} />
           </Tooltip>
         </Flex>
       </Flex>

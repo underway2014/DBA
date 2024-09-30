@@ -149,6 +149,17 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
   return res
 }
 
+async function getExportData({ sql, id }) {
+  selectDB(id)
+
+  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+
+  return {
+    rows: data[0],
+    columns: data[1].fields
+  }
+}
+
 async function query({ sql }) {
   console.log('query sql: ', sql)
   const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
@@ -492,5 +503,6 @@ export {
   closeConnection,
   getIndexs,
   editIndex,
-  editTable
+  editTable,
+  getExportData
 }

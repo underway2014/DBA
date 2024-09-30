@@ -17,6 +17,9 @@ const api = {
   getStore: async (val) => {
     return ipcRenderer.invoke('store:get', val)
   },
+  changeTheme: async (val) => {
+    return ipcRenderer.invoke('store:changetheme', val)
+  },
   getTables: async (val) => {
     return ipcRenderer.invoke('getTables', val)
   },
@@ -67,6 +70,9 @@ const api = {
   },
   toggleTheme: (val) => {
     return ipcRenderer.invoke('dark-mode:toggle', val)
+  },
+  exportFile: (val) => {
+    return ipcRenderer.invoke('excel:export', val)
   }
 }
 

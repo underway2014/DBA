@@ -13,7 +13,8 @@ export const LogAction = {
   ALTERCOLUMN: 'alter',
   DBCREATE: 'create',
   DBEDITINDEX: 'editindex',
-  EDITTABLE: 'edittable'
+  EDITTABLE: 'edittable',
+  EXPORTDATA: 'export data'
 }
 
 export const SliderRightMenu = {

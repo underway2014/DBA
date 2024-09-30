@@ -23,6 +23,7 @@ interface ApiFunction {
   getColums: Function
   editTable: Function
   toggleTheme: Function
+  exportFile: Function
 }
 
 declare global {

@@ -86,10 +86,15 @@ const CLayout: React.FC = () => {
   }
 
   function updateSlider() {
-    window.api.getStore().then((connections) => {
-      setConnections(connections)
-      if (connections.length) {
+    window.api.getStore().then((res) => {
+      setConnections(res.connections)
+      if (res.connections.length) {
         setNoCons(false)
+      }
+
+      if (res.theme) {
+        setIsDark(res.theme === 'dark' ? true : false)
+        window.api.toggleTheme(res.theme)
       }
     })
   }

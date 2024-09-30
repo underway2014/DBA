@@ -2,7 +2,13 @@ import { app, shell, BrowserWindow, ipcMain, screen, Menu, nativeTheme } from 'e
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { addConnection, delConnection, editConnection, getConnections } from '../server/lib/wrjson'
+import {
+  addConnection,
+  changeMode,
+  delConnection,
+  editConnection,
+  getConnections
+} from '../server/lib/wrjson'
 import updater from './updater'
 import { menuTemplate } from './menuTemplate'
 
@@ -24,6 +30,7 @@ import {
   restore,
   updateDate
 } from '../server/db'
+import { exportFile } from '../server/lib/excel'
 // import { menuTemplate } from './menuTemplate'
 // require('@electron/remote/main').initialize()
 // remoteMain.initialize()
@@ -95,24 +102,18 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => {})
 
-  ipcMain.handle('store:get', (_, val) => {
+  ipcMain.handle('store:get', () => {
     const data = getConnections()
 
     return data
   })
   ipcMain.handle('store:add', (_, val) => {
-    // return {name: 1, age: 3333}
-
     addConnection(val)
   })
   ipcMain.handle('store:edit', (_, val) => {
-    // return {name: 1, age: 3333}
-
     editConnection(val)
   })
   ipcMain.handle('store:del', (_, val) => {
-    // return {name: 1, age: 3333}
-
     return delConnection(val)
   })
   ipcMain.handle('db:backup', async (_, val) => {
@@ -171,13 +172,13 @@ app.whenReady().then(() => {
   ipcMain.handle('dark-mode:toggle', (_, val) => {
     console.log('dark-mode:toggle', val)
     nativeTheme.themeSource = val
-    // if (nativeTheme.shouldUseDarkColors) {
-    // } else {
-    //   nativeTheme.themeSource = 'dark'
-    // }
+    changeMode(val)
     return nativeTheme.shouldUseDarkColors
   })
 
+  ipcMain.handle('excel:export', (_, val) => {
+    return exportFile(val)
+  })
   createWindow()
 
   app.on('activate', function () {
