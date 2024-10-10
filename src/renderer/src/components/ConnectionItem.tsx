@@ -8,6 +8,8 @@ import CustomContext from '@renderer/utils/context'
 import { LogAction, LogType, SliderRightMenu, TableMenu } from '@renderer/utils/constant'
 import { addLog } from '@renderer/utils/logHelper'
 import { IConnection, IGetTabData } from '@renderer/interface'
+import AddSchemaForm from './AddSchemaForm'
+import CreateTableForm from './CreateTableForm'
 const { confirm } = Modal
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>
@@ -25,16 +27,29 @@ interface NodeData extends TreeDataNode {
   children?: NodeData[]
 }
 
-let rightClickItemKey: string = ''
+type FormType = {
+  database: boolean
+  schema: boolean
+  connection: boolean
+  table: boolean
+}
+
+// let rightClickItemKey: string = ''
 let backupDbName = ''
 let restoreType = 2 // 1-struct 2-struct and data
 
 const ConnectionItem: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   const selectSqlFile = useRef<HTMLInputElement | null>(null)
+  const rightClickNodeRef = useRef(null)
 
-  const [showCreateFrom, setShowCreateFrom] = useState(false)
-  const [showEditConnectionForm, setShowEditConnectionForm] = useState(false)
+  const [showForm, setShowForm] = useState<FormType>({
+    database: false,
+    schema: false,
+    table: false,
+    connection: false
+  })
+
   const SP = '@'
 
   const [treeData, setTreeData] = useState<NodeData[]>([
@@ -45,16 +60,19 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   ])
 
   const handleOk = () => {
-    setShowCreateFrom(false)
+    setShowForm({
+      database: false,
+      schema: false,
+      table: false,
+      connection: false
+    })
   }
   const handleCancel = () => {
-    setShowCreateFrom(false)
+    handleOk()
   }
-  const editHandleOk = () => {
-    setShowEditConnectionForm(false)
-  }
-  const editHandleCancel = () => {
-    setShowEditConnectionForm(false)
+
+  const toggleForm = (k: keyof FormType, v: boolean) => {
+    setShowForm({ ...showForm, [k]: v })
   }
 
   function addDbError({ error }) {
@@ -71,6 +89,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     const treeNow = treeData[0]
 
     const key = String(keys[0])
+
+    console.log('on select key: ', key)
 
     const parseKeys = key.split(SP)
 
@@ -132,7 +152,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         })
     } else if (nodeType === 'table') {
       const sql = `
-      select * from ${parseKeys[1]}
+      select * from ${parseKeys[2]}.${parseKeys[1]}
       `
       props.getTableDataByName({
         id: props.connection.id,
@@ -152,7 +172,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     const nodeType = parseKeys[0]
 
     if (nodeType === 'connection') {
-      setShowEditConnectionForm(true)
+      toggleForm('connection', true)
     } else if (nodeType === 'table') {
       props.getTableDataByName({
         id: props.connection.id,
@@ -190,8 +210,29 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       key: 20
     },
     {
-      label: 'Truncat table',
+      label: 'Truncate table',
       key: 21
+    }
+  ]
+
+  const schemaAlongItems: MenuProps['items'] = [
+    {
+      label: 'Create table',
+      key: 20
+    },
+    {
+      type: 'divider'
+    },
+    {
+      label: 'Drop Schema',
+      key: 10
+    }
+  ]
+
+  const schemasItems: MenuProps['items'] = [
+    {
+      label: 'Add Schema',
+      key: 10
     }
   ]
 
@@ -233,10 +274,105 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   //下面只恢复表结构
   //export PGPASSWORD='postgres' && pg_restore -U postgres -h 127.0.0.1 -p 5432 -s --dbname=t2  /Users/apple/Documents/dbBackup/testdata1.sql
 
-  function tableRightMenuHandler(e, nodeData) {
+  function schemasRightHandler(e, nodeData) {
     console.log('tableRightMenuHandler: ', e, nodeData)
+    e.domEvent.stopPropagation()
+
+    rightClickNodeRef.current = nodeData
+    toggleForm('schema', true)
+  }
+
+  function schemaAlongRightHandler(e, nodeData) {
+    e.domEvent.stopPropagation()
+    rightClickNodeRef.current = nodeData
+    const keys = nodeData.key.split(SP)
+    console.log('keys: ', keys)
+    if (+e.key === 10) {
+      confirm({
+        title: `Do you want to drop ${keys[1]} schema?`,
+        icon: <ExclamationCircleFilled />,
+        content: '',
+        onOk() {
+          window.api
+            .editSchema({ id: keys[3], schema: keys[1], type: 1 })
+            .then((res) => {
+              console.log('drop schema res: ', res)
+              const treeNow = treeData[0]
+              if (treeNow.children && treeNow.children.length) {
+                const schemas = treeNow.children[0]
+                schemas.children = schemas.children?.filter((el) => el.title !== keys[1])
+                setTreeData([treeNow])
+              }
+
+              addLog({
+                logList,
+                setLogList,
+                text: `drop ${keys[1]} schema success`,
+                type: LogType.SUCCESS,
+                action: LogAction.EDITSCHEMA
+              })
+            })
+            .catch((error) => {
+              addLog({
+                logList,
+                setLogList,
+                text: error.message,
+                type: LogType.ERROR,
+                action: LogAction.EDITSCHEMA
+              })
+            })
+        },
+        onCancel() {
+          console.log('do nothing')
+        }
+      })
+    } else if (+e.key === 20) {
+      toggleForm('table', true)
+    }
+  }
+
+  function createTable(val) {
+    console.log('create table: ', rightClickNodeRef.current)
+    window.api
+      .editTable({
+        id: props.connection.id,
+        tableName: val.name,
+        type: 3,
+        schema: rightClickNodeRef.current?.title
+      })
+      .then((res) => {
+        // console.log('createTable res: ', res)
+        // const schemas = treeData[0].children[0]
+        // let schema = schemas[0].children.find(el => el.title === rightClickNodeRef.current.title)
+        // schema.children.push({
+
+        // })
+        toggleForm('table', false)
+        onSelect([rightClickNodeRef.current.key], null)
+
+        addLog({
+          logList,
+          setLogList,
+          text: `create table ${val.name} success`,
+          type: LogType.SUCCESS,
+          action: LogAction.EDITTABLE
+        })
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          text: error.message,
+          type: LogType.ERROR,
+          action: LogAction.EDITTABLE
+        })
+      })
+  }
+
+  function tableRightMenuHandler(e, nodeData) {
     //nodeData.key = "table@affiliate_stats@public@m1-local@1727260565573"
     e.domEvent.stopPropagation()
+    rightClickNodeRef.current = nodeData
 
     const keys = nodeData.key.split(SP)
     console.log('keys: ', keys)
@@ -262,7 +398,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           window.api
             .editTable({ id: keys[4], schema: keys[2], tableName: keys[1], type })
             .then((res) => {
-              console.log('getindexs drop res: ', res)
+              // console.log('getindexs drop res: ', res, type, rightClickNodeRef.current.key)
+              if (type === 1) {
+                const schmaKey = rightClickNodeRef.current.key.replace(/^[^@]*@[^@]*/, 'schema')
+                onSelect([schmaKey], null)
+              }
               addLog({
                 logList,
                 setLogList,
@@ -287,18 +427,16 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
     }
   }
-  function rightMenuHandler(e) {
+  function rightMenuHandler(e, nodeData) {
     e.domEvent.stopPropagation()
 
-    if (!rightClickItemKey) {
-      return
-    }
-    const keyArr = rightClickItemKey.split(SP)
+    rightClickNodeRef.current = nodeData
+    const keyArr = nodeData.key.split(SP)
 
     console.log('keyArr: ', keyArr)
 
     if (+e.key === SliderRightMenu.CREATEDB) {
-      setShowCreateFrom(true)
+      toggleForm('database', true)
     } else if (+e.key === SliderRightMenu.BACKUP) {
       window.api
         .dbBackup({ type: 1, name: keyArr[1], config: props.connection })
@@ -381,10 +519,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   // node connection-jogo_gaming_dev-1720530577574
-  function treeRightHandler({ event, node }) {
+  function treeRightHandler({ event }) {
     event.stopPropagation()
-
-    rightClickItemKey = node.key
   }
 
   function titleRender(nodeData) {
@@ -426,13 +562,32 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     )
     if (/connection/.test(nodeData.key)) {
       item = (
-        <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+        <Dropdown
+          menu={{ items, onClick: (e) => rightMenuHandler(e, nodeData) }}
+          trigger={['contextMenu']}
+        >
           {item}
         </Dropdown>
       )
-    }
-
-    if (/table/.test(nodeData.key)) {
+    } else if (/schemas/.test(nodeData.key)) {
+      item = (
+        <Dropdown
+          menu={{ items: schemasItems, onClick: (e) => schemasRightHandler(e, nodeData) }}
+          trigger={['contextMenu']}
+        >
+          {item}
+        </Dropdown>
+      )
+    } else if (/schema/.test(nodeData.key)) {
+      item = (
+        <Dropdown
+          menu={{ items: schemaAlongItems, onClick: (e) => schemaAlongRightHandler(e, nodeData) }}
+          trigger={['contextMenu']}
+        >
+          {item}
+        </Dropdown>
+      )
+    } else if (/table/.test(nodeData.key)) {
       item = (
         <Dropdown
           menu={{ items: tableMenuItems, onClick: (e) => tableRightMenuHandler(e, nodeData) }}
@@ -448,6 +603,39 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         {item}
       </div>
     )
+  }
+
+  async function editSchema(val) {
+    window.api
+      .editSchema({
+        schema: val.name,
+        id: props.connection.id,
+        type: 2
+      })
+      .then(() => {
+        toggleForm('schema', false)
+
+        const treeNow = treeData[0]
+        if (treeNow.children && treeNow.children.length) {
+          const schemas = treeNow.children[0]
+          schemas.children?.push({
+            isLeaf: true,
+            title: val.name,
+            key: `schema${SP}${val.name}${SP}${props.connection.name}${SP}${props.connection.id}`
+          })
+
+          setTreeData([treeNow])
+        }
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          text: `database: ${val.name} create fail, ${error?.message}`,
+          action: LogAction.EDITSCHEMA,
+          type: LogType.ERROR
+        })
+      })
   }
 
   async function editConnectionSumit(val) {
@@ -466,12 +654,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
       .then(() => {
         props.updateSlider()
-        setShowEditConnectionForm(false)
+        toggleForm('connection', false)
       })
   }
 
-  async function addOk(val) {
-    setShowCreateFrom(false)
+  async function createDatabase(val) {
+    toggleForm('database', false)
 
     window.api
       .dbCreate({ dbName: val.name, connection: props.connection })
@@ -515,19 +703,38 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       />
       <Modal
         title="Create database"
-        open={showCreateFrom}
+        open={showForm.database}
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[]}
       >
-        <CreateDbForm createDatabase={addOk}></CreateDbForm>
+        <CreateDbForm createDatabase={createDatabase}></CreateDbForm>
+      </Modal>
+      <Modal
+        title="Add schema"
+        open={showForm.schema}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[]}
+      >
+        <AddSchemaForm editSchema={editSchema}></AddSchemaForm>
+      </Modal>
+
+      <Modal
+        title="Create table"
+        open={showForm.table}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[]}
+      >
+        <CreateTableForm createTable={createTable}></CreateTableForm>
       </Modal>
 
       <Modal
         title="Edit connection"
-        open={showEditConnectionForm}
-        onOk={editHandleOk}
-        onCancel={editHandleCancel}
+        open={showForm.connection}
+        onOk={handleOk}
+        onCancel={handleCancel}
         footer={[]}
       >
         <ConnectionForm

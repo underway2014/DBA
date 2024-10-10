@@ -24,6 +24,7 @@ interface ApiFunction {
   editTable: Function
   toggleTheme: Function
   exportFile: Function
+  editSchema: Function
 }
 
 declare global {

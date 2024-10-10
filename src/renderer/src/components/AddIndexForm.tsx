@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { AutoComplete, Button, Checkbox, Form, Input, Select, Switch } from 'antd'
+import { Button, Form, Input, Select, Switch } from 'antd'
 
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   editIndex: Function
-  columns?: Array
 }
 
 const AddIndexForm: React.FC<CustomProps> = (props) => {

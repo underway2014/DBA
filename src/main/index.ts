@@ -20,6 +20,7 @@ import {
   createDb,
   delRows,
   editIndex,
+  editSchema,
   editTable,
   getColums,
   getIndexs,
@@ -153,24 +154,19 @@ app.whenReady().then(() => {
     return closeConnection(val)
   })
   ipcMain.handle('db:indexs', (_, val) => {
-    console.log('db:indexs val: ', val)
     return getIndexs(val)
   })
   ipcMain.handle('db:editindexs', (_, val) => {
-    console.log('db:editindexs val: ', val)
     return editIndex(val)
   })
   ipcMain.handle('db:getcolumns', (_, val) => {
-    console.log('db:getcolumns val: ', val)
     return getColums(val)
   })
   ipcMain.handle('db:edittable', (_, val) => {
-    console.log('db:edittable val: ', val)
     return editTable(val)
   })
 
   ipcMain.handle('dark-mode:toggle', (_, val) => {
-    console.log('dark-mode:toggle', val)
     nativeTheme.themeSource = val
     changeMode(val)
     return nativeTheme.shouldUseDarkColors
@@ -178,6 +174,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle('excel:export', (_, val) => {
     return exportFile(val)
+  })
+  ipcMain.handle('db:editschema', (_, val) => {
+    console.log('db:editschema val: ', val)
+
+    return editSchema(val)
   })
   createWindow()
 

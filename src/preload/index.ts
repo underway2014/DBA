@@ -73,6 +73,9 @@ const api = {
   },
   exportFile: (val) => {
     return ipcRenderer.invoke('excel:export', val)
+  },
+  editSchema: (val) => {
+    return ipcRenderer.invoke('db:editschema', val)
   }
 }
 

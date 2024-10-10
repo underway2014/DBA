@@ -186,8 +186,9 @@ const EditIndex: React.FC<CustomProps> = (props) => {
         }
 
         const opt = {
-          indexName: delFields.join(','),
-          type: 2
+          indexName: delFields,
+          type: 2,
+          schema: props.tabData.schema
         }
         console.log('del index opt: ', opt)
         window.api

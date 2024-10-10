@@ -59,6 +59,7 @@ function initDb({ id, config }) {
 //       }
 // }
 
+const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 async function getSchema({ id, config }) {
   initDb({ id, config })
 
@@ -66,7 +67,9 @@ async function getSchema({ id, config }) {
     select schema_name as name from information_schema.schemata
     `
 
-  return query({ sql })
+  const schemas = await query({ sql })
+
+  return schemas.filter((el) => !defaultSchemas.includes(el.name))
 }
 
 async function getColums({ tableName, id }) {
@@ -84,21 +87,6 @@ async function getColums({ tableName, id }) {
     `
 
   const columns = await query({ sql })
-
-  // let idEl = null
-  // columns = columns.filter((el) => {
-  //   if (el.column_name === 'id') {
-  //     idEl = el
-  //     return false
-  //   }
-  //   return true
-  // })
-
-  // columns = _.sortBy(columns, ['column_name'])
-
-  // if (idEl) {
-  //   columns.unshift(idEl)
-  // }
 
   return columns
 }
@@ -339,7 +327,16 @@ async function createDb({ dbName, connection }) {
 // ALTER TABLE active
 // ADD COLUMN aa4 INTEGER NOT null
 // DEFAULT 0;
-async function addField({ tableName, column, dataType, defaltValue, comment, notnull }) {
+async function addField({
+  tableName,
+  column,
+  dataType,
+  defaltValue,
+  comment,
+  notnull,
+  schema = 'public'
+}) {
+  tableName = `${schema}.${tableName}`
   let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
 
   if (notnull) {
@@ -359,7 +356,9 @@ async function addField({ tableName, column, dataType, defaltValue, comment, not
   return res
 }
 
-async function delField({ tableName, column }) {
+async function delField({ tableName, column, schema = 'public' }) {
+  tableName = `${schema}.${tableName}`
+
   const dropSql = column.map((el) => {
     return `drop column ${el}`
   })
@@ -369,6 +368,8 @@ async function delField({ tableName, column }) {
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function alterColumn(data) {
+  data.tableName = `${data.schema}.${data.tableName}`
+
   if (data.dataType !== data.oldValue.dataType) {
     await query({
       sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
@@ -412,8 +413,9 @@ async function addRow({ id, tableName, fields }) {
   return query({ sql })
 }
 
-async function delRows({ id, tableName, ids }) {
+async function delRows({ id, tableName, ids, schema }) {
   selectDB(id)
+  tableName = `${schema}.${tableName}`
 
   const sql = `
     delete from ${tableName} where id in (${ids})
@@ -422,23 +424,39 @@ async function delRows({ id, tableName, ids }) {
   return query({ sql })
 }
 
-async function getIndexs({ id, schema, tableName }) {
+async function getIndexs({ id, schema = 'public', tableName }) {
   selectDB(id)
   const sql = `
-      select 
-        c.relnamespace::regnamespace as schema_name,
-        c.relname as table_name,
-        i.indexrelid::regclass as index_name,
-        i.indisprimary as is_pk,
-        i.indisunique as is_unique
-    from pg_index i
-    join pg_class c on c.oid = i.indrelid
-    where c.relname = '${tableName}' LIMIT 100
+      SELECT
+        ns.nspname as schema_name,
+        tab.relname as table_name,
+        cls.relname as index_name,
+        am.amname as index_type,
+        idx.indisprimary as is_pk,
+        idx.indisunique as is_unique,
+        pg_get_indexdef(idx.indexrelid) || ';' AS columns
+    FROM
+        pg_index idx
+    INNER JOIN pg_class cls ON cls.oid=idx.indexrelid
+    INNER JOIN pg_class tab ON tab.oid=idx.indrelid
+    INNER JOIN pg_am am ON am.oid=cls.relam
+    INNER JOIN pg_namespace ns on ns.oid=tab.relnamespace
+    WHERE ns.nspname = '${schema}' AND tab.relname = '${tableName}' LIMIT 1000
   `
 
   const indexs = await query({ sql })
 
-  console.log('indexs: ', indexs)
+  // console.log('indexs: ', indexs)
+
+  indexs.forEach((element) => {
+    // CREATE INDEX test1 ON s1.t2 USING btree (age, name);
+    const match = element.columns.match(/\(([^)]+)\)/)
+    if (match) {
+      element.columns = match[1]
+    }
+  })
+
+  // indexs = indexs.filter((el) => el.schema_name == schema)
 
   return {
     rows: indexs,
@@ -454,7 +472,15 @@ async function getIndexs({ id, schema, tableName }) {
 
 //http://www.postgres.cn/docs/15/sql-createindex.html
 //create index index_name on schema.table_name using btree (column_1, column_2)
-async function editIndex({ type, unique, indexName, schema, tableName, indexType, columns }) {
+async function editIndex({
+  type,
+  unique,
+  indexName,
+  schema = 'public',
+  tableName,
+  indexType,
+  columns
+}) {
   let sql
   if (type === 1) {
     //add
@@ -464,29 +490,43 @@ CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'pub
   } else {
     //del
     sql = `
-    DROP INDEX ${indexName}
+    DROP INDEX ${indexName.map((el) => `${schema}.${el}`).join(',')}
     `
   }
-
-  console.log('edit index sql: ', sql)
 
   return query({ sql })
 }
 
 //type 1-drop 2-truncate
-async function editTable({ type, tableName, id }) {
+async function editTable({ type, tableName, id, schema = 'public' }) {
   selectDB(id)
+  tableName = `${schema}.${tableName}`
   let sql
   if (type === 1) {
     sql = `DROP TABLE ${tableName}`
-  } else {
+  } else if (type === 2) {
     sql = `TRUNCATE ${tableName}`
+  } else if (type === 3) {
+    sql = `CREATE TABLE ${tableName} ()`
+  }
+
+  return query({ sql })
+}
+
+async function editSchema({ type, schema, id }) {
+  selectDB(id)
+  let sql
+  if (type === 1) {
+    sql = `DROP SCHEMA ${schema} CASCADE`
+  } else {
+    sql = `CREATE SCHEMA ${schema}`
   }
 
   return query({ sql })
 }
 
 export {
+  editSchema,
   clearDb,
   getTables,
   updateDate,

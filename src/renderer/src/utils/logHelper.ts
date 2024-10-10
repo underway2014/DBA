@@ -33,7 +33,7 @@ export const addLog = ({ logList, setLogList, text, action, type }: LogOpt) => {
     case LogType.SUCCESS: {
       message.success({
         type: 'success',
-        content: `${action} success`
+        content: `success`
       })
       break
     }

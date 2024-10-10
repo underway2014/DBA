@@ -29,6 +29,7 @@ type AddRowType = {
   notnull: boolean
   type?: number
   oldValue?: AddRowType
+  schema?: string
 }
 
 type RowDataType = {
@@ -246,7 +247,8 @@ const EditTable: React.FC<CustomProps> = (props) => {
       comment: val.comment,
       defaultValue: val.default,
       notnull: val.notnull,
-      type
+      type,
+      schema: props.tabData.schema
     }
 
     if (oldValue) {

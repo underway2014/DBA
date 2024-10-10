@@ -33,8 +33,9 @@ type CustomProps = {
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   const inputRef = useRef(null)
-  const defaultSql = `select * from ${props.tabData.tableName}`
+  const defaultSql = props.tabData.sql.trim()
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
+  const [currentSchema, setSchema] = useState(props.tabData.schema)
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState({
     rows: [],
@@ -70,7 +71,14 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   function updateList({ listData, tableName, page, pageSize }) {
     if (tableName) {
+      const a = tableName.split('.')
+      let schema = 'public'
+      if (a.length > 1) {
+        schema = a[0]
+        tableName = a[1]
+      }
       setTableName(tableName)
+      setSchema(schema)
     }
 
     listData.rows.forEach(
@@ -81,6 +89,8 @@ const DataList: React.FC<CustomProps> = (props) => {
       Object.keys(el).forEach((key) => {
         if (el[key] && typeof el[key] === 'object') {
           el[key] = JSON.stringify(el[key])
+        } else if (typeof el[key] === 'boolean') {
+          el[key] = el[key] ? 'true' : 'false'
         }
       })
     })
@@ -320,11 +330,15 @@ const DataList: React.FC<CustomProps> = (props) => {
           return val.id
         })
 
-        window.api.delRows({ ...props.tabData, ids: delIds }).then((res) => {
-          if (/^\s*select/i.test(sqlTxt)) {
-            getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
-          }
-        })
+        console.log('del xx: ', currentSchema, tableName)
+
+        window.api
+          .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName })
+          .then((res) => {
+            if (/^\s*select/i.test(sqlTxt)) {
+              getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+            }
+          })
       },
       onCancel() {}
     })
