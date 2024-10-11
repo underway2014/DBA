@@ -37,6 +37,7 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
   const [currentSchema, setSchema] = useState(props.tabData.schema)
   const [tableName, setTableName] = useState(props.tabData.tableName)
+  const [isloading, setIsloading] = useState(false)
   const [listRows, setListRows] = useState({
     rows: [],
     page: 1,
@@ -54,13 +55,25 @@ const DataList: React.FC<CustomProps> = (props) => {
     getAndUpdateTable(listRows)
   }, [])
 
-  function getAndUpdateTable({ page, pageSize }) {
-    window.api.getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize }).then((data) => {
-      if (/^\s*select/i.test(sqlTxt)) {
-        const tableName = getTableName(sqlTxt)
-        updateList({ listData: data, tableName: tableName, page, pageSize })
-      }
-    })
+  function getAndUpdateTable({ page, pageSize } = {}) {
+    setIsloading(true)
+    window.api
+      .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
+      .then((data) => {
+        if (/^\s*(select|show\s+max_connections)/i.test(sqlTxt)) {
+          const tableName = getTableName(sqlTxt)
+          updateList({ listData: data, tableName: tableName, page, pageSize })
+        } else {
+          message.success({
+            type: 'success',
+            content: 'Success'
+          })
+        }
+        setIsloading(false)
+      })
+      .catch((err) => {
+        setIsloading(false)
+      })
   }
 
   const [columns, setColumns] = useState<React.Key[]>([])
@@ -281,23 +294,7 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function sqlHandler() {
-    window.api
-      .getTableData({ ...props.tabData, sql: sqlTxt })
-      .then((data) => {
-        console.log('run sql res: ', data)
-        if (/^\s*(select|show\s+max_connections)/i.test(sqlTxt)) {
-          const tableName = getTableName(sqlTxt)
-          updateList({ listData: data, tableName })
-        } else {
-          message.success({
-            type: 'success',
-            content: 'Success'
-          })
-        }
-      })
-      .catch((error) => {
-        addDbError({ error })
-      })
+    getAndUpdateTable()
   }
 
   function addRowData(data) {
@@ -388,6 +385,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         bordered={true}
         scroll={{ x: 'max-content' }}
         size="small"
+        loading={isloading}
         pagination={{
           defaultPageSize: listRows.pageSize,
           pageSize: listRows.pageSize,

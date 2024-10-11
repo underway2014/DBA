@@ -1,5 +1,5 @@
 import React, { useContext, useRef, useState } from 'react'
-import { Dropdown, Modal, Space, Tree } from 'antd'
+import { Dropdown, Modal, Space, Spin, Tree } from 'antd'
 import type { GetProps, MenuProps, TreeDataNode } from 'antd'
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons'
 import CreateDbForm from './CreateDbFrom'
@@ -25,6 +25,7 @@ type CustomProps = {
 
 interface NodeData extends TreeDataNode {
   children?: NodeData[]
+  otitle?: string
 }
 
 type FormType = {
@@ -41,6 +42,7 @@ let restoreType = 2 // 1-struct 2-struct and data
 const ConnectionItem: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   const selectSqlFile = useRef<HTMLInputElement | null>(null)
+  const [expandedKeys, setExpandedKeys] = useState([])
   const rightClickNodeRef = useRef(null)
 
   const [showForm, setShowForm] = useState<FormType>({
@@ -55,6 +57,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   const [treeData, setTreeData] = useState<NodeData[]>([
     {
       title: props.connection.name,
+      otitle: props.connection.name,
       key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`
     }
   ])
@@ -85,31 +88,63 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     })
   }
 
+  function checkLoadingKey(key, type?) {
+    const treeNow = treeData[0]
+
+    function check(obj) {
+      if (obj.key && obj.key === key) {
+        obj.title = !type ? (
+          <span>
+            <Spin size="small" /> {obj.otitle}
+          </span>
+        ) : (
+          obj.otitle
+        )
+      }
+
+      if (obj.children?.length) {
+        obj.children.forEach(check)
+      }
+    }
+
+    check(treeNow)
+
+    setTreeData([treeNow])
+  }
+
   const onSelect: DirectoryTreeProps['onSelect'] = (keys) => {
     const treeNow = treeData[0]
 
     const key = String(keys[0])
 
-    console.log('on select key: ', key)
+    // setLoadKey(key)
+
+    console.log('on select key: ', keys)
 
     const parseKeys = key.split(SP)
 
     const nodeType = parseKeys[0]
 
+    if (['connection', 'schema'].includes(nodeType)) {
+      checkLoadingKey(key)
+    }
+
     if (nodeType === 'connection') {
       window.api
         .getSchema(props.connection)
         .then((tables) => {
+          const schemaKey = `schemas${SP}${props.connection.id}`
           treeNow.children = [
             {
               isLeaf: false,
-              key: `schemas${SP}${props.connection.id}`,
+              key: schemaKey,
               title: 'schemas',
               children: tables.map((el) => {
                 return {
                   isLeaf: true,
                   key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
-                  title: el.name
+                  title: el.name,
+                  otitle: el.name
                 }
               })
             }
@@ -117,9 +152,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
           props.setDbInfo([props.connection.name, props.connection.config.database])
 
+          checkLoadingKey(key, 1)
           setTreeData([treeNow])
+          setExpandedKeys([...expandedKeys, schemaKey, key])
         })
         .catch((error) => {
+          checkLoadingKey(key, 1)
           addDbError({ error })
         })
     } else if (nodeType === 'schema') {
@@ -139,15 +177,20 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               return {
                 isLeaf: true,
                 key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
-                title: el.table_name
+                title: el.table_name,
+                otitle: el.table_name
               }
             })
           }
 
           props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[1]])
+          checkLoadingKey(key, 1)
+
           setTreeData([treeNow])
+          setExpandedKeys([...expandedKeys, key])
         })
         .catch((error) => {
+          checkLoadingKey(key, 1)
           addDbError({ error })
         })
     } else if (nodeType === 'table') {
@@ -685,6 +728,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
   }
 
+  function onExpand(keys) {
+    console.log('on expand keys: ', keys)
+    setExpandedKeys(keys)
+  }
+
   return (
     <div>
       <Tree
@@ -692,9 +740,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         blockNode
         virtual={false}
         motion={false}
-        // expandAction='doubleClick'
-        // switcherIcon={<DownOutlined />}
-        defaultExpandedKeys={['0-0-0']}
+        expandedKeys={expandedKeys}
+        onExpand={onExpand}
         onRightClick={treeRightHandler}
         onSelect={onSelect}
         treeData={treeData}
