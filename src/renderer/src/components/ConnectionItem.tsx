@@ -482,7 +482,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       toggleForm('database', true)
     } else if (+e.key === SliderRightMenu.BACKUP) {
       window.api
-        .dbBackup({ type: 1, name: keyArr[1], config: props.connection })
+        .dbBackup({ type: 1, name: keyArr[1], connection: props.connection })
         .then((res) => {
           if (res.code === 0) {
             addLog({

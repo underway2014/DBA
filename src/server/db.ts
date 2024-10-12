@@ -229,7 +229,8 @@ function getAppPath() {
 
 // type 1-struct 2-struct and data
 async function restore({ type, connection, dbName, sqlPath }) {
-  const pgPath = getToolPath({ type: 3 })
+  initDb({ id: connection.id, config: connection.config })
+  const pgPath = await getToolPath({ type: 3 })
 
   const params: string[] = []
   if (type === 1) {
@@ -247,24 +248,45 @@ async function restore({ type, connection, dbName, sqlPath }) {
   }
 }
 
+async function getServerVersion() {
+  const versionSql = `select version()`
+  const versionRes = await query({ sql: versionSql })
+
+  let version = 16
+  const match = versionRes[0].version.match(/PostgreSQL (\d+)/)
+  if (match) {
+    version = match[1]
+  }
+
+  return version + ''
+}
+
 //type 1-database 2-table
-async function backup({ type, config }) {
-  const pgPath = getToolPath({ type: 2 })
+async function backup({ type, connection, id }) {
+  console.log('back >>> ', connection, id)
+  initDb({ id: connection.id, config: connection.config })
+
+  // console.log('versionRes: ', versionRes, typeof versionRes)
+  const pgPath = await getToolPath({ type: 2 })
   const downPath = path.join(
     app.getPath('downloads'),
-    `${config.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
+    `${connection.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
   )
 
+  console.log(
+    'cmd str: ',
+    `${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
+  )
   const res = await execa({
-    env: { PGPASSWORD: config.config.password }
-  })`${pgPath} ${['-U', config.config.username, '-h', config.config.host, '-p', config.config.port, '-Fc', '-f', downPath, config.config.database]}`
+    env: { PGPASSWORD: connection.config.password }
+  })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
   // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
   // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
 
   return {
     code: res?.exitCode,
     path: downPath,
-    dbName: config.config.database
+    dbName: connection.config.database
   }
 }
 
@@ -278,7 +300,7 @@ function getPlatform() {
 }
 
 //type 1-createdb 2-backup 3-restore
-function getToolPath({ type }) {
+async function getToolPath({ type }) {
   const appPath = getAppPath()
   const os = getPlatform()
   let tool = ''
@@ -296,15 +318,14 @@ function getToolPath({ type }) {
       break
   }
 
+  const version = '16'
+  let toolPath = ''
   if (os === 'win') {
     tool += '.exe'
+    toolPath = path.join(appPath, 'resources', 'bin', os, version, tool)
+  } else {
+    toolPath = path.join(appPath, 'resources', 'bin', os, version, 'bin', tool)
   }
-
-  const toolPath = path.join(appPath, 'resources', 'bin', os, tool)
-
-  // if(os === 'win') {
-  //     toolPath = toolPath.replace()
-  // }
 
   return toolPath
 }
@@ -314,10 +335,13 @@ function getToolPath({ type }) {
 })()
 
 async function createDb({ dbName, connection }) {
-  const pgPath = getToolPath({ type: 1 })
+  initDb({ id: connection.id, config: connection.config })
+
+  const pgPath = await getToolPath({ type: 1 })
   const res = await execa({
     env: { PGPASSWORD: connection.config.password }
-  })`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${dbName}`
+  })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
+
   return {
     code: res.exitCode,
     dbName
