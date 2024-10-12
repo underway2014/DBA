@@ -263,7 +263,6 @@ async function getServerVersion() {
 
 //type 1-database 2-table
 async function backup({ type, connection, id }) {
-  console.log('back >>> ', connection, id)
   initDb({ id: connection.id, config: connection.config })
 
   // console.log('versionRes: ', versionRes, typeof versionRes)

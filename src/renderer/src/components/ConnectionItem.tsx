@@ -35,15 +35,17 @@ type FormType = {
   table: boolean
 }
 
-// let rightClickItemKey: string = ''
-let backupDbName = ''
-let restoreType = 2 // 1-struct 2-struct and data
+type RightMenuRef = {
+  backupDbName?: string
+  restoreType?: number
+  nodeData?: NodeData
+}
 
 const ConnectionItem: React.FC<CustomProps> = (props) => {
   const { logList, setLogList } = useContext(CustomContext)
   const selectSqlFile = useRef<HTMLInputElement | null>(null)
-  const [expandedKeys, setExpandedKeys] = useState([])
-  const rightClickNodeRef = useRef(null)
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([])
+  const rightClickNodeRef = useRef<RightMenuRef>({ restoreType: 2 }) // 1-struct 2-struct and data
 
   const [showForm, setShowForm] = useState<FormType>({
     database: false,
@@ -113,11 +115,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   const onSelect: DirectoryTreeProps['onSelect'] = (keys) => {
+    console.log('on select >>>>')
+    triggerSelect(keys)
+  }
+
+  const triggerSelect = (keys) => {
     const treeNow = treeData[0]
 
     const key = String(keys[0])
-
-    // setLoadKey(key)
 
     console.log('on select key: ', keys)
 
@@ -321,13 +326,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     console.log('tableRightMenuHandler: ', e, nodeData)
     e.domEvent.stopPropagation()
 
-    rightClickNodeRef.current = nodeData
+    rightClickNodeRef.current.nodeData = nodeData
     toggleForm('schema', true)
   }
 
   function schemaAlongRightHandler(e, nodeData) {
     e.domEvent.stopPropagation()
-    rightClickNodeRef.current = nodeData
+    rightClickNodeRef.current.nodeData = nodeData
     const keys = nodeData.key.split(SP)
     console.log('keys: ', keys)
     if (+e.key === 10) {
@@ -375,15 +380,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   function createTable(val) {
-    console.log('create table: ', rightClickNodeRef.current)
     window.api
       .editTable({
         id: props.connection.id,
         tableName: val.name,
         type: 3,
-        schema: rightClickNodeRef.current?.title
+        schema: rightClickNodeRef.current.nodeData?.title
       })
-      .then((res) => {
+      .then(() => {
         // console.log('createTable res: ', res)
         // const schemas = treeData[0].children[0]
         // let schema = schemas[0].children.find(el => el.title === rightClickNodeRef.current.title)
@@ -391,7 +395,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
         // })
         toggleForm('table', false)
-        onSelect([rightClickNodeRef.current.key], null)
+        triggerSelect([rightClickNodeRef.current.nodeData?.key])
 
         addLog({
           logList,
@@ -415,7 +419,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function tableRightMenuHandler(e, nodeData) {
     //nodeData.key = "table@affiliate_stats@public@m1-local@1727260565573"
     e.domEvent.stopPropagation()
-    rightClickNodeRef.current = nodeData
+    rightClickNodeRef.current.nodeData = nodeData
 
     const keys = nodeData.key.split(SP)
     console.log('keys: ', keys)
@@ -440,11 +444,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
           window.api
             .editTable({ id: keys[4], schema: keys[2], tableName: keys[1], type })
-            .then((res) => {
+            .then(() => {
               // console.log('getindexs drop res: ', res, type, rightClickNodeRef.current.key)
-              if (type === 1) {
-                const schmaKey = rightClickNodeRef.current.key.replace(/^[^@]*@[^@]*/, 'schema')
-                onSelect([schmaKey], null)
+              if (type === 1 && rightClickNodeRef.current.nodeData) {
+                const schmaKey = String(rightClickNodeRef.current.nodeData.key).replace(
+                  /^[^@]*@[^@]*/,
+                  'schema'
+                )
+                triggerSelect([schmaKey])
               }
               addLog({
                 logList,
@@ -473,7 +480,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function rightMenuHandler(e, nodeData) {
     e.domEvent.stopPropagation()
 
-    rightClickNodeRef.current = nodeData
+    console.log('rightMenuHandler: ', nodeData)
+
+    rightClickNodeRef.current.nodeData = nodeData
     const keyArr = nodeData.key.split(SP)
 
     console.log('keyArr: ', keyArr)
@@ -512,12 +521,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           })
         })
     } else if (+e.key === SliderRightMenu.RESTORESTRUCE) {
-      backupDbName = keyArr[1]
-      restoreType = 1
+      rightClickNodeRef.current.backupDbName = keyArr[1]
+      rightClickNodeRef.current.restoreType = 1
       selectSqlFile.current?.click()
     } else if (+e.key === SliderRightMenu.RESTOREDATA) {
-      restoreType = 2
-      backupDbName = keyArr[1]
+      rightClickNodeRef.current.restoreType = 2
+      rightClickNodeRef.current.backupDbName = keyArr[1]
+      console.log('selectSqlFile.current: ', selectSqlFile.current)
       selectSqlFile.current?.click()
     } else if (+e.key === SliderRightMenu.DISCONNECT) {
       window.api.closeConnections({ id: keyArr[2] }).then((res) => {
@@ -536,8 +546,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function selectFile(e) {
     window.api
       .dbRestore({
-        type: restoreType,
-        dbName: backupDbName,
+        type: rightClickNodeRef.current.restoreType,
+        dbName: rightClickNodeRef.current.backupDbName,
         connection: props.connection,
         sqlPath: e.target.files[0]?.path
       })
@@ -554,7 +564,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         addLog({
           logList,
           setLogList,
-          text: `database: ${backupDbName} restore fail, ${error?.message}`,
+          text: `database: ${rightClickNodeRef.current.backupDbName} restore fail, ${error?.message}`,
           action: LogAction.DBRESTORE,
           type: LogType.ERROR
         })
@@ -605,12 +615,27 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     )
     if (/connection/.test(nodeData.key)) {
       item = (
-        <Dropdown
-          menu={{ items, onClick: (e) => rightMenuHandler(e, nodeData) }}
-          trigger={['contextMenu']}
-        >
-          {item}
-        </Dropdown>
+        <div>
+          <Dropdown
+            menu={{ items, onClick: (e) => rightMenuHandler(e, nodeData) }}
+            trigger={['contextMenu']}
+          >
+            {item}
+          </Dropdown>
+
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+          >
+            <input
+              ref={selectSqlFile}
+              type="file"
+              style={{ display: 'none' }}
+              onChange={selectFile}
+            />
+          </div>
+        </div>
       )
     } else if (/schemas/.test(nodeData.key)) {
       item = (
@@ -640,12 +665,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         </Dropdown>
       )
     }
-    return (
-      <div>
-        <input ref={selectSqlFile} type="file" style={{ display: 'none' }} onChange={selectFile} />
-        {item}
-      </div>
-    )
+    return <div>{item}</div>
   }
 
   async function editSchema(val) {
