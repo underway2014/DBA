@@ -317,13 +317,13 @@ async function getToolPath({ type }) {
       break
   }
 
-  const version = '16'
+  // const version = '17'
   let toolPath = ''
   if (os === 'win') {
     tool += '.exe'
-    toolPath = path.join(appPath, 'resources', 'bin', os, version, tool)
+    toolPath = path.join(appPath, 'resources', 'bin', os, '16', tool)
   } else {
-    toolPath = path.join(appPath, 'resources', 'bin', os, version, 'bin', tool)
+    toolPath = path.join(appPath, 'resources', 'bin', os, '17', 'bin', tool)
   }
 
   return toolPath

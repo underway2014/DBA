@@ -1,0 +1,14 @@
+prefix=/opt/pginstaller_17.auto/server/staging_cache/osx.build
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libpgtypes
+Description: PostgreSQL libpgtypes library
+URL: https://www.postgresql.org/
+Version: 17.0
+Requires: 
+Requires.private: 
+Cflags: -I/Library/PostgreSQL/17/includedir}
+Libs: -L/Library/PostgreSQL/17/libdir} -lpgtypes
+Libs.private: -L/opt/local/20240903/lib -L/opt/local/Current_v15/lib -lpgcommon -lpgport -lm

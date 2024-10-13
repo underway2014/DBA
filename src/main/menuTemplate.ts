@@ -1,3 +1,5 @@
+import { autoUpdater } from 'electron-updater'
+
 export const menuTemplate = [
   {
     label: 'DBA',
@@ -87,6 +89,17 @@ export const menuTemplate = [
         click: async () => {
           const { shell } = require('electron')
           await shell.openExternal('https://github.com/underway2014/DBA')
+        }
+      },
+      {
+        label: 'Check for Updates',
+        click: () => {
+          // dialog.showMessageBox({
+          //   type: 'info',
+          //   title: 'Check Update',
+          //   message: 'checking...'
+          // })
+          autoUpdater.checkForUpdates() // 点击时检查更新
         }
       }
     ]

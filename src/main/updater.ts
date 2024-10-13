@@ -1,4 +1,3 @@
-import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, dialog, shell, ipcMain } from 'electron'
 import { autoUpdater } from 'electron-updater'
 
@@ -8,7 +7,6 @@ autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = false
 
 export default (win: BrowserWindow) => {
-  if (is.dev) return
   const checkForUpdates = (manual = false) => {
     autoUpdater.checkForUpdates().catch((error) => {
       console.error('Error checking for updates:', error)
@@ -24,11 +22,13 @@ export default (win: BrowserWindow) => {
   }
   // 监听来自渲染进程的手动检查更新请求
   ipcMain.on('startForCheckUpdate', () => {
-    checkForUpdates()
+    console.log('startForCheckUpdate>>>>')
   })
+  // checkForUpdates()
 
   // 监听来自渲染进程的手动检查更新请求
   ipcMain.on('CheckForUpdates', () => {
+    console.log('CheckForUpdates>>>>')
     checkForUpdates(true)
   })
 
