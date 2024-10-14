@@ -188,7 +188,8 @@ const EditIndex: React.FC<CustomProps> = (props) => {
         const opt = {
           indexName: delFields,
           type: 2,
-          schema: props.tabData.schema
+          schema: props.tabData.schema,
+          id: props.tabData.id
         }
         console.log('del index opt: ', opt)
         window.api
@@ -225,6 +226,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
     window.api
       .editIndex({
         type: 1,
+        id: props.tabData.id,
         unique: val.unique,
         indexName: val.name,
         schema: props.tabData.schema,

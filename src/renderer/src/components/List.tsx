@@ -207,12 +207,14 @@ const DataList: React.FC<CustomProps> = (props) => {
       return
     }
 
+    console.log('edit row: ', props.tabData)
     window.api
       .updateDate({
         tableName: tableName,
-        id: editRow.data.id,
+        dataId: editRow.data.id,
         data: { field: editRow.data.field, value: editRow.data.content },
-        type: 2
+        type: 2,
+        id: props.tabData.id
       })
       .then((data) => {
         // setListRows(newData);

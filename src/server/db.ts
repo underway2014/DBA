@@ -3,6 +3,8 @@ import * as _ from 'lodash'
 import path from 'path'
 import { app } from 'electron'
 import moment from 'moment'
+import { IConnection } from '../renderer/src/interface'
+
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
 //     port: 5432,
@@ -13,9 +15,15 @@ import moment from 'moment'
 // })
 // await sequelize.authenticate();
 
+type QueryType = {
+  id: string
+  config?: IConnection
+  sql: string
+  opt?: { type?: string }
+}
+
 const dbMap = {}
 let execa
-let currentDb
 
 async function clearDb({ id }) {
   if (dbMap[id]) {
@@ -42,11 +50,11 @@ function initDb({ id, config }) {
   let db = dbMap[id]
 
   if (!db) {
+    console.log('not db: ', config)
     db = new Sequelize(config)
   }
 
   dbMap[id] = db
-  currentDb = db
 
   return db
 }
@@ -61,19 +69,18 @@ function initDb({ id, config }) {
 
 const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 async function getSchema({ id, config }) {
-  initDb({ id, config })
+  // initDb({ id, config })
 
   const sql = `
     select schema_name as name from information_schema.schemata
     `
 
-  const schemas = await query({ sql })
+  const schemas = await query({ sql, id, config })
 
   return schemas.filter((el) => !defaultSchemas.includes(el.name))
 }
 
 async function getColums({ tableName, id }) {
-  selectDB(id)
   const sql = `
     SELECT
         table_name,
@@ -86,22 +93,21 @@ async function getColums({ tableName, id }) {
     table_name = '${tableName}' LIMIT 1000
     `
 
-  const columns = await query({ sql })
+  const columns = await query({ sql, id })
 
   return columns
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({ id, config, schema = 'public' }) {
-  initDb({ id, config })
-  const tables = await currentDb.query(
-    `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
-  )
+async function getTables({ id, schema = 'public' }) {
+  console.log('getTables: ', id, schema)
+  const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
+  const tables = await query({ id, sql })
 
-  return _.sortBy(tables[0], ['table_name'])
+  return _.sortBy(tables, ['table_name'])
 }
 
-async function getRowAndColumns({ sql, total, page, pageSize }) {
+async function getRowAndColumns({ sql, total, page, pageSize, id }) {
   const res = { rows: [], columns: [], total }
   if (!total) {
     if (!/\blimit\b/i.test(sql)) {
@@ -111,7 +117,7 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
         .replace(/order by.*(?=limit)/i, '')
         .replace(/order by.*/i, '')
 
-      const totalRes = await query({ sql: totalSql })
+      const totalRes = await query({ sql: totalSql, id })
 
       res.total = totalRes[0].count || 0
     }
@@ -130,7 +136,8 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
     }
   }
 
-  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+
   res.rows = data[0]
   res.columns = data[1].fields
 
@@ -138,9 +145,7 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
 }
 
 async function getExportData({ sql, id }) {
-  selectDB(id)
-
-  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
 
   return {
     rows: data[0],
@@ -148,27 +153,23 @@ async function getExportData({ sql, id }) {
   }
 }
 
-async function query({ sql }) {
+async function query({ sql, id, opt = {}, config }: QueryType) {
+  const db = initDb({ id, config })
+
   console.log('query sql: ', sql)
-  const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
+  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
 
   return data
 }
 
-function selectDB(id) {
-  initDb({ id, config: null })
-}
-
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
-  selectDB(data.id)
-
   if (/(pg_terminate_backend|nextval)\(/i.test(data.sql)) {
-    return query({ sql: data.sql })
+    return query({ sql: data.sql, id: data.id })
   }
 
   if (/show\s+max_connections/i.test(data.sql)) {
-    const rows = await query({ sql: data.sql })
+    const rows = await query({ sql: data.sql, id: data.id })
     return {
       rows,
       columns: [{ name: 'max_connections' }]
@@ -180,25 +181,26 @@ async function getTableData(data) {
       sql: data.sql,
       total: data.total,
       page: data.page,
-      pageSize: data.pageSize
+      pageSize: data.pageSize,
+      id: data.id
     })
   } else {
-    return query({ sql: data.sql })
+    return query({ sql: data.sql, id: data.id })
   }
 }
 
-async function updateOneField({ tableName, id, field, value }) {
+async function updateOneField({ tableName, dataId, id, field, value }) {
   const sql = `
     update ${tableName} set ${field} = '${value}'
-    where id = ${id}
+    where id = ${dataId}
     `
 
-  await query({ sql })
+  await query({ sql, id })
 }
 
-async function updateDate({ tableName, id, data, type }) {
+async function updateDate({ tableName, id, dataId, data, type }) {
   if (type === 2) {
-    return updateOneField({ tableName, id, ...data })
+    return updateOneField({ tableName, id, dataId, ...data })
   }
   const updateFields = Object.keys(data)
     .map((key) => {
@@ -212,10 +214,10 @@ async function updateDate({ tableName, id, data, type }) {
 
   const sql = `
     update ${tableName} set ${updateFields}
-    where id = ${id}
+    where id = ${dataId}
     `
 
-  await query({ sql })
+  await query({ sql, id })
 }
 
 function getAppPath() {
@@ -228,7 +230,7 @@ function getAppPath() {
 }
 
 // type 1-struct 2-struct and data
-async function restore({ type, connection, dbName, sqlPath }) {
+async function restore({ type, connection, sqlPath }) {
   initDb({ id: connection.id, config: connection.config })
   const pgPath = await getToolPath({ type: 3 })
 
@@ -248,21 +250,21 @@ async function restore({ type, connection, dbName, sqlPath }) {
   }
 }
 
-async function getServerVersion() {
-  const versionSql = `select version()`
-  const versionRes = await query({ sql: versionSql })
+// async function getServerVersion() {
+//   const versionSql = `select version()`
+//   const versionRes = await query({ sql: versionSql })
 
-  let version = 16
-  const match = versionRes[0].version.match(/PostgreSQL (\d+)/)
-  if (match) {
-    version = match[1]
-  }
+//   let version = 16
+//   const match = versionRes[0].version.match(/PostgreSQL (\d+)/)
+//   if (match) {
+//     version = match[1]
+//   }
 
-  return version + ''
-}
+//   return version + ''
+// }
 
 //type 1-database 2-table
-async function backup({ type, connection, id }) {
+async function backup({ connection }) {
   initDb({ id: connection.id, config: connection.config })
 
   // console.log('versionRes: ', versionRes, typeof versionRes)
@@ -272,10 +274,6 @@ async function backup({ type, connection, id }) {
     `${connection.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
   )
 
-  console.log(
-    'cmd str: ',
-    `${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
-  )
   const res = await execa({
     env: { PGPASSWORD: connection.config.password }
   })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
@@ -357,6 +355,7 @@ async function addField({
   defaltValue,
   comment,
   notnull,
+  id,
   schema = 'public'
 }) {
   tableName = `${schema}.${tableName}`
@@ -370,16 +369,16 @@ async function addField({
     sql = `${sql} default ${defaltValue}`
   }
 
-  const res = await query({ sql })
+  const res = await query({ sql, id })
   if (comment) {
     const commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
-    await query({ sql: commentSql })
+    await query({ sql: commentSql, id })
   }
 
   return res
 }
 
-async function delField({ tableName, column, schema = 'public' }) {
+async function delField({ tableName, column, schema = 'public', id }) {
   tableName = `${schema}.${tableName}`
 
   const dropSql = column.map((el) => {
@@ -387,7 +386,7 @@ async function delField({ tableName, column, schema = 'public' }) {
   })
   const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
-  return query({ sql })
+  return query({ sql, id })
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function alterColumn(data) {
@@ -395,7 +394,8 @@ async function alterColumn(data) {
 
   if (data.dataType !== data.oldValue.dataType) {
     await query({
-      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
+      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`,
+      id: data.id
     })
   }
 
@@ -404,12 +404,13 @@ async function alterColumn(data) {
     if (data.notnull) {
       sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
     }
-    const res = await query({ sql })
+    await query({ sql, id: data.id })
   }
 
   if (data.column !== data.oldValue.column) {
     await query({
-      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`
+      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`,
+      id: data.id
     })
   }
 }
@@ -425,7 +426,6 @@ async function alterTable(data) {
 }
 
 async function addRow({ id, tableName, fields }) {
-  selectDB(id)
   const cols = Object.keys(fields)
   const vals = cols.map((k) => `'${fields[k]}'`)
   const sql = `
@@ -433,22 +433,20 @@ async function addRow({ id, tableName, fields }) {
     VALUES (${vals.join(',')});
     `
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function delRows({ id, tableName, ids, schema }) {
-  selectDB(id)
   tableName = `${schema}.${tableName}`
 
   const sql = `
     delete from ${tableName} where id in (${ids})
     `
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function getIndexs({ id, schema = 'public', tableName }) {
-  selectDB(id)
   const sql = `
       SELECT
         ns.nspname as schema_name,
@@ -467,7 +465,7 @@ async function getIndexs({ id, schema = 'public', tableName }) {
     WHERE ns.nspname = '${schema}' AND tab.relname = '${tableName}' LIMIT 1000
   `
 
-  const indexs = await query({ sql })
+  const indexs = await query({ sql, id })
 
   // console.log('indexs: ', indexs)
 
@@ -502,6 +500,7 @@ async function editIndex({
   schema = 'public',
   tableName,
   indexType,
+  id,
   columns
 }) {
   let sql
@@ -517,12 +516,11 @@ CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'pub
     `
   }
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 //type 1-drop 2-truncate
 async function editTable({ type, tableName, id, schema = 'public' }) {
-  selectDB(id)
   tableName = `${schema}.${tableName}`
   let sql
   if (type === 1) {
@@ -533,11 +531,10 @@ async function editTable({ type, tableName, id, schema = 'public' }) {
     sql = `CREATE TABLE ${tableName} ()`
   }
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function editSchema({ type, schema, id }) {
-  selectDB(id)
   let sql
   if (type === 1) {
     sql = `DROP SCHEMA ${schema} CASCADE`
@@ -545,8 +542,10 @@ async function editSchema({ type, schema, id }) {
     sql = `CREATE SCHEMA ${schema}`
   }
 
-  return query({ sql })
+  return query({ sql, id })
 }
+
+async function getRoles({ id }) {}
 
 export {
   editSchema,
