@@ -7,9 +7,16 @@ Our goal is to create a powerful and user-friendly tool that helps you handle da
 With everyone’s collective effort, we hope to make this tool an even more complete and robust solution. We truly look forward to your participation and support!
 
 
+## Features
+- Cross platform
+- Database Editing
+- Database backup and recovery
+- Support dark color mode
+- Excel data export
+
 ## Download
 
-You can download prebuilt binaries from <a href="https://github.com/underway2014/DBA/releases">GitHub releases</a>.  
+You can download prebuilt binaries from <a href="https://github.com/underway2014/DBA/releases">GitHub releases</a>.
 
 
 ## Screenshot
