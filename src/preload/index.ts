@@ -76,6 +76,12 @@ const api = {
   },
   editSchema: (val) => {
     return ipcRenderer.invoke('db:editschema', val)
+  },
+  getRoles: (val) => {
+    return ipcRenderer.invoke('db:getroles', val)
+  },
+  createRole: (val) => {
+    return ipcRenderer.invoke('db:createrole', val)
   }
 }
 

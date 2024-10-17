@@ -18,12 +18,14 @@ import {
   backup,
   closeConnection,
   createDb,
+  createRole,
   delRows,
   editIndex,
   editSchema,
   editTable,
   getColums,
   getIndexs,
+  getRoles,
   getSchema,
   getTableData,
   getTables,
@@ -179,6 +181,17 @@ app.whenReady().then(() => {
     console.log('db:editschema val: ', val)
 
     return editSchema(val)
+  })
+
+  ipcMain.handle('db:getroles', (_, val) => {
+    console.log('db:getroles val: ', val)
+
+    return getRoles(val)
+  })
+  ipcMain.handle('db:createrole', (_, val) => {
+    console.log('db:createrole val: ', val)
+
+    return createRole(val)
   })
   createWindow()
 

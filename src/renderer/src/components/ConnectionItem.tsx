@@ -10,6 +10,8 @@ import { addLog } from '@renderer/utils/logHelper'
 import { IConnection, IGetTabData } from '@renderer/interface'
 import AddSchemaForm from './AddSchemaForm'
 import CreateTableForm from './CreateTableForm'
+import AddRoleForm from './AddRoleForm'
+import moment from 'moment'
 const { confirm } = Modal
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>
@@ -33,6 +35,7 @@ type FormType = {
   schema: boolean
   connection: boolean
   table: boolean
+  role: boolean
 }
 
 type RightMenuRef = {
@@ -46,12 +49,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   const selectSqlFile = useRef<HTMLInputElement | null>(null)
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
   const rightClickNodeRef = useRef<RightMenuRef>({ restoreType: 2 }) // 1-struct 2-struct and data
-
+  const [roleData, setRoleData] = useState(null)
   const [showForm, setShowForm] = useState<FormType>({
     database: false,
     schema: false,
     table: false,
-    connection: false
+    connection: false,
+    role: false
   })
 
   const SP = '@'
@@ -69,8 +73,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       database: false,
       schema: false,
       table: false,
-      connection: false
+      connection: false,
+      role: false
     })
+
+    setRoleData(null)
   }
   const handleCancel = () => {
     handleOk()
@@ -152,6 +159,20 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
                   otitle: el.name
                 }
               })
+            },
+            {
+              isLeaf: false,
+              key: `roles${SP}${props.connection.name}${SP}${props.connection.id}`,
+              title: 'roles',
+              otitle: 'roles'
+              // children: tables.map((el) => {
+              //   return {
+              //     isLeaf: true,
+              //     key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
+              //     title: el.name,
+              //     otitle: el.name
+              //   }
+              // })
             }
           ]
 
@@ -198,6 +219,42 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           checkLoadingKey(key, 1)
           addDbError({ error })
         })
+    } else if (nodeType === 'roles') {
+      window.api.getRoles({ ...props.connection, schema: parseKeys[1] }).then((res) => {
+        console.log('get roles res: ', res)
+
+        const rolesNode = treeData[0].children?.find((el) => el.title === 'roles')
+        console.log('rolenode: ', rolesNode)
+
+        if (rolesNode) {
+          rolesNode.children = res.map((el) => {
+            return {
+              isLeaf: true,
+              key: `role${SP}${el.rolname}${SP}${props.connection.name}${SP}${props.connection.id}`,
+              title: el.rolname,
+              otitle: el.rolname
+            }
+          })
+        }
+
+        props.setDbInfo([props.connection.name, props.connection.config.database])
+        checkLoadingKey(key, 1)
+        setTreeData([treeNow])
+        setExpandedKeys([...expandedKeys, rolesNode?.key])
+      })
+    } else if (nodeType === 'role') {
+      console.log({
+        id: props.connection.id,
+        roleName: parseKeys[1],
+        type: 4
+      })
+      props.getTableDataByName({
+        id: props.connection.id,
+        roleName: parseKeys[1],
+        type: 4
+      })
+
+      // props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
     } else if (nodeType === 'table') {
       const sql = `
       select * from ${parseKeys[2]}.${parseKeys[1]}
@@ -229,6 +286,20 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         schema: parseKeys[2],
         dbName: parseKeys[3]
       })
+    } else if (nodeType === 'role') {
+      // window.api.getRoles({ id: props.connection.id, roleName: parseKeys[1] }).then((res) => {
+      //   console.log('edit role: ', res)
+      // })
+
+      console.log('edit connection:', node, rightClickNodeRef.current)
+
+      setRoleData({
+        connectionId: props.connection.id,
+        roleName: parseKeys[1],
+        timeStamp: moment().unix()
+      })
+
+      toggleForm('role', true)
     }
   }
 
@@ -284,6 +355,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   ]
 
+  const roleItems: MenuProps['items'] = [
+    {
+      label: 'Add Role',
+      key: 10
+    }
+  ]
+
   const items: MenuProps['items'] = [
     {
       label: 'Create Database',
@@ -328,6 +406,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
     rightClickNodeRef.current.nodeData = nodeData
     toggleForm('schema', true)
+  }
+
+  function roleRightHandler(e, nodeData) {
+    e.domEvent.stopPropagation()
+
+    rightClickNodeRef.current.nodeData = nodeData
+
+    setRoleData(null)
+    toggleForm('role', true)
   }
 
   function schemaAlongRightHandler(e, nodeData) {
@@ -377,6 +464,46 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     } else if (+e.key === 20) {
       toggleForm('table', true)
     }
+  }
+
+  function addRole(val, oldVal) {
+    console.log('addRole: ', val, moment(val).format(), oldVal)
+
+    // return
+    window.api
+      .createRole({
+        id: props.connection.id,
+        ...JSON.parse(JSON.stringify(val)),
+        oldName: roleData?.roleName
+      })
+      .then(() => {
+        // console.log('createTable res: ', res)
+        // const schemas = treeData[0].children[0]
+        // let schema = schemas[0].children.find(el => el.title === rightClickNodeRef.current.title)
+        // schema.children.push({
+
+        // })
+        setRoleData(null)
+        toggleForm('role', false)
+        // triggerSelect([rightClickNodeRef.current.nodeData?.key])
+
+        // addLog({
+        //   logList,
+        //   setLogList,
+        //   text: `create table ${val.name} success`,
+        //   type: LogType.SUCCESS,
+        //   action: LogAction.EDITTABLE
+        // })
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          text: error.message,
+          type: LogType.ERROR,
+          action: LogAction.EDITTABLE
+        })
+      })
   }
 
   function createTable(val) {
@@ -646,6 +773,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           {item}
         </Dropdown>
       )
+    } else if (/roles/.test(nodeData.key)) {
+      item = (
+        <Dropdown
+          menu={{ items: roleItems, onClick: (e) => roleRightHandler(e, nodeData) }}
+          trigger={['contextMenu']}
+        >
+          {item}
+        </Dropdown>
+      )
     } else if (/schema/.test(nodeData.key)) {
       item = (
         <Dropdown
@@ -795,6 +931,16 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         footer={[]}
       >
         <CreateTableForm createTable={createTable}></CreateTableForm>
+      </Modal>
+      <Modal
+        title="Create role"
+        open={showForm.role}
+        width={700}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[]}
+      >
+        <AddRoleForm defautValues={roleData} addRole={addRole}></AddRoleForm>
       </Modal>
 
       <Modal

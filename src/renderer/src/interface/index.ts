@@ -35,3 +35,8 @@ export interface IGetTabData {
   dbName?: string
   sql?: string
 }
+
+export interface IGrantRole {
+  name: string
+  permission: string
+}

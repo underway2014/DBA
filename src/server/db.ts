@@ -1,9 +1,10 @@
-import { QueryTypes, Sequelize } from 'sequelize'
+import { QueryTypes, Sequelize, Transaction } from 'sequelize'
 import * as _ from 'lodash'
 import path from 'path'
 import { app } from 'electron'
 import moment from 'moment'
-import { IConnection } from '../renderer/src/interface'
+import { IConnection, IGrantRole } from '../renderer/src/interface'
+import { RolePermissionMap } from '../renderer/src/utils/constant'
 
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
@@ -19,7 +20,7 @@ type QueryType = {
   id: string
   config?: IConnection
   sql: string
-  opt?: { type?: string }
+  opt?: { type?: string; transaction?: Transaction }
 }
 
 const dbMap = {}
@@ -545,9 +546,153 @@ async function editSchema({ type, schema, id }) {
   return query({ sql, id })
 }
 
-async function getRoles({ id }) {}
+async function getRoles({ id, roleName }) {
+  let sql = `SELECT * FROM pg_roles`
+
+  if (roleName) {
+    sql += ` where rolname='${roleName}'`
+  }
+
+  const roles = await query({ sql, id })
+  console.log('roles: ', roles)
+  return roles.filter((el) => !/^pg_/.test(el.rolname))
+}
+
+// CREATE ROLE u1 NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'u1';
+// GRANT ALL ON TABLE public.active TO u1;
+// GRANT ALL ON TABLE public.active_label TO u1;
+// GRANT SELECT ON TABLE public.active_lock_user TO u1;
+// GRANT ALL ON TABLE public.active_peroid TO u1;
+// GRANT DELETE, SELECT ON TABLE public.ad_sponsors TO u1;
+// GRANT DELETE, SELECT ON TABLE public.admin_log TO u1;
+
+async function createRole({ id, name, password, permissions, validuntil, oldName }) {
+  console.log('create role: ', arguments)
+  if (oldName) {
+    return editRole({ id, name, password, permissions, validuntil, oldName })
+  }
+
+  const pStr = permissions.join(' ')
+  let sql = `CREATE ROLE ${name} ${pStr} PASSWORD '${password}'`
+
+  if (validuntil) {
+    sql += ' VALID UNTIL ' + `'${moment(validuntil).format('YYYY-MM-DD HH:mm:ss')}'`
+  }
+
+  return query({ sql, id })
+}
+
+async function editRole({ id, name, password, permissions, validuntil, oldName }) {
+  const roles = await getRoles({ id, roleName: oldName })
+  const role = roles[0]
+
+  const transaction = await dbMap[id].transaction()
+
+  try {
+    if (!/^\*+\*$/.test(password)) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} WITH PASSWORD '${password}'`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    const oldPermission: string[] = []
+    Object.keys(RolePermissionMap).forEach((el) => {
+      if (role[el]) {
+        oldPermission.push(RolePermissionMap[el])
+      }
+    })
+
+    const addPermission = _.difference(permissions, oldPermission)
+    const delPermission = _.difference(oldPermission, permissions)
+
+    console.log('permission diff: ', addPermission, delPermission)
+
+    if (addPermission.length) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} WITH ${addPermission.join(' ')}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    if (delPermission.length) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} ${delPermission.map((el) => `NO${el}`).join(' ')}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    if (role.rolname !== name) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} RENAME TO ${name}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    await query({
+      id,
+      sql: validuntil
+        ? `ALTER ROLE ${role.rolname} VALID UNTIL '${moment(validuntil).format('YYYY-MM-DD HH:mm:ss')}'`
+        : `ALTER ROLE ${role.rolname} VALID UNTIL 'infinity'`,
+      opt: { type: QueryTypes.RAW, transaction }
+    })
+
+    await transaction.commit()
+  } catch (error) {
+    console.log('edit role err: ', error)
+    await transaction.rollback()
+  }
+}
+
+type GrantRoleType = {
+  id: string
+  roleName: string
+  tables: IGrantRole[]
+}
+
+async function getRolePermission({ id, roleName }) {
+  const sql = `
+  SELECT grantee, table_catalog, table_schema, table_name, privilege_type
+      FROM information_schema.role_table_grants
+      WHERE grantee = '${roleName}'
+  `
+
+  return query({ sql, id })
+}
+
+async function grantRole({ id, roleName, tables }: GrantRoleType) {
+  const transaction = await dbMap[id].transaction()
+  try {
+    const grants = tables.map((el) => {
+      return `GRANT ${el.permission} ON ${el.name} TO ${roleName}`
+    })
+
+    console.log('grantRole sql: ', grants.join(';'))
+
+    await query({
+      sql: grants.join(';'),
+      id,
+      opt: {
+        type: QueryTypes.RAW,
+        transaction
+      }
+    })
+
+    await transaction.commit()
+  } catch (error) {
+    await transaction.rollback()
+  }
+}
 
 export {
+  getRolePermission,
+  grantRole,
+  createRole,
+  getRoles,
   editSchema,
   clearDb,
   getTables,
