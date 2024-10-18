@@ -82,6 +82,15 @@ const api = {
   },
   createRole: (val) => {
     return ipcRenderer.invoke('db:createrole', val)
+  },
+  grantRolePermission: (val) => {
+    return ipcRenderer.invoke('db:grantrole', val)
+  },
+  getRolePermission: (val) => {
+    return ipcRenderer.invoke('db:getrolepermission', val)
+  },
+  delRole: (val) => {
+    return ipcRenderer.invoke('db:delrole', val)
   }
 }
 

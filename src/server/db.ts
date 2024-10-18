@@ -112,14 +112,24 @@ async function getRowAndColumns({ sql, total, page, pageSize, id }) {
   const res = { rows: [], columns: [], total }
   if (!total) {
     if (!/\blimit\b/i.test(sql)) {
-      const totalSql = sql
+      let totalSql = sql
+        .replace(/\n/g, ' ')
         .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
         .replace(/order by.*(asc|desc)/i, '')
         .replace(/order by.*(?=limit)/i, '')
         .replace(/order by.*/i, '')
+        .replace(/;\s*$/, '')
+
+      if (/\bgroup\s+by\b/i.test(sql)) {
+        totalSql = `
+             select count(a.*) count from (
+             ${totalSql} ) a
+             `
+      }
 
       const totalRes = await query({ sql: totalSql, id })
 
+      console.log('totalRes: ', totalSql, totalRes)
       res.total = totalRes[0].count || 0
     }
   }
@@ -582,6 +592,26 @@ async function createRole({ id, name, password, permissions, validuntil, oldName
   return query({ sql, id })
 }
 
+async function delRole({ id, roleName }) {
+  const transaction = await dbMap[id].transaction()
+
+  try {
+    await revokeAllPermission({ roleName, id, transaction })
+
+    await await query({
+      id,
+      sql: `DROP ROLE ${roleName}`,
+      opt: { type: QueryTypes.RAW, transaction }
+    })
+
+    await transaction.commit()
+    return true
+  } catch (error) {
+    await transaction.rollback()
+    throw error
+  }
+}
+
 async function editRole({ id, name, password, permissions, validuntil, oldName }) {
   const roles = await getRoles({ id, roleName: oldName })
   const role = roles[0]
@@ -645,6 +675,7 @@ async function editRole({ id, name, password, permissions, validuntil, oldName }
   } catch (error) {
     console.log('edit role err: ', error)
     await transaction.rollback()
+    throw error
   }
 }
 
@@ -652,45 +683,106 @@ type GrantRoleType = {
   id: string
   roleName: string
   tables: IGrantRole[]
+  permissions: string[]
+  schemas: string[]
+  type: number
 }
 
 async function getRolePermission({ id, roleName }) {
+  // REFERENCES,INSERT,SELECT,UPDATE,DELETE,TRUNCATE,TRIGGER
   const sql = `
-  SELECT grantee, table_catalog, table_schema, table_name, privilege_type
-      FROM information_schema.role_table_grants
-      WHERE grantee = '${roleName}'
+      SELECT
+        table_name,grantee, table_schema, string_agg(privilege_type, ',')
+    FROM
+        information_schema.role_table_grants
+    WHERE
+        grantee = '${roleName}'  group by table_name,grantee, table_schema
   `
 
   return query({ sql, id })
 }
 
-async function grantRole({ id, roleName, tables }: GrantRoleType) {
+async function revokeAllPermission({ roleName, id, transaction }) {
+  const sql = `
+      DO $$
+      DECLARE
+          r RECORD;
+      BEGIN
+          FOR r IN (SELECT schemaname, tablename FROM pg_tables) LOOP
+              EXECUTE 'REVOKE ALL PRIVILEGES ON ' || r.schemaname || '.' || r.tablename || ' FROM ${roleName}';
+          END LOOP;
+      END $$;
+  `
+
+  await query({ sql, id, opt: { type: QueryTypes.RAW, transaction } })
+}
+
+async function grantSchemaPermission({ id, transaction, schema, roleName, permissions }) {
+  const sql = `
+  DO $$
+  DECLARE
+      r RECORD;
+  BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = '${schema}') LOOP
+          EXECUTE 'GRANT ${permissions.join(',')} ON ${schema}.' || r.tablename || ' TO ${roleName}';
+      END LOOP;
+  END $$;
+  `
+  await query({ sql, id, opt: { type: QueryTypes.RAW, transaction } })
+}
+
+//type 1-修改多表 2-修改单个表
+async function grantRolePermission({
+  id,
+  roleName,
+  tables,
+  schemas,
+  permissions,
+  type = 1
+}: GrantRoleType) {
+  if (!roleName) {
+    throw new Error(`grant permisson error: role not exist`)
+  }
+
   const transaction = await dbMap[id].transaction()
   try {
-    const grants = tables.map((el) => {
-      return `GRANT ${el.permission} ON ${el.name} TO ${roleName}`
-    })
+    if (type === 1) {
+      await revokeAllPermission({ id, roleName, transaction })
+    }
 
-    console.log('grantRole sql: ', grants.join(';'))
+    if (!permissions.length) {
+      return true
+    }
 
-    await query({
-      sql: grants.join(';'),
-      id,
-      opt: {
-        type: QueryTypes.RAW,
-        transaction
-      }
-    })
+    for (const s of schemas) {
+      await grantSchemaPermission({ id, roleName, schema: s, transaction, permissions })
+    }
+
+    if (tables.length) {
+      const sql = `GRANT ${permissions.join(',')} ON ${tables.join(',')} TO ${roleName}`
+
+      await query({
+        sql,
+        id,
+        opt: {
+          type: QueryTypes.RAW,
+          transaction
+        }
+      })
+    }
 
     await transaction.commit()
+    return true
   } catch (error) {
     await transaction.rollback()
+    throw error
   }
 }
 
 export {
+  delRole,
   getRolePermission,
-  grantRole,
+  grantRolePermission,
   createRole,
   getRoles,
   editSchema,

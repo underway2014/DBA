@@ -15,7 +15,8 @@ export const LogAction = {
   DBEDITINDEX: 'editindex',
   EDITTABLE: 'edittable',
   EXPORTDATA: 'export data',
-  EDITSCHEMA: 'editschema'
+  EDITSCHEMA: 'editschema',
+  ROLEPERMISSION: 'edit permission'
 }
 
 export const SliderRightMenu = {

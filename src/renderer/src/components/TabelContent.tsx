@@ -1,6 +1,11 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { Dropdown, MenuProps, Tabs, TabsProps } from 'antd'
-import { UnorderedListOutlined, EditOutlined, HighlightOutlined } from '@ant-design/icons'
+import {
+  UnorderedListOutlined,
+  EditOutlined,
+  HighlightOutlined,
+  UserOutlined
+} from '@ant-design/icons'
 
 import List from './List'
 import EditTable from './EditTable'
@@ -126,9 +131,9 @@ const TabelContent: React.FC = (_, parentRef) => {
       console.log('tab data: ', data)
       //edit role
       newItems.push({
-        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
-        icon: <HighlightOutlined />,
-        children: <EditRolePermission></EditRolePermission>,
+        label: genTabTitle({ title: data.roleName, key: newActiveKey }),
+        icon: <UserOutlined />,
+        children: <EditRolePermission connection={data}></EditRolePermission>,
         key: newActiveKey
       })
     }

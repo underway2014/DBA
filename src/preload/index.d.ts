@@ -27,6 +27,9 @@ interface ApiFunction {
   editSchema: Function
   getRoles: Function
   createRole: Function
+  grantRolePermission: Function
+  getRolePermission: Function
+  delRole: Function
 }
 
 declare global {

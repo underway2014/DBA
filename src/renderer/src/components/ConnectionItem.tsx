@@ -109,6 +109,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         ) : (
           obj.otitle
         )
+
+        return
       }
 
       if (obj.children?.length) {
@@ -121,8 +123,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     setTreeData([treeNow])
   }
 
-  const onSelect: DirectoryTreeProps['onSelect'] = (keys) => {
-    console.log('on select >>>>')
+  const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
+    console.log('on select >>>>', keys, info)
+    if (!keys.length) {
+      keys = [info.node.key]
+    }
     triggerSelect(keys)
   }
 
@@ -131,13 +136,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
     const key = String(keys[0])
 
-    console.log('on select key: ', keys)
+    // console.log('on select key: ', keys)
 
     const parseKeys = key.split(SP)
 
     const nodeType = parseKeys[0]
 
-    if (['connection', 'schema'].includes(nodeType)) {
+    if (['connection', 'schema', 'roles'].includes(nodeType)) {
       checkLoadingKey(key)
     }
 
@@ -220,28 +225,29 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           addDbError({ error })
         })
     } else if (nodeType === 'roles') {
-      window.api.getRoles({ ...props.connection, schema: parseKeys[1] }).then((res) => {
-        console.log('get roles res: ', res)
+      getRoles({ key })
+      // window.api.getRoles({ ...props.connection, schema: parseKeys[1] }).then((res) => {
+      //   console.log('get roles res: ', res)
 
-        const rolesNode = treeData[0].children?.find((el) => el.title === 'roles')
-        console.log('rolenode: ', rolesNode)
+      //   const rolesNode = treeData[0].children?.find((el) => el.title === 'roles')
+      //   console.log('rolenode: ', rolesNode)
 
-        if (rolesNode) {
-          rolesNode.children = res.map((el) => {
-            return {
-              isLeaf: true,
-              key: `role${SP}${el.rolname}${SP}${props.connection.name}${SP}${props.connection.id}`,
-              title: el.rolname,
-              otitle: el.rolname
-            }
-          })
-        }
+      //   if (rolesNode) {
+      //     rolesNode.children = res.map((el) => {
+      //       return {
+      //         isLeaf: true,
+      //         key: `role${SP}${el.rolname}${SP}${props.connection.name}${SP}${props.connection.id}`,
+      //         title: el.rolname,
+      //         otitle: el.rolname
+      //       }
+      //     })
+      //   }
 
-        props.setDbInfo([props.connection.name, props.connection.config.database])
-        checkLoadingKey(key, 1)
-        setTreeData([treeNow])
-        setExpandedKeys([...expandedKeys, rolesNode?.key])
-      })
+      //   props.setDbInfo([props.connection.name, props.connection.config.database])
+      //   checkLoadingKey(key, 1)
+      //   setTreeData([treeNow])
+      //   setExpandedKeys([...expandedKeys, rolesNode?.key])
+      // })
     } else if (nodeType === 'role') {
       console.log({
         id: props.connection.id,
@@ -270,6 +276,33 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
       props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
     }
+  }
+
+  function getRoles({ key }) {
+    console.log('get roles key: ', key)
+    const treeNow = treeData[0]
+    window.api.getRoles({ ...props.connection }).then((res) => {
+      console.log('get roles res: ', res)
+
+      const rolesNode = treeNow.children?.find((el) => el.key === key)
+      console.log('rolenode: ', rolesNode, treeNow)
+
+      if (rolesNode) {
+        rolesNode.children = res.map((el) => {
+          return {
+            isLeaf: true,
+            key: `role${SP}${el.rolname}${SP}${props.connection.name}${SP}${props.connection.id}`,
+            title: el.rolname,
+            otitle: el.rolname
+          }
+        })
+      }
+
+      props.setDbInfo([props.connection.name, props.connection.config.database])
+      checkLoadingKey(key, 1)
+      setTreeData([treeNow])
+      setExpandedKeys([...expandedKeys, rolesNode?.key])
+    })
   }
 
   function editConnection(node) {
@@ -304,16 +337,36 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   function delConnection(node) {
-    confirm({
-      title: `Do you want to delete the ${node.title} connection?`,
-      icon: <ExclamationCircleFilled />,
-      content: '',
-      onOk() {
-        window.api.delStore(node.key).then(() => {
-          props.updateSlider()
-        })
-      }
-    })
+    console.log('del node: ', node)
+    if (/^role/.test(node.key)) {
+      confirm({
+        title: `Do you want to delete the ${node.title} role?`,
+        icon: <ExclamationCircleFilled />,
+        content: '',
+        onOk() {
+          window.api
+            .delRole({
+              id: props.connection.id,
+              roleName: node.title
+            })
+            .then(() => {
+              // props.updateSlider()
+              getRoles({ key: `roles${SP}${props.connection.name}${SP}${props.connection.id}` })
+            })
+        }
+      })
+    } else {
+      confirm({
+        title: `Do you want to delete the ${node.title} connection?`,
+        icon: <ExclamationCircleFilled />,
+        content: '',
+        onOk() {
+          window.api.delStore(node.key).then(() => {
+            props.updateSlider()
+          })
+        }
+      })
+    }
   }
 
   const tableMenuItems: MenuProps['items'] = [
@@ -476,8 +529,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         ...JSON.parse(JSON.stringify(val)),
         oldName: roleData?.roleName
       })
-      .then(() => {
-        // console.log('createTable res: ', res)
+      .then((res) => {
+        console.log('createTable res: ', res)
         // const schemas = treeData[0].children[0]
         // let schema = schemas[0].children.find(el => el.title === rightClickNodeRef.current.title)
         // schema.children.push({
@@ -485,7 +538,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         // })
         setRoleData(null)
         toggleForm('role', false)
-        // triggerSelect([rightClickNodeRef.current.nodeData?.key])
 
         // addLog({
         //   logList,
@@ -496,6 +548,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         // })
       })
       .catch((error) => {
+        console.log('add role error: ', error)
         addLog({
           logList,
           setLogList,
