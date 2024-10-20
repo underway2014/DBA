@@ -166,7 +166,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
               })
             },
             {
-              isLeaf: false,
+              isLeaf: true,
               key: `roles${SP}${props.connection.name}${SP}${props.connection.id}`,
               title: 'roles',
               otitle: 'roles'
@@ -185,7 +185,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
           checkLoadingKey(key, 1)
           setTreeData([treeNow])
-          setExpandedKeys([...expandedKeys, schemaKey, key])
+          setExpandedKeys([schemaKey, key])
+          // ...expandedKeys, 
         })
         .catch((error) => {
           checkLoadingKey(key, 1)
@@ -288,6 +289,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       console.log('rolenode: ', rolesNode, treeNow)
 
       if (rolesNode) {
+        rolesNode.isLeaf = false
         rolesNode.children = res.map((el) => {
           return {
             isLeaf: true,
@@ -531,21 +533,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
       .then((res) => {
         console.log('createTable res: ', res)
-        // const schemas = treeData[0].children[0]
-        // let schema = schemas[0].children.find(el => el.title === rightClickNodeRef.current.title)
-        // schema.children.push({
-
-        // })
-        setRoleData(null)
+    
+        triggerSelect([rightClickNodeRef.current.nodeData?.key])
         toggleForm('role', false)
+        setRoleData(null)
 
-        // addLog({
-        //   logList,
-        //   setLogList,
-        //   text: `create table ${val.name} success`,
-        //   type: LogType.SUCCESS,
-        //   action: LogAction.EDITTABLE
-        // })
+    
       })
       .catch((error) => {
         console.log('add role error: ', error)

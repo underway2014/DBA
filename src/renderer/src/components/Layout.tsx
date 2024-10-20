@@ -12,7 +12,6 @@ import {
   Modal,
   theme,
   Tooltip,
-  Typography
 } from 'antd'
 import ConnectionItem from './ConnectionItem'
 import TabelContent from './TabelContent'
@@ -24,9 +23,9 @@ import CustomContext from '@renderer/utils/context'
 import { IConnection, IGetTabData, ILogItem } from '../interface'
 import { LogAction, LogType } from '@renderer/utils/constant'
 import moment from 'moment'
+
 const { Content, Sider } = Layout
 
-const { Text } = Typography
 
 type DbInfo = {
   title: string
@@ -188,7 +187,6 @@ const CLayout: React.FC = () => {
     <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
       <div>
         <CustomContext.Provider value={{ logList, setLogList }}>
-          {/* <Header style={{ backgroundColor: 'white', height: '30px' }}> */}
           <Header style={{ height: '30px', backgroundColor: isDark ? '#000' : '#fff' }}>
             <Flex justify={'space-between'} align={'center'} style={{ height: '30px', padding: 0 }}>
               <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
@@ -227,7 +225,7 @@ const CLayout: React.FC = () => {
                   // style={{ backgroundColor: 'white' }}
                 >
                   {noCons ? (
-                    <Text>Right click to add connection</Text>
+                    <p style={{fontSize: '16px', padding: '10px', backgroundColor: isDark ? '#000' : '#f8f8f8', color: isDark ? 'rgba(235, 235, 245, 0.38)' : '#32363f'}}>Right click to add connection</p>
                   ) : (
                     connections.map((el, index) => {
                       return (
