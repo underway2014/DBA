@@ -30,6 +30,7 @@ type AddRowType = {
   type?: number
   oldValue?: AddRowType
   schema?: string
+  id: string
 }
 
 type RowDataType = {
@@ -218,7 +219,8 @@ const EditTable: React.FC<CustomProps> = (props) => {
         const opt = {
           tableName: tableName,
           column: delFields,
-          type: 2
+          type: 2,
+          id: props.tabData.id
         }
         window.api.alterTable(opt).then((res) => {
           selectKeys.length = 0
@@ -248,7 +250,8 @@ const EditTable: React.FC<CustomProps> = (props) => {
       defaultValue: val.default,
       notnull: val.notnull,
       type,
-      schema: props.tabData.schema
+      schema: props.tabData.schema,
+      id: props.tabData.id
     }
 
     if (oldValue) {

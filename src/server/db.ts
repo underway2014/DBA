@@ -1,8 +1,11 @@
-import { QueryTypes, Sequelize } from 'sequelize'
+import { QueryTypes, Sequelize, Transaction } from 'sequelize'
 import * as _ from 'lodash'
 import path from 'path'
 import { app } from 'electron'
 import moment from 'moment'
+import { IConnection, IGrantRole } from '../renderer/src/interface'
+import { RolePermissionMap } from '../renderer/src/utils/constant'
+
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
 //     port: 5432,
@@ -13,9 +16,15 @@ import moment from 'moment'
 // })
 // await sequelize.authenticate();
 
+type QueryType = {
+  id: string
+  config?: IConnection
+  sql: string
+  opt?: { type?: string; transaction?: Transaction }
+}
+
 const dbMap = {}
 let execa
-let currentDb
 
 async function clearDb({ id }) {
   if (dbMap[id]) {
@@ -42,11 +51,11 @@ function initDb({ id, config }) {
   let db = dbMap[id]
 
   if (!db) {
+    console.log('not db: ', config)
     db = new Sequelize(config)
   }
 
   dbMap[id] = db
-  currentDb = db
 
   return db
 }
@@ -61,19 +70,18 @@ function initDb({ id, config }) {
 
 const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 async function getSchema({ id, config }) {
-  initDb({ id, config })
+  // initDb({ id, config })
 
   const sql = `
     select schema_name as name from information_schema.schemata
     `
 
-  const schemas = await query({ sql })
+  const schemas = await query({ sql, id, config })
 
   return schemas.filter((el) => !defaultSchemas.includes(el.name))
 }
 
 async function getColums({ tableName, id }) {
-  selectDB(id)
   const sql = `
     SELECT
         table_name,
@@ -86,33 +94,42 @@ async function getColums({ tableName, id }) {
     table_name = '${tableName}' LIMIT 1000
     `
 
-  const columns = await query({ sql })
+  const columns = await query({ sql, id })
 
   return columns
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({ id, config, schema = 'public' }) {
-  initDb({ id, config })
-  const tables = await currentDb.query(
-    `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
-  )
+async function getTables({ id, schema = 'public' }) {
+  console.log('getTables: ', id, schema)
+  const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
+  const tables = await query({ id, sql })
 
-  return _.sortBy(tables[0], ['table_name'])
+  return _.sortBy(tables, ['table_name'])
 }
 
-async function getRowAndColumns({ sql, total, page, pageSize }) {
+async function getRowAndColumns({ sql, total, page, pageSize, id }) {
   const res = { rows: [], columns: [], total }
   if (!total) {
     if (!/\blimit\b/i.test(sql)) {
-      const totalSql = sql
+      let totalSql = sql
+        .replace(/\n/g, ' ')
         .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
         .replace(/order by.*(asc|desc)/i, '')
         .replace(/order by.*(?=limit)/i, '')
         .replace(/order by.*/i, '')
+        .replace(/;\s*$/, '')
 
-      const totalRes = await query({ sql: totalSql })
+      if (/\bgroup\s+by\b/i.test(sql)) {
+        totalSql = `
+             select count(a.*) count from (
+             ${totalSql} ) a
+             `
+      }
 
+      const totalRes = await query({ sql: totalSql, id })
+
+      console.log('totalRes: ', totalSql, totalRes)
       res.total = totalRes[0].count || 0
     }
   }
@@ -130,7 +147,8 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
     }
   }
 
-  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+
   res.rows = data[0]
   res.columns = data[1].fields
 
@@ -138,9 +156,7 @@ async function getRowAndColumns({ sql, total, page, pageSize }) {
 }
 
 async function getExportData({ sql, id }) {
-  selectDB(id)
-
-  const data = await currentDb.query(sql, { type: QueryTypes.RAW })
+  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
 
   return {
     rows: data[0],
@@ -148,27 +164,23 @@ async function getExportData({ sql, id }) {
   }
 }
 
-async function query({ sql }) {
+async function query({ sql, id, opt = {}, config }: QueryType) {
+  const db = initDb({ id, config })
+
   console.log('query sql: ', sql)
-  const data = await currentDb.query(sql, { type: QueryTypes.SELECT })
+  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
 
   return data
 }
 
-function selectDB(id) {
-  initDb({ id, config: null })
-}
-
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
-  selectDB(data.id)
-
   if (/(pg_terminate_backend|nextval)\(/i.test(data.sql)) {
-    return query({ sql: data.sql })
+    return query({ sql: data.sql, id: data.id })
   }
 
   if (/show\s+max_connections/i.test(data.sql)) {
-    const rows = await query({ sql: data.sql })
+    const rows = await query({ sql: data.sql, id: data.id })
     return {
       rows,
       columns: [{ name: 'max_connections' }]
@@ -180,25 +192,26 @@ async function getTableData(data) {
       sql: data.sql,
       total: data.total,
       page: data.page,
-      pageSize: data.pageSize
+      pageSize: data.pageSize,
+      id: data.id
     })
   } else {
-    return query({ sql: data.sql })
+    return query({ sql: data.sql, id: data.id })
   }
 }
 
-async function updateOneField({ tableName, id, field, value }) {
+async function updateOneField({ tableName, dataId, id, field, value }) {
   const sql = `
     update ${tableName} set ${field} = '${value}'
-    where id = ${id}
+    where id = ${dataId}
     `
 
-  await query({ sql })
+  await query({ sql, id })
 }
 
-async function updateDate({ tableName, id, data, type }) {
+async function updateDate({ tableName, id, dataId, data, type }) {
   if (type === 2) {
-    return updateOneField({ tableName, id, ...data })
+    return updateOneField({ tableName, id, dataId, ...data })
   }
   const updateFields = Object.keys(data)
     .map((key) => {
@@ -212,10 +225,10 @@ async function updateDate({ tableName, id, data, type }) {
 
   const sql = `
     update ${tableName} set ${updateFields}
-    where id = ${id}
+    where id = ${dataId}
     `
 
-  await query({ sql })
+  await query({ sql, id })
 }
 
 function getAppPath() {
@@ -228,7 +241,7 @@ function getAppPath() {
 }
 
 // type 1-struct 2-struct and data
-async function restore({ type, connection, dbName, sqlPath }) {
+async function restore({ type, connection, sqlPath }) {
   initDb({ id: connection.id, config: connection.config })
   const pgPath = await getToolPath({ type: 3 })
 
@@ -248,21 +261,21 @@ async function restore({ type, connection, dbName, sqlPath }) {
   }
 }
 
-async function getServerVersion() {
-  const versionSql = `select version()`
-  const versionRes = await query({ sql: versionSql })
+// async function getServerVersion() {
+//   const versionSql = `select version()`
+//   const versionRes = await query({ sql: versionSql })
 
-  let version = 16
-  const match = versionRes[0].version.match(/PostgreSQL (\d+)/)
-  if (match) {
-    version = match[1]
-  }
+//   let version = 16
+//   const match = versionRes[0].version.match(/PostgreSQL (\d+)/)
+//   if (match) {
+//     version = match[1]
+//   }
 
-  return version + ''
-}
+//   return version + ''
+// }
 
 //type 1-database 2-table
-async function backup({ type, connection, id }) {
+async function backup({ connection }) {
   initDb({ id: connection.id, config: connection.config })
 
   // console.log('versionRes: ', versionRes, typeof versionRes)
@@ -272,10 +285,6 @@ async function backup({ type, connection, id }) {
     `${connection.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
   )
 
-  console.log(
-    'cmd str: ',
-    `${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
-  )
   const res = await execa({
     env: { PGPASSWORD: connection.config.password }
   })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
@@ -357,6 +366,7 @@ async function addField({
   defaltValue,
   comment,
   notnull,
+  id,
   schema = 'public'
 }) {
   tableName = `${schema}.${tableName}`
@@ -370,16 +380,16 @@ async function addField({
     sql = `${sql} default ${defaltValue}`
   }
 
-  const res = await query({ sql })
+  const res = await query({ sql, id })
   if (comment) {
     const commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
-    await query({ sql: commentSql })
+    await query({ sql: commentSql, id })
   }
 
   return res
 }
 
-async function delField({ tableName, column, schema = 'public' }) {
+async function delField({ tableName, column, schema = 'public', id }) {
   tableName = `${schema}.${tableName}`
 
   const dropSql = column.map((el) => {
@@ -387,7 +397,7 @@ async function delField({ tableName, column, schema = 'public' }) {
   })
   const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
-  return query({ sql })
+  return query({ sql, id })
 }
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function alterColumn(data) {
@@ -395,7 +405,8 @@ async function alterColumn(data) {
 
   if (data.dataType !== data.oldValue.dataType) {
     await query({
-      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`
+      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`,
+      id: data.id
     })
   }
 
@@ -404,12 +415,13 @@ async function alterColumn(data) {
     if (data.notnull) {
       sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
     }
-    const res = await query({ sql })
+    await query({ sql, id: data.id })
   }
 
   if (data.column !== data.oldValue.column) {
     await query({
-      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`
+      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`,
+      id: data.id
     })
   }
 }
@@ -425,7 +437,6 @@ async function alterTable(data) {
 }
 
 async function addRow({ id, tableName, fields }) {
-  selectDB(id)
   const cols = Object.keys(fields)
   const vals = cols.map((k) => `'${fields[k]}'`)
   const sql = `
@@ -433,22 +444,20 @@ async function addRow({ id, tableName, fields }) {
     VALUES (${vals.join(',')});
     `
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function delRows({ id, tableName, ids, schema }) {
-  selectDB(id)
   tableName = `${schema}.${tableName}`
 
   const sql = `
     delete from ${tableName} where id in (${ids})
     `
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function getIndexs({ id, schema = 'public', tableName }) {
-  selectDB(id)
   const sql = `
       SELECT
         ns.nspname as schema_name,
@@ -467,7 +476,7 @@ async function getIndexs({ id, schema = 'public', tableName }) {
     WHERE ns.nspname = '${schema}' AND tab.relname = '${tableName}' LIMIT 1000
   `
 
-  const indexs = await query({ sql })
+  const indexs = await query({ sql, id })
 
   // console.log('indexs: ', indexs)
 
@@ -502,6 +511,7 @@ async function editIndex({
   schema = 'public',
   tableName,
   indexType,
+  id,
   columns
 }) {
   let sql
@@ -517,12 +527,11 @@ CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'pub
     `
   }
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 //type 1-drop 2-truncate
 async function editTable({ type, tableName, id, schema = 'public' }) {
-  selectDB(id)
   tableName = `${schema}.${tableName}`
   let sql
   if (type === 1) {
@@ -533,11 +542,10 @@ async function editTable({ type, tableName, id, schema = 'public' }) {
     sql = `CREATE TABLE ${tableName} ()`
   }
 
-  return query({ sql })
+  return query({ sql, id })
 }
 
 async function editSchema({ type, schema, id }) {
-  selectDB(id)
   let sql
   if (type === 1) {
     sql = `DROP SCHEMA ${schema} CASCADE`
@@ -545,10 +553,238 @@ async function editSchema({ type, schema, id }) {
     sql = `CREATE SCHEMA ${schema}`
   }
 
-  return query({ sql })
+  return query({ sql, id })
+}
+
+async function getRoles({ id, roleName }) {
+  let sql = `SELECT * FROM pg_roles`
+
+  if (roleName) {
+    sql += ` where rolname='${roleName}'`
+  }
+
+  const roles = await query({ sql, id })
+  console.log('roles: ', roles)
+  return roles.filter((el) => !/^pg_/.test(el.rolname))
+}
+
+// CREATE ROLE u1 NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'u1';
+// GRANT ALL ON TABLE public.active TO u1;
+// GRANT ALL ON TABLE public.active_label TO u1;
+// GRANT SELECT ON TABLE public.active_lock_user TO u1;
+// GRANT ALL ON TABLE public.active_peroid TO u1;
+// GRANT DELETE, SELECT ON TABLE public.ad_sponsors TO u1;
+// GRANT DELETE, SELECT ON TABLE public.admin_log TO u1;
+
+async function createRole({ id, name, password, permissions, validuntil, oldName }) {
+  console.log('create role: ', arguments)
+  if (oldName) {
+    return editRole({ id, name, password, permissions, validuntil, oldName })
+  }
+
+  const pStr = permissions.join(' ')
+  let sql = `CREATE ROLE ${name} ${pStr} PASSWORD '${password}'`
+
+  if (validuntil) {
+    sql += ' VALID UNTIL ' + `'${moment(validuntil).format('YYYY-MM-DD HH:mm:ss')}'`
+  }
+
+  return query({ sql, id })
+}
+
+async function delRole({ id, roleName }) {
+  const transaction = await dbMap[id].transaction()
+
+  try {
+    await revokeAllPermission({ roleName, id, transaction })
+
+    await await query({
+      id,
+      sql: `DROP ROLE ${roleName}`,
+      opt: { type: QueryTypes.RAW, transaction }
+    })
+
+    await transaction.commit()
+    return true
+  } catch (error) {
+    await transaction.rollback()
+    throw error
+  }
+}
+
+async function editRole({ id, name, password, permissions, validuntil, oldName }) {
+  const roles = await getRoles({ id, roleName: oldName })
+  const role = roles[0]
+
+  const transaction = await dbMap[id].transaction()
+
+  try {
+    if (!/^\*+\*$/.test(password)) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} WITH PASSWORD '${password}'`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    const oldPermission: string[] = []
+    Object.keys(RolePermissionMap).forEach((el) => {
+      if (role[el]) {
+        oldPermission.push(RolePermissionMap[el])
+      }
+    })
+
+    const addPermission = _.difference(permissions, oldPermission)
+    const delPermission = _.difference(oldPermission, permissions)
+
+    console.log('permission diff: ', addPermission, delPermission)
+
+    if (addPermission.length) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} WITH ${addPermission.join(' ')}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    if (delPermission.length) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} ${delPermission.map((el) => `NO${el}`).join(' ')}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    if (role.rolname !== name) {
+      await query({
+        id,
+        sql: `ALTER ROLE ${role.rolname} RENAME TO ${name}`,
+        opt: { type: QueryTypes.RAW, transaction }
+      })
+    }
+
+    await query({
+      id,
+      sql: validuntil
+        ? `ALTER ROLE ${role.rolname} VALID UNTIL '${moment(validuntil).format('YYYY-MM-DD HH:mm:ss')}'`
+        : `ALTER ROLE ${role.rolname} VALID UNTIL 'infinity'`,
+      opt: { type: QueryTypes.RAW, transaction }
+    })
+
+    await transaction.commit()
+  } catch (error) {
+    console.log('edit role err: ', error)
+    await transaction.rollback()
+    throw error
+  }
+}
+
+type GrantRoleType = {
+  id: string
+  roleName: string
+  tables: IGrantRole[]
+  permissions: string[]
+  schemas: string[]
+  type: number
+}
+
+async function getRolePermission({ id, roleName }) {
+  // REFERENCES,INSERT,SELECT,UPDATE,DELETE,TRUNCATE,TRIGGER
+  const sql = `
+      SELECT
+        table_name,grantee, table_schema, string_agg(privilege_type, ',')
+    FROM
+        information_schema.role_table_grants
+    WHERE
+        grantee = '${roleName}'  group by table_name,grantee, table_schema
+  `
+
+  return query({ sql, id })
+}
+
+async function revokeAllPermission({ roleName, id, transaction }) {
+  const sql = `
+      DO $$
+      DECLARE
+          r RECORD;
+      BEGIN
+          FOR r IN (SELECT schemaname, tablename FROM pg_tables) LOOP
+              EXECUTE 'REVOKE ALL PRIVILEGES ON ' || r.schemaname || '.' || r.tablename || ' FROM ${roleName}';
+          END LOOP;
+      END $$;
+  `
+
+  await query({ sql, id, opt: { type: QueryTypes.RAW, transaction } })
+}
+
+async function grantSchemaPermission({ id, transaction, schema, roleName, permissions }) {
+  const sql = `
+  DO $$
+  DECLARE
+      r RECORD;
+  BEGIN
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = '${schema}') LOOP
+          EXECUTE 'GRANT ${permissions.join(',')} ON ${schema}.' || r.tablename || ' TO ${roleName}';
+      END LOOP;
+  END $$;
+  `
+  await query({ sql, id, opt: { type: QueryTypes.RAW, transaction } })
+}
+
+//type 1-修改多表 2-修改单个表
+async function grantRolePermission({
+  id,
+  roleName,
+  tables,
+  schemas,
+  permissions,
+  type = 1
+}: GrantRoleType) {
+  if (!roleName) {
+    throw new Error(`grant permisson error: role not exist`)
+  }
+
+  const transaction = await dbMap[id].transaction()
+  try {
+    if (type === 1) {
+      await revokeAllPermission({ id, roleName, transaction })
+    }
+
+    if (!permissions.length) {
+      return true
+    }
+
+    for (const s of schemas) {
+      await grantSchemaPermission({ id, roleName, schema: s, transaction, permissions })
+    }
+
+    if (tables.length) {
+      const sql = `GRANT ${permissions.join(',')} ON ${tables.join(',')} TO ${roleName}`
+
+      await query({
+        sql,
+        id,
+        opt: {
+          type: QueryTypes.RAW,
+          transaction
+        }
+      })
+    }
+
+    await transaction.commit()
+    return true
+  } catch (error) {
+    await transaction.rollback()
+    throw error
+  }
 }
 
 export {
+  delRole,
+  getRolePermission,
+  grantRolePermission,
+  createRole,
+  getRoles,
   editSchema,
   clearDb,
   getTables,

@@ -18,15 +18,20 @@ import {
   backup,
   closeConnection,
   createDb,
+  createRole,
+  delRole,
   delRows,
   editIndex,
   editSchema,
   editTable,
   getColums,
   getIndexs,
+  getRolePermission,
+  getRoles,
   getSchema,
   getTableData,
   getTables,
+  grantRolePermission,
   query,
   restore,
   updateDate
@@ -180,6 +185,27 @@ app.whenReady().then(() => {
 
     return editSchema(val)
   })
+
+  ipcMain.handle('db:getroles', (_, val) => {
+    console.log('db:getroles val: ', val)
+
+    return getRoles(val)
+  })
+  ipcMain.handle('db:createrole', (_, val) => {
+    console.log('db:createrole val: ', val)
+
+    return createRole(val)
+  })
+  ipcMain.handle('db:grantrole', (_, val) => {
+    return grantRolePermission(val)
+  })
+  ipcMain.handle('db:getrolepermission', (_, val) => {
+    return getRolePermission(val)
+  })
+  ipcMain.handle('db:delrole', (_, val) => {
+    return delRole(val)
+  })
+
   createWindow()
 
   app.on('activate', function () {

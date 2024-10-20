@@ -1,11 +1,17 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { Dropdown, MenuProps, Tabs, TabsProps } from 'antd'
-import { UnorderedListOutlined, EditOutlined, HighlightOutlined } from '@ant-design/icons'
+import {
+  UnorderedListOutlined,
+  EditOutlined,
+  HighlightOutlined,
+  UserOutlined
+} from '@ant-design/icons'
 
 import List from './List'
 import EditTable from './EditTable'
 import EditIndex from './EditIndex'
 import { IGetTabData } from '@renderer/interface'
+import EditRolePermission from './EditRolePermission'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string
 type TabItem = {
@@ -119,6 +125,15 @@ const TabelContent: React.FC = (_, parentRef) => {
         label: genTabTitle({ title: data.tableName, key: newActiveKey }),
         icon: <HighlightOutlined />,
         children: <EditIndex tabData={data}></EditIndex>,
+        key: newActiveKey
+      })
+    } else if (data.type === 4) {
+      console.log('tab data: ', data)
+      //edit role
+      newItems.push({
+        label: genTabTitle({ title: data.roleName, key: newActiveKey }),
+        icon: <UserOutlined />,
+        children: <EditRolePermission connection={data}></EditRolePermission>,
         key: newActiveKey
       })
     }

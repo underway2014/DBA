@@ -15,7 +15,8 @@ export const LogAction = {
   DBEDITINDEX: 'editindex',
   EDITTABLE: 'edittable',
   EXPORTDATA: 'export data',
-  EDITSCHEMA: 'editschema'
+  EDITSCHEMA: 'editschema',
+  ROLEPERMISSION: 'edit permission'
 }
 
 export const SliderRightMenu = {
@@ -31,3 +32,37 @@ export const TableMenu = {
   DROPTABLE: 20,
   TRUNCATE: 21
 }
+
+// export const RolePermissionKey = [
+//   'rolcanlogin',
+//   'rolcreatedb',
+//   'rolcreaterole',
+//   'rolsuper',
+//   'rolreplication',
+//   'rolinherit'
+// ]
+
+export const RolePermissionVal = [
+  'LOGIN', // 允许角色登录
+  'SUPERUSER', // 授予超级用户权限
+  'CREATEDB', // 允许角色创建数据库
+  'CREATEROLE', // 允许角色创建其他角色
+  'INHERIT', // 角色会继承其父角色的权限
+  // 'NOINHERIT', // 角色不会继承其父角色的权限
+  'REPLICATION' // 允许角色进行复制
+  // 'PASSWORD' // 为角色设置密码
+  // 'VALID UNTIL' // 设置角色的有效期限
+]
+
+export const RolePermissionMap = {
+  rolcanlogin: 'LOGIN',
+  rolcreatedb: 'CREATEDB',
+  rolcreaterole: 'CREATEROLE',
+  rolsuper: 'SUPERUSER',
+  rolreplication: 'REPLICATION',
+  rolinherit: 'INHERIT'
+}
+
+// export const RolePermssionKey = Object.keys(RolePermissionMap)
+
+console.log(RolePermissionMap['rolcanlogin'])

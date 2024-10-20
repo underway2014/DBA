@@ -25,6 +25,11 @@ interface ApiFunction {
   toggleTheme: Function
   exportFile: Function
   editSchema: Function
+  getRoles: Function
+  createRole: Function
+  grantRolePermission: Function
+  getRolePermission: Function
+  delRole: Function
 }
 
 declare global {

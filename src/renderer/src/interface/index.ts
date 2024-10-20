@@ -34,4 +34,10 @@ export interface IGetTabData {
   schema: string
   dbName?: string
   sql?: string
+  roleName?: string
+}
+
+export interface IGrantRole {
+  name: string
+  permission: string
 }

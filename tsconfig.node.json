@@ -5,6 +5,7 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/config/**/*",
+    "src/renderer/**/*",
     "src/server/**/*"
   ],
   "compilerOptions": {
