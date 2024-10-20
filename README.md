@@ -13,6 +13,7 @@ With everyone’s collective effort, we hope to make this tool an even more comp
 - Database backup and recovery
 - Support dark color mode
 - Excel data export
+- Role permission management
 
 ## Download
 
