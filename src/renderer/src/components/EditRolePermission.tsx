@@ -270,7 +270,7 @@ const EditRolePermission: React.FC<CustomProps> = (props) => {
             overflow: 'auto'
           }}
         >
-          <Splitter.Panel defaultSize="40%" min="20%" max="50%">
+          <Splitter.Panel defaultSize="40%" min="20%" max="50%" resizable={false}>
             <Tree
               showLine
               blockNode
@@ -289,7 +289,7 @@ const EditRolePermission: React.FC<CustomProps> = (props) => {
               rootStyle={{ borderRadius: 0 }}
             />
           </Splitter.Panel>
-          <Splitter.Panel defaultSize="30%" min="20%" max="30%">
+          <Splitter.Panel defaultSize="30%" min="20%" max="30%" resizable={false}>
             <div style={{ margin: '20px' }}>
               <Checkbox
                 indeterminate={indeterminateAll}
@@ -322,7 +322,7 @@ const EditRolePermission: React.FC<CustomProps> = (props) => {
               />
             </div>
           </Splitter.Panel>
-          <Splitter.Panel defaultSize="30%" min="20%" max="30%">
+          <Splitter.Panel defaultSize="30%" min="20%" max="30%" resizable={false}>
             <div style={{ margin: '20px' }}>
               <Checkbox
                 indeterminate={indeterminate}

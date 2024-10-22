@@ -186,7 +186,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           checkLoadingKey(key, 1)
           setTreeData([treeNow])
           setExpandedKeys([schemaKey, key])
-          // ...expandedKeys, 
+          // ...expandedKeys,
         })
         .catch((error) => {
           checkLoadingKey(key, 1)
@@ -533,12 +533,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
       .then((res) => {
         console.log('createTable res: ', res)
-    
+
         triggerSelect([rightClickNodeRef.current.nodeData?.key])
         toggleForm('role', false)
         setRoleData(null)
-
-    
       })
       .catch((error) => {
         console.log('add role error: ', error)
@@ -940,7 +938,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       <Tree
         showLine
         blockNode
-        virtual={false}
+        virtual
         motion={false}
         expandedKeys={expandedKeys}
         onExpand={onExpand}
