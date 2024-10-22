@@ -64,14 +64,24 @@ const DataList: React.FC<CustomProps> = (props) => {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
         } else {
-          message.success({
-            type: 'success',
-            content: 'Success'
+          addLog({
+            type: LogType.SUCCESS,
+            logList,
+            setLogList,
+            text: 'success',
+            action: LogAction.EDITTABLE
           })
         }
         setIsloading(false)
       })
       .catch((err) => {
+        addLog({
+          type: LogType.ERROR,
+          logList,
+          setLogList,
+          text: err.message,
+          action: LogAction.EDITTABLE
+        })
         setIsloading(false)
       })
   }

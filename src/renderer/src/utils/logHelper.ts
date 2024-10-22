@@ -26,7 +26,7 @@ export const addLog = ({ logList, setLogList, text, action, type }: LogOpt) => {
     case LogType.ERROR: {
       message.error({
         type: 'error',
-        content: `${action} fail`
+        content: `fail`
       })
       break
     }
