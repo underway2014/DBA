@@ -101,6 +101,14 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    const globalPolyfill = {
+      setImmediate: (callback, ...args) => {
+        return setTimeout(callback, 0, ...args)
+      }
+    }
+
+    // 使用 contextBridge 暴露 globalPolyfill
+    contextBridge.exposeInMainWorld('global', globalPolyfill)
 
     // contextBridge.exposeInMainWorld('darkMode', {
     //   toggle: () => ipcRenderer.invoke('dark-mode:toggle'),

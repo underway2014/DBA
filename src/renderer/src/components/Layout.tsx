@@ -10,8 +10,9 @@ import {
   List,
   MenuProps,
   Modal,
+  Splitter,
   theme,
-  Tooltip,
+  Tooltip
 } from 'antd'
 import ConnectionItem from './ConnectionItem'
 import TabelContent from './TabelContent'
@@ -25,7 +26,6 @@ import { LogAction, LogType } from '@renderer/utils/constant'
 import moment from 'moment'
 
 const { Content, Sider } = Layout
-
 
 type DbInfo = {
   title: string
@@ -186,7 +186,7 @@ const CLayout: React.FC = () => {
   return (
     <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
       <div>
-        <CustomContext.Provider value={{ logList, setLogList }}>
+        <CustomContext.Provider value={{ logList, setLogList, isDark }}>
           <Header style={{ height: '30px', backgroundColor: isDark ? '#000' : '#fff' }}>
             <Flex justify={'space-between'} align={'center'} style={{ height: '30px', padding: 0 }}>
               <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
@@ -208,46 +208,59 @@ const CLayout: React.FC = () => {
           </Header>
 
           <Layout>
-            <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
-              <div
-                style={{
-                  height: window.screen.height - 63 - 20 + 'px',
-                  overflow: 'auto'
-                  // backgroundColor: '#ffffff'
-                }}
-              >
-                <Sider
-                  breakpoint="lg"
-                  collapsedWidth="0"
-                  // onBreakpoint={(broken) => {}}
-                  width={300}
-                  // onCollapse={(collapsed, type) => {}}
-                  // style={{ backgroundColor: 'white' }}
-                >
-                  {noCons ? (
-                    <p style={{fontSize: '16px', padding: '10px', backgroundColor: isDark ? '#000' : '#f8f8f8', color: isDark ? 'rgba(235, 235, 245, 0.38)' : '#32363f'}}>Right click to add connection</p>
-                  ) : (
-                    connections.map((el, index) => {
-                      return (
-                        <ConnectionItem
-                          setDbInfo={setDbInfo}
-                          getTableDataByName={getTableDataByName}
-                          cid={index}
-                          key={el.id}
-                          connection={el}
-                          updateSlider={updateSlider}
-                        ></ConnectionItem>
-                      )
-                    })
-                  )}
-                </Sider>
-              </div>
-            </Dropdown>
-            <Layout>
-              <Content style={{ height: window.screen.height - 64 - 30 + 'px' }}>
-                <TabelContent ref={tabsRef}></TabelContent>
-              </Content>
-            </Layout>
+            <Splitter>
+              <Splitter.Panel defaultSize={300} min={50} max={400} collapsible>
+                <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
+                  <div
+                    style={{
+                      height: window.screen.height - 63 - 20 + 'px',
+                      overflow: 'auto'
+                      // backgroundColor: '#ffaaff'
+                    }}
+                  >
+                    <Sider
+                      breakpoint="lg"
+                      collapsedWidth="0"
+                      // onBreakpoint={(broken) => {}}
+                      width={400}
+                      // onCollapse={(collapsed, type) => {}}
+                      // style={{ width: '300px' }}
+                    >
+                      {noCons ? (
+                        <p
+                          style={{
+                            fontSize: '16px',
+                            padding: '10px',
+                            backgroundColor: isDark ? '#000' : '#f8f8f8',
+                            color: isDark ? 'rgba(235, 235, 245, 0.38)' : '#32363f'
+                          }}
+                        >
+                          Right click to add connection
+                        </p>
+                      ) : (
+                        connections.map((el, index) => {
+                          return (
+                            <ConnectionItem
+                              setDbInfo={setDbInfo}
+                              getTableDataByName={getTableDataByName}
+                              cid={index}
+                              key={el.id}
+                              connection={el}
+                              updateSlider={updateSlider}
+                            ></ConnectionItem>
+                          )
+                        })
+                      )}
+                    </Sider>
+                  </div>
+                </Dropdown>
+              </Splitter.Panel>
+              <Splitter.Panel>
+                <Content style={{ height: window.screen.height - 64 - 30 + 'px' }}>
+                  <TabelContent ref={tabsRef}></TabelContent>
+                </Content>
+              </Splitter.Panel>
+            </Splitter>
           </Layout>
 
           <Drawer title={`LOG`} placement="right" size={'large'} onClose={logClose} open={logOpen}>

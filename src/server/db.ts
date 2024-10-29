@@ -41,7 +41,7 @@ async function closeConnection(data) {
   if (data?.id) {
     return clearDb(data)
   } else {
-    const works = Object.keys(dbMap).map((k) => dbMap[k].close())
+    const works = Object.keys(dbMap).map((id) => clearDb({ id }))
 
     return Promise.all(works)
   }
@@ -51,7 +51,6 @@ function initDb({ id, config }) {
   let db = dbMap[id]
 
   if (!db) {
-    console.log('not db: ', config)
     db = new Sequelize(config)
   }
 
@@ -70,11 +69,7 @@ function initDb({ id, config }) {
 
 const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 async function getSchema({ id, config }) {
-  // initDb({ id, config })
-
-  const sql = `
-    select schema_name as name from information_schema.schemata
-    `
+  const sql = `select schema_name as name from information_schema.schemata`
 
   const schemas = await query({ sql, id, config })
 
@@ -101,49 +96,50 @@ async function getColums({ tableName, id }) {
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
 async function getTables({ id, schema = 'public' }) {
-  console.log('getTables: ', id, schema)
   const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
   const tables = await query({ id, sql })
 
   return _.sortBy(tables, ['table_name'])
 }
 
-async function getRowAndColumns({ sql, total, page, pageSize, id }) {
+async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id }) {
   const res = { rows: [], columns: [], total }
   if (!total) {
-    if (!/\blimit\b/i.test(sql)) {
-      let totalSql = sql
-        .replace(/\n/g, ' ')
-        .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
-        .replace(/order by.*(asc|desc)/i, '')
-        .replace(/order by.*(?=limit)/i, '')
-        .replace(/order by.*/i, '')
-        .replace(/;\s*$/, '')
+    try {
+      if (!/\blimit\b/i.test(sql)) {
+        let totalSql = ''
+        if (/\bunion\b/i.test(sql)) {
+          totalSql = `select count(*) as count from ( ${sql} ) lrq2019`
+        } else {
+          totalSql = sql
+            .replace(/\n/g, ' ')
+            .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
+            .replace(/order by.*(asc|desc)/i, '')
+            .replace(/order by.*(?=limit)/i, '')
+            .replace(/order by.*/i, '')
+            .replace(/;\s*$/, '')
 
-      if (/\bgroup\s+by\b/i.test(sql)) {
-        totalSql = `
-             select count(a.*) count from (
-             ${totalSql} ) a
-             `
+          if (/\bgroup\s+by\b/i.test(sql)) {
+            totalSql = `select count(*) as count from ( ${totalSql} ) lrq2019`
+          }
+        }
+
+        const totalRes = await query({ sql: totalSql, id })
+
+        res.total = totalRes[0].count || 0
       }
-
+    } catch (error) {
+      const totalSql = `select count(*) as count from ( ${sql} ) lrq2019`
       const totalRes = await query({ sql: totalSql, id })
 
-      console.log('totalRes: ', totalSql, totalRes)
       res.total = totalRes[0].count || 0
     }
   }
 
-  if (page && pageSize && !/\blimit\b/i.test(sql)) {
-    sql = `
-            ${sql}
-            limit ${pageSize}
-                `
+  if (!/\blimit\b/i.test(sql) && !/\bgroup\s+by\b/i.test(sql)) {
+    sql = `${sql} limit ${pageSize}`
     if (!/\boffset\b/i.test(sql)) {
-      sql = `
-                ${sql}
-                offset ${pageSize * (page - 1)}
-                `
+      sql = `${sql} offset ${pageSize * (page - 1)}`
     }
   }
 
@@ -450,9 +446,7 @@ async function addRow({ id, tableName, fields }) {
 async function delRows({ id, tableName, ids, schema }) {
   tableName = `${schema}.${tableName}`
 
-  const sql = `
-    delete from ${tableName} where id in (${ids})
-    `
+  const sql = `delete from ${tableName} where id in (${ids})`
 
   return query({ sql, id })
 }
@@ -518,8 +512,8 @@ async function editIndex({
   if (type === 1) {
     //add
     sql = `
-CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'public'}.${tableName} USING ${indexType ? indexType : 'btree'} (${columns.join(',')})
-`
+          CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'public'}.${tableName} USING ${indexType ? indexType : 'btree'} (${columns.join(',')})
+          `
   } else {
     //del
     sql = `

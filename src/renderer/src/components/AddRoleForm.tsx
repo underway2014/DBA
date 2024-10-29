@@ -11,7 +11,7 @@ type RoleData = {
 }
 type CustomProps = {
   addRole: Function
-  defautValues?: RoleData
+  defautValues?: RoleData | null
 }
 
 const AddRoleForm: React.FC<CustomProps> = (props) => {
