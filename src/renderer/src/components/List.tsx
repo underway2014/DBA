@@ -14,6 +14,7 @@ import { LogAction, LogType } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
 import AddRowForm from './AddRowForm'
 import { addLog } from '@renderer/utils/logHelper'
+import HighlightWithinTextarea from 'react-highlight-within-textarea'
 
 const { confirm } = Modal
 
@@ -30,8 +31,11 @@ type CustomProps = {
   tabData: any
 }
 
+const pgKeyWords =
+  /\b(select|from|order\s+by|union\s+all|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count)\b/gi
+
 const DataList: React.FC<CustomProps> = (props) => {
-  const { logList, setLogList } = useContext(CustomContext)
+  const { logList, setLogList, isDark } = useContext(CustomContext)
   const inputRef = useRef(null)
   const defaultSql = props.tabData.sql.trim()
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
@@ -366,17 +370,30 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
     }
   }
-
+  const onChange = (value) => setSqlTxt(value)
   return (
     <div style={{ height: window.screen.height - 160 + 'px', overflow: 'auto' }}>
-      <TextArea
-        rows={4}
-        //  value={sqlTxt}
-        defaultValue={defaultSql}
-        onChange={(e) => {
-          setSqlTxt(e.target.value)
+      <div
+        style={{
+          backgroundColor: isDark ? '#1C1C1C' : 'white',
+          minHeight: '50px',
+          maxHeight: '250px',
+          overflow: 'auto',
+          marginBottom: '8px',
+          padding: '5px'
         }}
-      />
+      >
+        <HighlightWithinTextarea
+          value={sqlTxt}
+          onChange={onChange}
+          highlight={[
+            {
+              highlight: pgKeyWords,
+              className: 'chighlight'
+            }
+          ]}
+        />
+      </div>
       <Flex gap="small" align="flex-start" vertical style={{ marginLeft: '5px' }}>
         <Flex gap="small" wrap>
           <Tooltip title="run">

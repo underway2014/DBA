@@ -186,7 +186,7 @@ const CLayout: React.FC = () => {
   return (
     <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
       <div>
-        <CustomContext.Provider value={{ logList, setLogList }}>
+        <CustomContext.Provider value={{ logList, setLogList, isDark }}>
           <Header style={{ height: '30px', backgroundColor: isDark ? '#000' : '#fff' }}>
             <Flex justify={'space-between'} align={'center'} style={{ height: '30px', padding: 0 }}>
               <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
