@@ -24,6 +24,8 @@ You can download prebuilt binaries from <a href="https://github.com/underway2014
 
 <a href="https://github.com/underway2014/DBA/blob/main/screenshot/1.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/1.jpg" width="400"/></a>
 <a href="https://github.com/underway2014/DBA/blob/main/screenshot/2.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/2.jpg" width="400"/></a>
+<a href="https://github.com/underway2014/DBA/blob/main/screenshot/5.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/4.jpg" width="400"/></a>
+<a href="https://github.com/underway2014/DBA/blob/main/screenshot/6.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/4.jpg" width="400"/></a>
 <a href="https://github.com/underway2014/DBA/blob/main/screenshot/3.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/3.jpg" width="400"/></a>
 <a href="https://github.com/underway2014/DBA/blob/main/screenshot/4.jpg"><img src="https://github.com/underway2014/DBA/blob/main/screenshot/4.jpg" width="400"/></a>
 
