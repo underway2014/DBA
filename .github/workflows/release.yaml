@@ -1,7 +1,7 @@
 name: Build and Release
 
 on:
-  push: 
+  push:
     tags:
       - '*'
 
@@ -40,7 +40,6 @@ jobs:
         run: |
           npx del-cli "dist/*" "!dist/(*.dmg|*.zip|latest*.yml)"
 
-
       - name: Display structure of downloaded files
         run: |
           ls dist
@@ -51,7 +50,7 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name:  ${{ matrix.os }}
+          name: ${{ matrix.os }}
           path: dist
 
       - name: Release

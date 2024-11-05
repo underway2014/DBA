@@ -20,7 +20,7 @@ const AddIndexForm: React.FC<CustomProps> = (props) => {
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => {}
+  const onFinishFailed = (errorInfo) => { }
 
   form.setFieldsValue(props.defautValues)
   const IndexTypeOptions = [
