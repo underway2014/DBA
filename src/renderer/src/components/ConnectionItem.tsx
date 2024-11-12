@@ -12,6 +12,7 @@ import AddSchemaForm from './AddSchemaForm'
 import CreateTableForm from './CreateTableForm'
 import AddRoleForm from './AddRoleForm'
 import moment from 'moment'
+import CreateMysqlDbForm from './CreateMysqlDbForm'
 const { confirm } = Modal
 
 type DirectoryTreeProps = GetProps<typeof Tree.DirectoryTree>
@@ -99,7 +100,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   function checkLoadingKey(key, type?) {
     const treeNow = treeData[0]
-
+    console.log('check key: ', key, treeNow, type)
     function check(obj) {
       if (obj.key && obj.key === key) {
         obj.title = !type ? (
@@ -147,84 +148,79 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
 
     if (nodeType === 'connection') {
-      window.api
-        .getSchema(props.connection)
-        .then((tables) => {
-          const schemaKey = `schemas${SP}${props.connection.id}`
-          treeNow.children = [
-            {
-              isLeaf: false,
-              key: schemaKey,
-              title: 'schemas',
-              children: tables.map((el) => {
-                return {
+      if (props.connection.config.dialect === 'postgres') {
+        window.api
+          .getSchema(props.connection)
+          .then((tables) => {
+            let schemaKey = ''
+            if (props.connection.config.dialect === 'postgres') {
+              schemaKey = `schemas${SP}${props.connection.id}`
+              treeNow.children = [
+                {
+                  isLeaf: false,
+                  key: schemaKey,
+                  title: 'schemas',
+                  children: tables.map((el) => {
+                    return {
+                      isLeaf: true,
+                      key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
+                      title: el.name,
+                      otitle: el.name
+                    }
+                  })
+                },
+                {
                   isLeaf: true,
-                  key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
-                  title: el.name,
-                  otitle: el.name
+                  key: `roles${SP}${props.connection.name}${SP}${props.connection.id}`,
+                  title: 'roles',
+                  otitle: 'roles'
+                  // children: tables.map((el) => {
+                  //   return {
+                  //     isLeaf: true,
+                  //     key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
+                  //     title: el.name,
+                  //     otitle: el.name
+                  //   }
+                  // })
                 }
-              })
-            },
-            {
-              isLeaf: true,
-              key: `roles${SP}${props.connection.name}${SP}${props.connection.id}`,
-              title: 'roles',
-              otitle: 'roles'
-              // children: tables.map((el) => {
-              //   return {
-              //     isLeaf: true,
-              //     key: `schema${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
-              //     title: el.name,
-              //     otitle: el.name
-              //   }
-              // })
-            }
-          ]
-
-          props.setDbInfo([props.connection.name, props.connection.config.database])
-
-          checkLoadingKey(key, 1)
-          setTreeData([treeNow])
-          setExpandedKeys([schemaKey, key])
-          // ...expandedKeys,
-        })
-        .catch((error) => {
-          checkLoadingKey(key, 1)
-          addDbError({ error })
-        })
-    } else if (nodeType === 'schema') {
-      window.api
-        .getTables({ ...props.connection, schema: parseKeys[1] })
-        .then((res) => {
-          const schemas = treeNow.children
-
-          if (!schemas?.length) {
-            return false
-          }
-          const schema = schemas[0].children?.find((el) => el.key === key)
-
-          if (schema) {
-            schema.isLeaf = false
-            schema.children = res.map((el) => {
-              return {
-                isLeaf: true,
-                key: `table${SP}${el.table_name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
-                title: el.table_name,
-                otitle: el.table_name
+              ]
+            } else {
+              {
+                schemaKey = `databases${SP}${props.connection.id}`
+                treeNow.children = [
+                  {
+                    isLeaf: false,
+                    key: schemaKey,
+                    title: 'databases',
+                    children: tables.map((el) => {
+                      return {
+                        isLeaf: true,
+                        key: `database${SP}${el.name}${SP}${props.connection.name}${SP}${props.connection.id}`,
+                        title: el.name,
+                        otitle: el.name
+                      }
+                    })
+                  }
+                ]
               }
-            })
-          }
+            }
 
-          props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[1]])
-          checkLoadingKey(key, 1)
+            props.setDbInfo([props.connection.name, props.connection.config.database])
 
-          setTreeData([treeNow])
-          setExpandedKeys([...expandedKeys, key])
-        })
-        .catch((error) => {
-          checkLoadingKey(key, 1)
-          addDbError({ error })
-        })
+            checkLoadingKey(key, 1)
+            setTreeData([treeNow])
+            setExpandedKeys([schemaKey, key])
+            // ...expandedKeys,
+          })
+          .catch((error) => {
+            checkLoadingKey(key, 1)
+            addDbError({ error })
+          })
+      } else {
+        getMysqlTables({ key, parseKeys, treeNow, schema: props.connection.config.database })
+      }
+    } else if (nodeType === 'schema' || nodeType === 'database') {
+      getTables({ key, parseKeys, treeNow, schema: parseKeys[1] })
     } else if (nodeType === 'roles') {
       getRoles({ key })
       // window.api.getRoles({ ...props.connection, schema: parseKeys[1] }).then((res) => {
@@ -263,9 +259,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
       // props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
     } else if (nodeType === 'table') {
-      const sql = `
+      console.log('parseKeys: ', parseKeys)
+      let sql = `
       select * from ${parseKeys[2]}.${parseKeys[1]}
       `
+      if (props.connection.config.dialect !== 'postgres') {
+        sql = `
+        select * from ${parseKeys[1]}
+        `
+      }
       props.getTableDataByName({
         id: props.connection.id,
         tableName: parseKeys[1],
@@ -277,6 +279,72 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
       props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
     }
+  }
+
+  function getMysqlTables({ parseKeys, treeNow, key, schema }) {
+    window.api
+      .getTables({ ...props.connection, schema })
+      .then((res) => {
+        console.log('get tables: ', res, parseKeys, schema, key)
+
+        treeNow.isLeaf = false
+        treeNow.children = res.map((el) => {
+          const name = el.table_name || el.TABLE_NAME
+          return {
+            isLeaf: true,
+            key: `table${SP}${name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
+            title: name,
+            otitle: name
+          }
+        })
+
+        props.setDbInfo([props.connection.name, props.connection.config.database])
+        checkLoadingKey(key, 1)
+
+        setTreeData([treeNow])
+        setExpandedKeys([...expandedKeys, key])
+      })
+      .catch((error) => {
+        checkLoadingKey(key, 1)
+        addDbError({ error })
+      })
+  }
+
+  function getTables({ parseKeys, treeNow, key, schema }) {
+    window.api
+      .getTables({ ...props.connection, schema })
+      .then((res) => {
+        const schemas = treeNow.children
+        console.log('get tables: ', res)
+
+        if (!schemas?.length) {
+          return false
+        }
+        const schema = schemas[0].children?.find((el) => el.key === key)
+
+        if (schema) {
+          schema.isLeaf = false
+          schema.children = res.map((el) => {
+            const name = el.table_name || el.TABLE_NAME
+            return {
+              isLeaf: true,
+              key: `table${SP}${name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
+              title: name,
+              otitle: name
+            }
+          })
+        }
+
+        props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[1]])
+        checkLoadingKey(key, 1)
+
+        setTreeData([treeNow])
+        setExpandedKeys([...expandedKeys, key])
+      })
+      .catch((error) => {
+        checkLoadingKey(key, 1)
+        addDbError({ error })
+      })
   }
 
   function getRoles({ key }) {
@@ -651,12 +719,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function rightMenuHandler(e, nodeData) {
     e.domEvent.stopPropagation()
 
-    console.log('rightMenuHandler: ', nodeData)
-
     rightClickNodeRef.current.nodeData = nodeData
     const keyArr = nodeData.key.split(SP)
 
-    console.log('keyArr: ', keyArr)
+    console.log('right node data: ', nodeData)
 
     if (+e.key === SliderRightMenu.CREATEDB) {
       toggleForm('database', true)
@@ -706,6 +772,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         setTreeData([
           {
             title: props.connection.name,
+            otitle: props.connection.name,
             key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`
             // children: []
           }
@@ -905,7 +972,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     toggleForm('database', false)
 
     window.api
-      .dbCreate({ dbName: val.name, connection: props.connection })
+      .dbCreate({ ...val, connection: props.connection, dbName: val.name })
       .then((res) => {
         if (res.code === 0) {
           addLog({
@@ -955,7 +1022,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         onCancel={handleCancel}
         footer={[]}
       >
-        <CreateDbForm createDatabase={createDatabase}></CreateDbForm>
+        {props.connection.config.dialect === 'postgres' ? (
+          <CreateDbForm createDatabase={createDatabase}></CreateDbForm>
+        ) : (
+          <CreateMysqlDbForm createDatabase={createDatabase}></CreateMysqlDbForm>
+        )}
       </Modal>
       <Modal
         title="Add schema"

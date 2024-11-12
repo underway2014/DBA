@@ -46,6 +46,8 @@ function readFile() {
     }
   }
 
+  console.log('config data: ', data)
+
   return JSON.parse(data)
 }
 

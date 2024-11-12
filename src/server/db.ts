@@ -48,15 +48,16 @@ async function closeConnection(data) {
 }
 
 function initDb({ id, config }) {
-  let db = dbMap[id]
+  let obj = dbMap[id]
 
-  if (!db) {
-    db = new Sequelize(config)
+  if (!obj) {
+    const db = new Sequelize(config)
+    obj = { db, config }
   }
 
-  dbMap[id] = db
+  dbMap[id] = obj
 
-  return db
+  return obj.db
 }
 
 // async function testConnection(db) {
@@ -95,14 +96,15 @@ async function getColums({ tableName, id }) {
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({ id, schema = 'public' }) {
+async function getTables({ id, schema = 'public', config }) {
+  console.log('get tables: ', id, schema, config)
   const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
-  const tables = await query({ id, sql })
+  const tables = await query({ id, sql, config })
 
-  return _.sortBy(tables, ['table_name'])
+  return _.sortBy(tables, ['table_name', 'TABLE_NAME'])
 }
 
-async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id }) {
+async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id, tableName, schema }) {
   const res = { rows: [], columns: [], total }
   if (!total) {
     try {
@@ -143,10 +145,30 @@ async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id }) {
     }
   }
 
-  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+  if (dbMap[id].config.dialect === 'postgres') {
+    const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+    res.rows = data[0]
+    res.columns = data[1].fields
+  } else {
+    const data = await query({ sql, opt: { type: QueryTypes.SELECT }, id })
+    res.rows = data
 
-  res.rows = data[0]
-  res.columns = data[1].fields
+    if (!data.length) {
+      const columnsSql = `
+      SELECT column_name as name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_schema = '${schema}' AND table_name = '${tableName}'
+      `
+
+      res.columns = await query({ sql: columnsSql, id })
+    } else {
+      res.columns = Object.keys(data[0]).map((el) => {
+        return {
+          name: el
+        }
+      })
+    }
+  }
 
   return res
 }
@@ -189,7 +211,9 @@ async function getTableData(data) {
       total: data.total,
       page: data.page,
       pageSize: data.pageSize,
-      id: data.id
+      id: data.id,
+      tableName: data.tableName,
+      schema: data.schema
     })
   } else {
     return query({ sql: data.sql, id: data.id })
@@ -202,13 +226,14 @@ async function updateOneField({ tableName, dataId, id, field, value }) {
     where id = ${dataId}
     `
 
-  await query({ sql, id })
+  await query({ sql, id, opt: { type: QueryTypes.UPDATE } })
 }
 
 async function updateDate({ tableName, id, dataId, data, type }) {
   if (type === 2) {
     return updateOneField({ tableName, id, dataId, ...data })
   }
+  console.log('updateDate: ', tableName, id, type, dataId, data)
   const updateFields = Object.keys(data)
     .map((key) => {
       if (Number.isInteger(data[key])) {
@@ -338,17 +363,31 @@ async function getToolPath({ type }) {
   execa = (await import('execa')).execa
 })()
 
-async function createDb({ dbName, connection }) {
+async function createDb({ dbName, connection, character, collate }) {
   initDb({ id: connection.id, config: connection.config })
 
-  const pgPath = await getToolPath({ type: 1 })
-  const res = await execa({
-    env: { PGPASSWORD: connection.config.password }
-  })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
+  if (connection.config.dialect === 'postgres') {
+    const pgPath = await getToolPath({ type: 1 })
+    const res = await execa({
+      env: { PGPASSWORD: connection.config.password }
+    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
 
-  return {
-    code: res.exitCode,
-    dbName
+    return {
+      code: res.exitCode,
+      dbName
+    }
+  } else {
+    const sql = `
+      CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET ${character} COLLATE ${collate}
+      `
+
+    const res = await query({ sql, id: connection.id, opt: { type: QueryTypes.RAW } })
+    console.log('create mysql res: ', res)
+    return {
+      // code: res.exitCode,
+      dbName,
+      code: 0
+    }
   }
 }
 
