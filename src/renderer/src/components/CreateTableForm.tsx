@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Button, Form, Input } from 'antd'
+import { Button, Form, Input, Select } from 'antd'
 
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   createTable: Function
+  isMysql: boolean
 }
 
 const CreateTableForm: React.FC<CustomProps> = (props) => {
@@ -20,9 +21,7 @@ const CreateTableForm: React.FC<CustomProps> = (props) => {
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => {}
-
-  // form.setFieldsValue(props.defautValues)
+  const onFinishFailed = (errorInfo) => { }
 
   return (
     <Form
@@ -31,7 +30,6 @@ const CreateTableForm: React.FC<CustomProps> = (props) => {
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
       layout="horizontal"
-      // initialValues={{ type: 'btree' }}
       form={form}
       onValuesChange={onFormLayoutChange}
       style={{ maxWidth: 700 }}
@@ -39,6 +37,16 @@ const CreateTableForm: React.FC<CustomProps> = (props) => {
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
         <Input placeholder="" />
       </Form.Item>
+
+      {props.isMysql && (
+        <Form.Item label="engine" name="engine" rules={[{ required: true }]}>
+          <Select
+            style={{ width: '100%' }}
+            // defaultValue={}
+            options={[{ value: 'InnoDB' }, { value: 'MyISAM' }, { value: 'MEMORY' }]}
+          />
+        </Form.Item>
+      )}
 
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <Button htmlType="submit">Submit</Button>

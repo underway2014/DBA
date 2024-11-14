@@ -15,6 +15,7 @@ import CustomContext from '@renderer/utils/context'
 import AddRowForm from './AddRowForm'
 import { addLog } from '@renderer/utils/logHelper'
 import HighlightWithinTextarea from 'react-highlight-within-textarea'
+import { IGetTabData } from '@renderer/interface'
 
 const { confirm } = Modal
 
@@ -28,7 +29,7 @@ interface DataType {
 }
 
 type CustomProps = {
-  tabData: any
+  tabData: IGetTabData
 }
 
 const pgKeyWords =
@@ -61,9 +62,11 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   function getAndUpdateTable({ page, pageSize } = {}) {
     setIsloading(true)
+    console.log('props.tabData: ', props.tabData)
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
+        console.log('getAndUpdateTable: ', data, sqlTxt)
         if (/^\s*(select|show\s+max_connections)/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
@@ -130,6 +133,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       pageSize: pageSize || listRows.pageSize
     })
 
+    console.log('update list listRows: ', listRows)
     if (listRows.page === 1) {
       setColumns(
         listData.columns.map((el) => {
@@ -230,14 +234,11 @@ const DataList: React.FC<CustomProps> = (props) => {
         type: 2,
         id: props.tabData.id
       })
-      .then((data) => {
+      .then(() => {
         // setListRows(newData);
-
         setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
 
-        window.api.getTableData(props.tabData).then((data) => {
-          updateList({ listData: data, tableName: props.tabData.tableName })
-        })
+        getAndUpdateTable(listRows)
       })
       .catch((error) => {
         addDbError({ error })
@@ -315,11 +316,13 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   function addRowData(data) {
     setAddForm(false)
+    console.log('add row data: ', props.tabData)
     window.api
       .addRow({
         tableName,
         id: props.tabData.id,
-        fields: data
+        fields: data,
+        schema: props.tabData.schema
       })
       .then((res) => {
         if (/^\s*select/i.test(sqlTxt)) {
@@ -353,7 +356,7 @@ const DataList: React.FC<CustomProps> = (props) => {
             }
           })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 

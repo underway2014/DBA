@@ -5,6 +5,7 @@ type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   addColumn: Function
   defautValues?: Object
+  isMysql: boolean
 }
 
 const AddColumnForm: React.FC<CustomProps> = (props) => {
@@ -21,48 +22,81 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => {}
+  const onFinishFailed = (errorInfo) => { }
 
   form.setFieldsValue(props.defautValues)
 
-  const options = [
-    { value: 'int2' },
-    { value: 'int4' },
-    { value: 'int8' },
-    { value: 'bit(6)' },
-    { value: 'varbit(6)' },
-    { value: 'boolean' },
-    { value: 'box' },
-    { value: 'bytea' },
-    { value: 'char(6)' },
-    { value: 'varchar(255)' },
-    { value: 'cidr' },
-    { value: 'circle' },
-    { value: 'date' },
-    { value: 'float4' },
-    { value: 'float8' },
-    { value: 'inet' },
-    { value: 'interval' },
-    { value: 'json' },
-    { value: 'jsonb' },
-    { value: 'line' },
-    { value: 'lseg' },
-    { value: 'macaddr' },
-    { value: 'macaddr8' },
-    { value: 'money' },
-    { value: 'numeric(12,4)' },
-    { value: 'point' },
-    { value: 'smallserial' },
-    { value: 'serial' },
-    { value: 'bigserial' },
-    { value: 'text' },
-    { value: 'timestamptz' },
-    { value: 'tsquery' },
-    { value: 'tsvector' },
-    { value: 'txid_snapshot' },
-    { value: 'uuid' },
-    { value: 'xml' }
-  ]
+  const options = props.isMysql
+    ? [
+      { value: 'tinyint' },
+      { value: 'smallint' },
+      { value: 'mediumint' },
+      { value: 'int' },
+      { value: 'integer' },
+      { value: 'bigint' },
+      { value: 'float' },
+      { value: 'double' },
+      { value: 'decimal' },
+      { value: 'bit' },
+      { value: 'date' },
+      { value: 'time' },
+      { value: 'year' },
+      { value: 'datetime' },
+      { value: 'timestamp' },
+      { value: 'char' },
+      { value: 'varchar' },
+      { value: 'tinytext' },
+      { value: 'text' },
+      { value: 'mediumtext' },
+      { value: 'longtext' },
+      { value: 'binary' },
+      { value: 'varbinary' },
+      { value: 'tinyblob' },
+      { value: 'blob' },
+      { value: 'mediumblob' },
+      { value: 'longblob' },
+      { value: 'enum' },
+      { value: 'set' },
+      { value: 'json' }
+    ]
+    : [
+      { value: 'int2' },
+      { value: 'int4' },
+      { value: 'int8' },
+      { value: 'bit(6)' },
+      { value: 'varbit(6)' },
+      { value: 'boolean' },
+      { value: 'box' },
+      { value: 'bytea' },
+      { value: 'char(6)' },
+      { value: 'varchar(255)' },
+      { value: 'cidr' },
+      { value: 'circle' },
+      { value: 'date' },
+      { value: 'float4' },
+      { value: 'float8' },
+      { value: 'inet' },
+      { value: 'interval' },
+      { value: 'json' },
+      { value: 'jsonb' },
+      { value: 'line' },
+      { value: 'lseg' },
+      { value: 'macaddr' },
+      { value: 'macaddr8' },
+      { value: 'money' },
+      { value: 'numeric(12,4)' },
+      { value: 'point' },
+      { value: 'smallserial' },
+      { value: 'serial' },
+      { value: 'bigserial' },
+      { value: 'text' },
+      { value: 'timestamptz' },
+      { value: 'tsquery' },
+      { value: 'tsvector' },
+      { value: 'txid_snapshot' },
+      { value: 'uuid' },
+      { value: 'xml' }
+    ]
 
   return (
     <Form

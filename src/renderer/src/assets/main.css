@@ -1,11 +1,12 @@
 @import './base.css';
+
 body {
   overflow: hidden;
   /* background-color: white; */
 }
 
 .chighlight {
-  color: #f37bb7	;
+  color: #f37bb7;
   background-color: transparent;
 }
 

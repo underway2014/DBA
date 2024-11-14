@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Form, Input } from 'antd'
+import { Button, Form, Input, Select } from 'antd'
 
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
@@ -19,7 +19,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
     addConnection({ ...form.getFieldsValue(), id: props.defautValues?.id })
   }
 
-  const onFinishFailed = (errorInfo) => {}
+  const onFinishFailed = (errorInfo) => { }
 
   // host: '35.221.166.196',
   //     port: '8002',
@@ -40,6 +40,13 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       style={{ maxWidth: 700 }}
       autoComplete="off"
     >
+      <Form.Item label="dialect" name="dialect" rules={[{ required: true }]}>
+        <Select
+          style={{ width: '100%' }}
+          defaultValue="postgres"
+          options={[{ value: 'postgres' }, { value: 'mysql' }]}
+        />
+      </Form.Item>
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
         <Input />
       </Form.Item>
@@ -58,9 +65,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       <Form.Item label="database" name="database" rules={[{ required: true }]}>
         <Input placeholder="database" />
       </Form.Item>
-      <Form.Item label="dialect" name="dialect" rules={[{ required: true }]}>
-        <Input value="postgres" />
-      </Form.Item>
+
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <div style={{ textAlign: 'center' }}>
           <Button htmlType="submit">Submit</Button>

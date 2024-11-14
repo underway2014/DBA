@@ -20,7 +20,7 @@ type QueryType = {
   id: string
   config?: IConnection
   sql: string
-  opt?: { type?: string; transaction?: Transaction }
+  opt?: { type?: string; transaction?: Transaction; raw?: boolean }
 }
 
 const dbMap = {}
@@ -48,15 +48,16 @@ async function closeConnection(data) {
 }
 
 function initDb({ id, config }) {
-  let db = dbMap[id]
+  let obj = dbMap[id]
 
-  if (!db) {
-    db = new Sequelize(config)
+  if (!obj) {
+    const db = new Sequelize(config)
+    obj = { db, config }
   }
 
-  dbMap[id] = db
+  dbMap[id] = obj
 
-  return db
+  return obj.db
 }
 
 // async function testConnection(db) {
@@ -76,18 +77,19 @@ async function getSchema({ id, config }) {
   return schemas.filter((el) => !defaultSchemas.includes(el.name))
 }
 
-async function getColums({ tableName, id }) {
-  const sql = `
-    SELECT
-        table_name,
-        column_name,
-        data_type,
-        column_default
-    FROM
-    information_schema.columns
-    WHERE
-    table_name = '${tableName}' LIMIT 1000
-    `
+async function getColums({ tableName, id, dbName, schema }) {
+  const sql =
+    dbMap[id].config.dialect === 'postgres'
+      ? `
+  SELECT column_name as name, data_type, is_nullable, column_default
+  FROM information_schema.columns
+  WHERE table_schema = '${schema}' AND table_name = '${tableName}' LIMIT 500
+  `
+      : `
+  SELECT LOWER(COLUMN_NAME) as name
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = '${dbName}' AND TABLE_NAME = '${tableName}' LIMIT 500;
+  `
 
   const columns = await query({ sql, id })
 
@@ -95,14 +97,24 @@ async function getColums({ tableName, id }) {
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
-async function getTables({ id, schema = 'public' }) {
+async function getTables({ id, schema = 'public', config }) {
+  console.log('get tables: ', id, schema, config)
   const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
-  const tables = await query({ id, sql })
+  const tables = await query({ id, sql, config })
 
-  return _.sortBy(tables, ['table_name'])
+  return _.sortBy(tables, ['table_name', 'TABLE_NAME'])
 }
 
-async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id }) {
+async function getRowAndColumns({
+  sql,
+  total,
+  page = 1,
+  pageSize = 10,
+  id,
+  tableName,
+  schema,
+  dbName
+}) {
   const res = { rows: [], columns: [], total }
   if (!total) {
     try {
@@ -143,10 +155,24 @@ async function getRowAndColumns({ sql, total, page = 1, pageSize = 10, id }) {
     }
   }
 
-  const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+  if (dbMap[id].config.dialect === 'postgres') {
+    const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+    res.rows = data[0]
+    res.columns = data[1].fields
+  } else {
+    const data = await query({ sql, opt: { type: QueryTypes.SELECT }, id })
+    res.rows = data
 
-  res.rows = data[0]
-  res.columns = data[1].fields
+    if (!data.length) {
+      res.columns = await getColums({ tableName, schema, id, dbName })
+    } else {
+      res.columns = Object.keys(data[0]).map((el) => {
+        return {
+          name: el
+        }
+      })
+    }
+  }
 
   return res
 }
@@ -160,10 +186,9 @@ async function getExportData({ sql, id }) {
   }
 }
 
-async function query({ sql, id, opt = {}, config }: QueryType) {
+async function query({ sql, id, opt, config }: QueryType) {
   const db = initDb({ id, config })
 
-  console.log('query sql: ', sql)
   const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
 
   return data
@@ -189,7 +214,10 @@ async function getTableData(data) {
       total: data.total,
       page: data.page,
       pageSize: data.pageSize,
-      id: data.id
+      id: data.id,
+      tableName: data.tableName,
+      schema: data.schema,
+      dbName: data.dbName
     })
   } else {
     return query({ sql: data.sql, id: data.id })
@@ -202,13 +230,14 @@ async function updateOneField({ tableName, dataId, id, field, value }) {
     where id = ${dataId}
     `
 
-  await query({ sql, id })
+  await query({ sql, id, opt: { type: QueryTypes.UPDATE } })
 }
 
 async function updateDate({ tableName, id, dataId, data, type }) {
   if (type === 2) {
     return updateOneField({ tableName, id, dataId, ...data })
   }
+  console.log('updateDate: ', tableName, id, type, dataId, data)
   const updateFields = Object.keys(data)
     .map((key) => {
       if (Number.isInteger(data[key])) {
@@ -338,17 +367,31 @@ async function getToolPath({ type }) {
   execa = (await import('execa')).execa
 })()
 
-async function createDb({ dbName, connection }) {
+async function createDb({ dbName, connection, character, collate }) {
   initDb({ id: connection.id, config: connection.config })
 
-  const pgPath = await getToolPath({ type: 1 })
-  const res = await execa({
-    env: { PGPASSWORD: connection.config.password }
-  })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
+  if (connection.config.dialect === 'postgres') {
+    const pgPath = await getToolPath({ type: 1 })
+    const res = await execa({
+      env: { PGPASSWORD: connection.config.password }
+    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
 
-  return {
-    code: res.exitCode,
-    dbName
+    return {
+      code: res.exitCode,
+      dbName
+    }
+  } else {
+    const sql = `
+      CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET ${character} COLLATE ${collate}
+      `
+
+    const res = await query({ sql, id: connection.id, opt: { type: QueryTypes.RAW } })
+    console.log('create mysql res: ', res)
+    return {
+      // code: res.exitCode,
+      dbName,
+      code: 0
+    }
   }
 }
 
@@ -363,9 +406,16 @@ async function addField({
   comment,
   notnull,
   id,
-  schema = 'public'
+  schema = 'public',
+  connection
 }) {
-  tableName = `${schema}.${tableName}`
+  let opt = {}
+  if (connection.config.dialect === 'postgres') {
+    tableName = `${schema}.${tableName}`
+  } else {
+    opt = { type: QueryTypes.RAW }
+  }
+
   let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
 
   if (notnull) {
@@ -376,28 +426,65 @@ async function addField({
     sql = `${sql} default ${defaltValue}`
   }
 
-  const res = await query({ sql, id })
+  const res = await query({ sql, id, opt })
   if (comment) {
     const commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
-    await query({ sql: commentSql, id })
+    await query({ sql: commentSql, id, opt: { type: QueryTypes.RAW } })
   }
 
   return res
 }
 
-async function delField({ tableName, column, schema = 'public', id }) {
-  tableName = `${schema}.${tableName}`
+async function delField({ tableName, column, schema, id, connection }) {
+  let opt = {}
+  if (connection.config.dialect === 'mysql') {
+    opt = { type: QueryTypes.RAW }
+  }
+  if (schema) {
+    tableName = `${schema}.${tableName}`
+  }
 
   const dropSql = column.map((el) => {
     return `drop column ${el}`
   })
   const sql = `ALTER TABLE ${tableName} ${dropSql.join(',')}`
 
-  return query({ sql, id })
+  return query({ sql, id, opt })
 }
+
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
+async function mysqlAlter(data) {
+  if (data.dataType !== data.oldValue.dataType || data.notnull !== data.oldValue.notnull) {
+    let sql = `ALTER TABLE ${data.tableName} MODIFY COLUMN ${data.column} ${data.dataType}`
+    if (data.notnull) {
+      sql += ` NOT NULL`
+    } else {
+      sql += ` NULL`
+    }
+
+    await query({
+      sql,
+      id: data.id,
+      opt: { type: QueryTypes.RAW }
+    })
+  }
+
+  if (data.column !== data.oldValue.column) {
+    await query({
+      sql: `ALTER TABLE ${data.tableName} CHANGE COLUMN ${data.oldValue.column} ${data.dataType}`,
+      id: data.id,
+      opt: { type: QueryTypes.RAW }
+    })
+  }
+}
+
 async function alterColumn(data) {
-  data.tableName = `${data.schema}.${data.tableName}`
+  if (data.connection.config.dialect === 'mysql') {
+    return mysqlAlter(data)
+  }
+  if (data.schema) {
+    data.tableName = `${data.schema}.${data.tableName}`
+  }
 
   if (data.dataType !== data.oldValue.dataType) {
     await query({
@@ -432,7 +519,10 @@ async function alterTable(data) {
   }
 }
 
-async function addRow({ id, tableName, fields }) {
+async function addRow({ id, tableName, fields, schema }) {
+  if (schema) {
+    tableName = `${schema}.${tableName}`
+  }
   const cols = Object.keys(fields)
   const vals = cols.map((k) => `'${fields[k]}'`)
   const sql = `
@@ -525,18 +615,27 @@ async function editIndex({
 }
 
 //type 1-drop 2-truncate
-async function editTable({ type, tableName, id, schema = 'public' }) {
-  tableName = `${schema}.${tableName}`
+async function editTable({ type, tableName, connection, engine = 'InnoDB', schema = 'public' }) {
+  if (connection.config.dialect === 'postgres') {
+    tableName = `${schema}.${tableName}`
+  }
+
   let sql
   if (type === 1) {
     sql = `DROP TABLE ${tableName}`
   } else if (type === 2) {
     sql = `TRUNCATE ${tableName}`
   } else if (type === 3) {
-    sql = `CREATE TABLE ${tableName} ()`
+    if (connection.config.dialect === 'postgres') {
+      sql = `CREATE TABLE ${tableName} ()`
+    } else {
+      sql = `
+       CREATE TABLE ${tableName} (id INT AUTO_INCREMENT PRIMARY KEY) ENGINE=${engine}
+      `
+    }
   }
 
-  return query({ sql, id })
+  return query({ sql, id: connection.id, config: connection.config, opt: { type: QueryTypes.RAW } })
 }
 
 async function editSchema({ type, schema, id }) {
