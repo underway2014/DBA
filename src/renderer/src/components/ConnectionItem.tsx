@@ -292,7 +292,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           const name = el.table_name || el.TABLE_NAME
           return {
             isLeaf: true,
-            key: `table${SP}${name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
+            key: `table${SP}${name}${SP}${parseKeys[1]}${SP}${schema}${SP}${props.connection.id}`,
             title: name,
             otitle: name
           }
@@ -378,12 +378,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function editConnection(node) {
     const parseKeys = node.key.split(SP)
     const nodeType = parseKeys[0]
-
+    console.log('editconnection: ', parseKeys)
     if (nodeType === 'connection') {
       toggleForm('connection', true)
     } else if (nodeType === 'table') {
       props.getTableDataByName({
         id: props.connection.id,
+        connection: props.connection,
         tableName: parseKeys[1],
         type: 2,
         schema: parseKeys[2],
@@ -621,7 +622,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   function createTable(val) {
     window.api
       .editTable({
-        id: props.connection.id,
+        // id: props.connection.id,
+        ...val,
+        connection: props.connection,
         tableName: val.name,
         type: 3,
         schema: rightClickNodeRef.current.nodeData?.title
@@ -778,6 +781,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           }
         ])
       })
+    } else if (+e.key === SliderRightMenu.CREATETABLE) {
+      toggleForm('table', true)
     }
   }
 
@@ -855,7 +860,19 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       item = (
         <div>
           <Dropdown
-            menu={{ items, onClick: (e) => rightMenuHandler(e, nodeData) }}
+            menu={{
+              items:
+                props.connection.config.dialect === 'postgres'
+                  ? items
+                  : [
+                    ...items,
+                    {
+                      label: 'Create table',
+                      key: SliderRightMenu.CREATETABLE
+                    }
+                  ],
+              onClick: (e) => rightMenuHandler(e, nodeData)
+            }}
             trigger={['contextMenu']}
           >
             {item}
@@ -1045,7 +1062,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         onCancel={handleCancel}
         footer={[]}
       >
-        <CreateTableForm createTable={createTable}></CreateTableForm>
+        <CreateTableForm
+          createTable={createTable}
+          isMysql={props.connection.config.dialect !== 'postgres'}
+        ></CreateTableForm>
       </Modal>
       <Modal
         title="Create role"

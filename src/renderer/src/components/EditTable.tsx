@@ -7,7 +7,7 @@ import { ExclamationCircleFilled } from '@ant-design/icons'
 import CustomContext from '@renderer/utils/context'
 import { addLog } from '@renderer/utils/logHelper'
 import { LogAction, LogType } from '@renderer/utils/constant'
-import { IGetTabData } from '@renderer/interface'
+import { IConnection, IGetTabData } from '@renderer/interface'
 
 const { confirm } = Modal
 type TableRowSelection<T> = TableProps<T>['rowSelection']
@@ -31,6 +31,7 @@ type AddRowType = {
   oldValue?: AddRowType
   schema?: string
   id: string
+  connection?: IConnection
 }
 
 type RowDataType = {
@@ -59,19 +60,26 @@ const EditTable: React.FC<CustomProps> = (props) => {
 
   const { logList, setLogList } = useContext(CustomContext)
 
-  const columnsStr = [
-    'column_name',
-    'column_default',
-    'is_nullable',
-    'data_type',
-    'character_maximum_length',
-    'numeric_precision',
-    'numeric_precision_radix',
-    'udt_name'
-  ]
+  const columnsStr =
+    props.tabData.connection?.config.dialect === 'postgres'
+      ? [
+        'column_name',
+        'data_type',
+        'column_default',
+        'is_nullable',
+        'character_maximum_length',
+        'numeric_precision',
+        'numeric_precision_radix',
+        'udt_name'
+      ]
+      : ['COLUMN_NAME', 'DATA_TYPE', 'IS_NULLABLE', 'COLUMN_DEFAULT', 'COLUMN_KEY'].map((el) =>
+        el.toLowerCase()
+      )
 
   const inputRef = useRef(null)
-  const sql = `
+  const sql =
+    props.tabData.connection?.config.dialect === 'postgres'
+      ? `
   SELECT
       ${columnsStr}
   FROM
@@ -79,6 +87,13 @@ const EditTable: React.FC<CustomProps> = (props) => {
   WHERE
   table_name = '${props.tabData.tableName}' LIMIT 500
   `
+      : `
+  SELECT ${columnsStr.map((el) => `LOWER(${el}) as ${el.toLowerCase()}`)}
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = '${props.tabData.dbName}' AND TABLE_NAME = '${props.tabData.tableName}' LIMIT 500;
+  `
+
+  console.log('edit sql: ', sql)
   const [tableName, setTableName] = useState(props.tabData.tableName)
   const [listRows, setListRows] = useState<RowDataType[]>([])
   const [columns, setColumns] = useState<DataType[]>([])
@@ -146,8 +161,8 @@ const EditTable: React.FC<CustomProps> = (props) => {
       alter: true,
       editData: {
         name: record.column_name,
-        type: record.udt_name,
-        notnull: record.is_nullable === 'YES' ? true : false,
+        type: record.udt_name || record.data_type,
+        notnull: record.is_nullable.toLowerCase() === 'yes' ? true : false,
         default: record.column_default
       }
     })
@@ -220,14 +235,15 @@ const EditTable: React.FC<CustomProps> = (props) => {
           tableName: tableName,
           column: delFields,
           type: 2,
-          id: props.tabData.id
+          id: props.tabData.id,
+          connection: props.tabData.connection
         }
         window.api.alterTable(opt).then((res) => {
           selectKeys.length = 0
           setListRows(leftRows)
         })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 
@@ -251,7 +267,8 @@ const EditTable: React.FC<CustomProps> = (props) => {
       notnull: val.notnull,
       type,
       schema: props.tabData.schema,
-      id: props.tabData.id
+      id: props.tabData.id,
+      connection: props.tabData.connection
     }
 
     if (oldValue) {
@@ -314,7 +331,10 @@ const EditTable: React.FC<CustomProps> = (props) => {
         onCancel={handleCancel}
         footer={[]}
       >
-        <AddColumnForm addColumn={addColumn}></AddColumnForm>
+        <AddColumnForm
+          isMysql={props.tabData.connection.config.dialect !== 'postgres'}
+          addColumn={addColumn}
+        ></AddColumnForm>
       </Modal>
 
       <Modal
@@ -324,7 +344,11 @@ const EditTable: React.FC<CustomProps> = (props) => {
         onCancel={handleCancel}
         footer={[]}
       >
-        <AddColumnForm defautValues={alterModal.editData} addColumn={addColumn}></AddColumnForm>
+        <AddColumnForm
+          isMysql={props.tabData.connection.config.dialect !== 'postgres'}
+          defautValues={alterModal.editData}
+          addColumn={addColumn}
+        ></AddColumnForm>
       </Modal>
     </div>
   )

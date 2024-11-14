@@ -15,6 +15,7 @@ import CustomContext from '@renderer/utils/context'
 import AddRowForm from './AddRowForm'
 import { addLog } from '@renderer/utils/logHelper'
 import HighlightWithinTextarea from 'react-highlight-within-textarea'
+import { IGetTabData } from '@renderer/interface'
 
 const { confirm } = Modal
 
@@ -28,7 +29,7 @@ interface DataType {
 }
 
 type CustomProps = {
-  tabData: any
+  tabData: IGetTabData
 }
 
 const pgKeyWords =
@@ -59,8 +60,9 @@ const DataList: React.FC<CustomProps> = (props) => {
     getAndUpdateTable(listRows)
   }, [])
 
-  function getAndUpdateTable ({ page, pageSize } = {}) {
+  function getAndUpdateTable({ page, pageSize } = {}) {
     setIsloading(true)
+    console.log('props.tabData: ', props.tabData)
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
@@ -93,11 +95,11 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   const [columns, setColumns] = useState<React.Key[]>([])
 
-  function showEditCell (e, data) {
+  function showEditCell(e, data) {
     setEditRow({ data, show: true })
   }
 
-  function updateList ({ listData, tableName, page, pageSize }) {
+  function updateList({ listData, tableName, page, pageSize }) {
     if (tableName) {
       const a = tableName.split('.')
       let schema = 'public'
@@ -131,6 +133,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       pageSize: pageSize || listRows.pageSize
     })
 
+    console.log('update list listRows: ', listRows)
     if (listRows.page === 1) {
       setColumns(
         listData.columns.map((el) => {
@@ -210,7 +213,7 @@ const DataList: React.FC<CustomProps> = (props) => {
     ]
   }
 
-  function editRowOk () {
+  function editRowOk() {
     const editData = listRows.rows.find((el) => el.id === editRow.data.id)
     if (!editData) {
       setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
@@ -242,7 +245,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
   }
 
-  function addDbError ({ error }) {
+  function addDbError({ error }) {
     addLog({
       logList,
       setLogList,
@@ -252,22 +255,22 @@ const DataList: React.FC<CustomProps> = (props) => {
     })
   }
 
-  function editRowCancel () {
+  function editRowCancel() {
     setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
   }
 
-  function runSql () {
+  function runSql() {
     sqlHandler()
   }
 
-  function addRow () {
+  function addRow() {
     setAddForm(true)
   }
-  function cancelAddRow () {
+  function cancelAddRow() {
     setAddForm(false)
   }
 
-  function getTableName (sql) {
+  function getTableName(sql) {
     if (!sql) {
       throw new Error(`${sql} error`)
     }
@@ -281,7 +284,7 @@ const DataList: React.FC<CustomProps> = (props) => {
     return b.find((el) => !!el)
   }
 
-  function exportData () {
+  function exportData() {
     window.api
       .exportFile({ ...props.tabData, sql: sqlTxt })
       .then((res) => {
@@ -307,17 +310,19 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
   }
 
-  function sqlHandler () {
+  function sqlHandler() {
     getAndUpdateTable()
   }
 
-  function addRowData (data) {
+  function addRowData(data) {
     setAddForm(false)
+    console.log('add row data: ', props.tabData)
     window.api
       .addRow({
         tableName,
         id: props.tabData.id,
-        fields: data
+        fields: data,
+        schema: props.tabData.schema
       })
       .then((res) => {
         if (/^\s*select/i.test(sqlTxt)) {
@@ -329,12 +334,12 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
   }
 
-  function delRow () {
+  function delRow() {
     confirm({
       title: 'Do you want to delete these rows?',
       icon: <ExclamationCircleFilled />,
       content: '',
-      onOk () {
+      onOk() {
         const delIds = selectedRowKeys.map((el) => {
           const val = listRows.rows.find((a) => a.key === el)
 
@@ -351,11 +356,11 @@ const DataList: React.FC<CustomProps> = (props) => {
             }
           })
       },
-      onCancel () { }
+      onCancel() { }
     })
   }
 
-  function pageChange (page, pageSize) {
+  function pageChange(page, pageSize) {
     if (pageSize !== listRows.pageSize) {
       page = 1
     }

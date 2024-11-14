@@ -24,7 +24,8 @@ export const SliderRightMenu = {
   BACKUP: 20,
   RESTORESTRUCE: 30,
   RESTOREDATA: 31,
-  DISCONNECT: 40
+  DISCONNECT: 40,
+  CREATETABLE: 50
 }
 
 export const TableMenu = {

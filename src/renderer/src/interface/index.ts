@@ -35,6 +35,7 @@ export interface IGetTabData {
   dbName?: string
   sql?: string
   roleName?: string
+  connection?: IConnection
 }
 
 export interface IGrantRole {
