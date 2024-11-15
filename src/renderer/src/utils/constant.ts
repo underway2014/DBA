@@ -5,6 +5,11 @@ export enum LogType {
   SUCCESS
 }
 
+export const DataBase = {
+  MYSQL: 'mysql',
+  POSTGRES: 'postgres'
+}
+
 export const LogAction = {
   INIT: 'init',
   DBCONNECTION: 'connection',
