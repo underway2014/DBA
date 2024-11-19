@@ -83,9 +83,10 @@ const EditIndex: React.FC<CustomProps> = (props) => {
     })
 
     window.api.getColums(props.tabData).then((data) => {
+      console.log('getColums res: ', data)
       setTableColumns(
         data.map((el) => {
-          return { value: el.column_name }
+          return { value: el.column_name || el.name }
         })
       )
     })
@@ -179,7 +180,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
         console.log('listRows: ', listRows)
         for (const el of listRows) {
           if (selectedRowKeys.includes(el.key)) {
-            delFields.push(el.index_name)
+            delFields.push(el.index_name || el.INDEX_NAME)
           } else {
             leftRows.push(el)
           }
@@ -189,6 +190,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
           indexName: delFields,
           type: 2,
           schema: props.tabData.schema,
+          tableName: props.tabData.tableName,
           id: props.tabData.id
         }
         console.log('del index opt: ', opt)
@@ -209,7 +211,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
             })
           })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 
@@ -278,7 +280,11 @@ const EditIndex: React.FC<CustomProps> = (props) => {
         onCancel={handleCancel}
         footer={[]}
       >
-        <AddIndexForm editIndex={editIndex} columns={tableColumns}></AddIndexForm>
+        <AddIndexForm
+          editIndex={editIndex}
+          columns={tableColumns}
+          isMysql={props.tabData.connection.config.dialect !== 'postgres'}
+        ></AddIndexForm>
       </Modal>
 
       {/* <Modal

@@ -4,6 +4,8 @@ import { Button, Form, Input, Select, Switch } from 'antd'
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
   editIndex: Function
+  isMysql: boolean
+  columns: Array
 }
 
 const AddIndexForm: React.FC<CustomProps> = (props) => {
@@ -23,14 +25,16 @@ const AddIndexForm: React.FC<CustomProps> = (props) => {
   const onFinishFailed = (errorInfo) => { }
 
   form.setFieldsValue(props.defautValues)
-  const IndexTypeOptions = [
-    { value: 'btree' },
-    { value: 'hash' },
-    { value: 'gist' },
-    { value: 'spgist' },
-    { value: 'gin' },
-    { value: 'brin' }
-  ]
+  const IndexTypeOptions = props.isMysql
+    ? [{ value: 'btree' }, { value: 'hash' }, { value: 'rtree' }]
+    : [
+      { value: 'btree' },
+      { value: 'hash' },
+      { value: 'gist' },
+      { value: 'spgist' },
+      { value: 'gin' },
+      { value: 'brin' }
+    ]
 
   const handleChange = (value: string[]) => {
     console.log(`selected ${value}`)

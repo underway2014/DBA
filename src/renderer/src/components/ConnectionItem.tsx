@@ -267,6 +267,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         sql = `
         select * from ${parseKeys[1]}
         `
+      } else {
+        props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
       }
       props.getTableDataByName({
         id: props.connection.id,
@@ -276,8 +278,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         dbName: parseKeys[3],
         sql
       })
-
-      props.setDbInfo([props.connection.name, props.connection.config.database, parseKeys[2]])
     }
   }
 
@@ -670,8 +670,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       props.getTableDataByName({
         id: keys[4],
         tableName: keys[1],
+        connection: props.connection,
         type: 3,
-        schema: keys[2]
+        schema: keys[2],
+        dbName: keys[3]
       })
     } else if ([TableMenu.TRUNCATE, TableMenu.DROPTABLE].includes(+e.key)) {
       confirm({

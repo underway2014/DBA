@@ -251,4 +251,75 @@ export default class Postgres {
       })
     }
   }
+
+  static async getIndexs({ id, schema = 'public', tableName }) {
+    const sql = `
+        SELECT
+          ns.nspname as schema_name,
+          tab.relname as table_name,
+          cls.relname as index_name,
+          am.amname as index_type,
+          idx.indisprimary as is_pk,
+          idx.indisunique as is_unique,
+          pg_get_indexdef(idx.indexrelid) || ';' AS columns
+      FROM
+          pg_index idx
+      INNER JOIN pg_class cls ON cls.oid=idx.indexrelid
+      INNER JOIN pg_class tab ON tab.oid=idx.indrelid
+      INNER JOIN pg_am am ON am.oid=cls.relam
+      INNER JOIN pg_namespace ns on ns.oid=tab.relnamespace
+      WHERE ns.nspname = '${schema}' AND tab.relname = '${tableName}' LIMIT 1000
+    `
+
+    const indexs = await query({ sql, id })
+
+    // console.log('indexs: ', indexs)
+
+    indexs.forEach((element) => {
+      // CREATE INDEX test1 ON s1.t2 USING btree (age, name);
+      const match = element.columns.match(/\(([^)]+)\)/)
+      if (match) {
+        element.columns = match[1]
+      }
+    })
+
+    // indexs = indexs.filter((el) => el.schema_name == schema)
+
+    return {
+      rows: indexs,
+      columns: indexs.length
+        ? Object.keys(indexs[0]).map((el) => {
+            return {
+              name: el
+            }
+          })
+        : []
+    }
+  }
+
+  static async editIndex({
+    type,
+    unique,
+    indexName,
+    schema = 'public',
+    tableName,
+    indexType,
+    id,
+    columns
+  }) {
+    let sql
+    if (type === 1) {
+      //add
+      sql = `
+            CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'public'}.${tableName} USING ${indexType ? indexType : 'btree'} (${columns.join(',')})
+            `
+    } else {
+      //del
+      sql = `
+      DROP INDEX ${indexName.map((el) => `${schema}.${el}`).join(',')}
+      `
+    }
+
+    return query({ sql, id })
+  }
 }
