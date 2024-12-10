@@ -263,7 +263,7 @@ async function updateDate({ tableName, id, dataId, data, type }) {
 // type 1-struct 2-struct and data
 async function restore(data) {
   if (isMysql(data)) {
-    return false
+    return Mysql.restore(data)
   } else {
     return Postgres.restore(data)
   }
@@ -285,7 +285,7 @@ async function restore(data) {
 //type 1-database 2-table
 async function backup(data) {
   if (isMysql(data)) {
-    return false
+    return Mysql.backup(data)
   } else {
     return Postgres.backup(data)
   }

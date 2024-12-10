@@ -3,6 +3,7 @@ import { execa, initDb, query } from './db'
 import path from 'path'
 import moment from 'moment'
 import { QueryTypes } from 'sequelize'
+import Common from './common'
 
 const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 
@@ -88,56 +89,9 @@ export default class Postgres {
     return schemas.filter((el) => !defaultSchemas.includes(el.name))
   }
 
-  static getAppPath() {
-    let appPath = app.getAppPath()
-    if (process.env.NODE_ENV !== 'development') {
-      appPath += '.unpacked'
-    }
-
-    return appPath
-  }
-  static getPlatform() {
-    switch (process.platform) {
-      case 'win32':
-        return 'win'
-      default:
-        return 'mac'
-    }
-  }
-
-  static async getToolPath({ type }) {
-    const appPath = this.getAppPath()
-    const os = this.getPlatform()
-    let tool = ''
-    switch (type) {
-      case 1:
-        tool = 'createdb'
-        break
-      case 2:
-        tool = 'pg_dump'
-        break
-      case 3:
-        tool = 'pg_restore'
-        break
-      default:
-        break
-    }
-
-    // const version = '17'
-    let toolPath = ''
-    if (os === 'win') {
-      tool += '.exe'
-      toolPath = path.join(appPath, 'resources', 'bin', os, '16', tool)
-    } else {
-      toolPath = path.join(appPath, 'resources', 'bin', os, '17', 'bin', tool)
-    }
-
-    return toolPath
-  }
-
   static async restore({ type, connection, sqlPath }) {
     initDb({ id: connection.id, config: connection.config })
-    const pgPath = await this.getToolPath({ type: 3 })
+    const pgPath = await Common.getPostgresToolPath({ type: 3 })
 
     const params: string[] = []
     if (type === 1) {
@@ -159,7 +113,7 @@ export default class Postgres {
     initDb({ id: connection.id, config: connection.config })
 
     // console.log('versionRes: ', versionRes, typeof versionRes)
-    const pgPath = await this.getToolPath({ type: 2 })
+    const pgPath = await Common.getPostgresToolPath({ type: 2 })
     const downPath = path.join(
       app.getPath('downloads'),
       `${connection.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
@@ -182,7 +136,7 @@ export default class Postgres {
     const { connection } = data
     initDb({ id: connection.id, config: connection.config })
 
-    const pgPath = await this.getToolPath({ type: 1 })
+    const pgPath = await Common.getPostgresToolPath({ type: 1 })
     const res = await execa({
       env: { PGPASSWORD: connection.config.password }
     })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, data.dbName]}`

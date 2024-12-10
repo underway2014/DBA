@@ -1,7 +1,64 @@
 import { QueryTypes } from 'sequelize'
-import { query } from './db'
+import { initDb, query, execa } from './db'
+import { app } from 'electron'
+import Common from './common'
+import path from 'path'
+import moment from 'moment'
 
 export default class Mysql {
+  //db dump MYSQL_PWD=root mysqldump -h 127.0.0.1 -P 3306 -u root dd2 > test/dd3.sql
+  //mysqldump -u root -p --no-data my_database > my_database_structure.sql  只备份结构
+  static async restore({ type, connection, sqlPath }) {
+    initDb({ id: connection.id, config: connection.config })
+    const pgPath = await Common.getMysqlPath({ type: 2 })
+
+    // if (type === 1) {
+    //只恢复结构
+    // res = await execa({
+    //   env: { MYSQL_PWD: connection.config.password }
+    // })`sed '/^INSERT INTO /d' ${sqlPath}`
+    //   .pipe`${pgPath} ${['-h', connection.config.host, '-P', connection.config.port, '-u', connection.config.username, connection.config.database, '--execute', 'source ' + sqlPath]}`
+    // } else {
+    const res = await execa({
+      env: { MYSQL_PWD: connection.config.password }
+    })`${pgPath} ${['-h', connection.config.host, '-P', connection.config.port, '-u', connection.config.username, connection.config.database, '--execute', 'source ' + sqlPath]}`
+    // }
+    // mysql -h 127.0.0.1 -P 3306 -u root -p ddd1 --execute "source /Users/apple/Downloads/dd2_mysql_20241210171722.sql"
+    // mysql -u root -p --execute "source /path/to/all_databases_backup.sql"
+    // /Users/apple/Downloads/dd2_mysql_20241210171722.sql
+    // MYSQL_PWD=root mysql -h 127.0.0.1 -P 3306 -u root ddd1 --execute "SET FOREIGN_KEY_CHECKS=0;source /Users/apple/Downloads/dd2_mysql_20241210171722.sql;SET FOREIGN_KEY_CHECKS=1;"
+    // mysql -u 用户名 -p 数据库名 --execute="SET FOREIGN_KEY_CHECKS=0; source full_backup.sql; SET FOREIGN_KEY_CHECKS=1;"
+
+    return {
+      code: res.exitCode,
+      dbName: connection.config.database,
+      path: sqlPath
+    }
+  }
+
+  static async backup({ connection }) {
+    initDb({ id: connection.id, config: connection.config })
+
+    // console.log('versionRes: ', versionRes, typeof versionRes)
+    const pgPath = await Common.getMysqlPath({ type: 1 })
+    const downPath = path.join(
+      app.getPath('downloads'),
+      `${connection.config.database}_mysql_${moment().format('YYYYMMDDHHmmss')}.sql`
+    )
+
+    const res = await execa({
+      env: { MYSQL_PWD: connection.config.password }
+    })`${pgPath} ${['-h', connection.config.host, '-P', connection.config.port, '-u', connection.config.username, connection.config.database, '--result-file', downPath]}`
+
+    return {
+      code: res?.exitCode,
+      path: downPath,
+      dbName: connection.config.database
+    }
+  }
+
+  // mysql -u root -p my_database < my_database_backup.sql  恢复数据库
+
   static async delRows({ id, tableName, ids }) {
     const sql = `delete from ${tableName} where id in (${ids})`
 
