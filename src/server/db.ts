@@ -1,10 +1,10 @@
 import { QueryTypes, Sequelize, Transaction } from 'sequelize'
 import * as _ from 'lodash'
-import path from 'path'
-import { app } from 'electron'
 import moment from 'moment'
 import { IConnection, IGrantRole } from '../renderer/src/interface'
-import { RolePermissionMap } from '../renderer/src/utils/constant'
+import { DataBase, RolePermissionMap } from '../renderer/src/utils/constant'
+import Mysql from './mysql'
+import Postgres from './postgres'
 
 // const sequelize = new Sequelize({
 //     host: '127.0.0.1',
@@ -25,6 +25,9 @@ type QueryType = {
 
 const dbMap = {}
 let execa
+;(async function initExeca() {
+  execa = (await import('execa')).execa
+})()
 
 async function clearDb({ id }) {
   if (dbMap[id]) {
@@ -60,6 +63,30 @@ function initDb({ id, config }) {
   return obj.db
 }
 
+async function query({ sql, id, opt, config }: QueryType) {
+  const db = initDb({ id, config })
+
+  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
+
+  return data
+}
+
+function isMysql(data) {
+  if (data.id && dbMap[data.id]) {
+    if (dbMap[data.id].config.dialect === DataBase.MYSQL) {
+      return true
+    }
+
+    return false
+  }
+
+  if (data.connection.config.dialect === DataBase.MYSQL) {
+    return true
+  }
+
+  return false
+}
+
 // async function testConnection(db) {
 //     try {
 //         await db.authenticate();
@@ -68,37 +95,20 @@ function initDb({ id, config }) {
 //       }
 // }
 
-const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
-async function getSchema({ id, config }) {
-  const sql = `select schema_name as name from information_schema.schemata`
-
-  const schemas = await query({ sql, id, config })
-
-  return schemas.filter((el) => !defaultSchemas.includes(el.name))
+async function getSchema(data) {
+  return Postgres.getSchema(data)
 }
 
-async function getColums({ tableName, id, dbName, schema }) {
-  const sql =
-    dbMap[id].config.dialect === 'postgres'
-      ? `
-  SELECT column_name as name, data_type, is_nullable, column_default
-  FROM information_schema.columns
-  WHERE table_schema = '${schema}' AND table_name = '${tableName}' LIMIT 500
-  `
-      : `
-  SELECT LOWER(COLUMN_NAME) as name
-  FROM INFORMATION_SCHEMA.COLUMNS
-  WHERE TABLE_SCHEMA = '${dbName}' AND TABLE_NAME = '${tableName}' LIMIT 500;
-  `
+async function getColums(data) {
+  if (isMysql(data)) {
+    return Mysql.getColums(data)
+  }
 
-  const columns = await query({ sql, id })
-
-  return columns
+  return Postgres.getColums(data)
 }
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
 async function getTables({ id, schema = 'public', config }) {
-  console.log('get tables: ', id, schema, config)
   const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
   const tables = await query({ id, sql, config })
 
@@ -155,13 +165,11 @@ async function getRowAndColumns({
     }
   }
 
-  if (dbMap[id].config.dialect === 'postgres') {
-    const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
-    res.rows = data[0]
-    res.columns = data[1].fields
-  } else {
+  // console.log('id: ', id, sql, dbMap[id], isMysql({ id }))
+  if (isMysql({ id })) {
     const data = await query({ sql, opt: { type: QueryTypes.SELECT }, id })
     res.rows = data
+    // console.log('data: ', data)
 
     if (!data.length) {
       res.columns = await getColums({ tableName, schema, id, dbName })
@@ -172,6 +180,10 @@ async function getRowAndColumns({
         }
       })
     }
+  } else {
+    const data = await query({ sql, opt: { type: QueryTypes.RAW }, id })
+    res.rows = data[0]
+    res.columns = data[1].fields
   }
 
   return res
@@ -184,14 +196,6 @@ async function getExportData({ sql, id }) {
     rows: data[0],
     columns: data[1].fields
   }
-}
-
-async function query({ sql, id, opt, config }: QueryType) {
-  const db = initDb({ id, config })
-
-  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
-
-  return data
 }
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
@@ -256,33 +260,12 @@ async function updateDate({ tableName, id, dataId, data, type }) {
   await query({ sql, id })
 }
 
-function getAppPath() {
-  let appPath = app.getAppPath()
-  if (process.env.NODE_ENV !== 'development') {
-    appPath += '.unpacked'
-  }
-
-  return appPath
-}
-
 // type 1-struct 2-struct and data
-async function restore({ type, connection, sqlPath }) {
-  initDb({ id: connection.id, config: connection.config })
-  const pgPath = await getToolPath({ type: 3 })
-
-  const params: string[] = []
-  if (type === 1) {
-    params.push('-s')
-  }
-
-  const res = await execa({
-    env: { PGPASSWORD: connection.config.password }
-  })`${pgPath} -U ${connection.config.username} -h ${connection.config.host} -p ${connection.config.port} ${params} --dbname=${connection.config.database}  ${sqlPath}`
-
-  return {
-    code: res.exitCode,
-    dbName: connection.config.database,
-    path: sqlPath
+async function restore(data) {
+  if (isMysql(data)) {
+    return Mysql.restore(data)
+  } else {
+    return Postgres.restore(data)
   }
 }
 
@@ -300,146 +283,50 @@ async function restore({ type, connection, sqlPath }) {
 // }
 
 //type 1-database 2-table
-async function backup({ connection }) {
-  initDb({ id: connection.id, config: connection.config })
-
-  // console.log('versionRes: ', versionRes, typeof versionRes)
-  const pgPath = await getToolPath({ type: 2 })
-  const downPath = path.join(
-    app.getPath('downloads'),
-    `${connection.config.database}_${moment().format('YYYYMMDDHHmmss')}.dba`
-  )
-
-  const res = await execa({
-    env: { PGPASSWORD: connection.config.password }
-  })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-Fc', '-f', downPath, connection.config.database]}`
-  // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
-  // const res = await execa({env: {PGPASSWORD: config.config.password}})`${pgPath} -U ${config.config.username} -h ${config.config.host} -p ${config.config.port} -Fc ${config.config.database} -f ${downPath}`
-
-  return {
-    code: res?.exitCode,
-    path: downPath,
-    dbName: connection.config.database
-  }
-}
-
-function getPlatform() {
-  switch (process.platform) {
-    case 'win32':
-      return 'win'
-    default:
-      return 'mac'
-  }
-}
-
-//type 1-createdb 2-backup 3-restore
-async function getToolPath({ type }) {
-  const appPath = getAppPath()
-  const os = getPlatform()
-  let tool = ''
-  switch (type) {
-    case 1:
-      tool = 'createdb'
-      break
-    case 2:
-      tool = 'pg_dump'
-      break
-    case 3:
-      tool = 'pg_restore'
-      break
-    default:
-      break
-  }
-
-  // const version = '17'
-  let toolPath = ''
-  if (os === 'win') {
-    tool += '.exe'
-    toolPath = path.join(appPath, 'resources', 'bin', os, '16', tool)
+async function backup(data) {
+  if (isMysql(data)) {
+    return Mysql.backup(data)
   } else {
-    toolPath = path.join(appPath, 'resources', 'bin', os, '17', 'bin', tool)
+    return Postgres.backup(data)
   }
-
-  return toolPath
 }
 
-;(async function initExeca() {
-  execa = (await import('execa')).execa
-})()
-
-async function createDb({ dbName, connection, character, collate }) {
-  initDb({ id: connection.id, config: connection.config })
-
-  if (connection.config.dialect === 'postgres') {
-    const pgPath = await getToolPath({ type: 1 })
-    const res = await execa({
-      env: { PGPASSWORD: connection.config.password }
-    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, dbName]}`
-
-    return {
-      code: res.exitCode,
-      dbName
-    }
+async function createDb(data) {
+  if (isMysql(data)) {
+    return false
   } else {
-    const sql = `
-      CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET ${character} COLLATE ${collate}
-      `
-
-    const res = await query({ sql, id: connection.id, opt: { type: QueryTypes.RAW } })
-    console.log('create mysql res: ', res)
-    return {
-      // code: res.exitCode,
-      dbName,
-      code: 0
-    }
+    return Postgres.createDb(data)
   }
 }
 
 // ALTER TABLE active
 // ADD COLUMN aa4 INTEGER NOT null
 // DEFAULT 0;
-async function addField({
-  tableName,
-  column,
-  dataType,
-  defaltValue,
-  comment,
-  notnull,
-  id,
-  schema = 'public',
-  connection
-}) {
-  let opt = {}
-  if (connection.config.dialect === 'postgres') {
-    tableName = `${schema}.${tableName}`
-  } else {
-    opt = { type: QueryTypes.RAW }
+// {
+//   tableName,
+//   column,
+//   dataType,
+//   defaltValue,
+//   comment,
+//   notnull,
+//   id,
+//   schema = 'public',
+//   connection
+// }
+async function addField(data) {
+  if (isMysql(data)) {
+    return Mysql.addField(data)
   }
 
-  let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
-
-  if (notnull) {
-    sql = `${sql} NOT NULL`
-  }
-
-  if (defaltValue) {
-    sql = `${sql} default ${defaltValue}`
-  }
-
-  const res = await query({ sql, id, opt })
-  if (comment) {
-    const commentSql = `COMMENT on COLUMN ${tableName}.${column} is '${comment}'`
-    await query({ sql: commentSql, id, opt: { type: QueryTypes.RAW } })
-  }
-
-  return res
+  return Postgres.addField(data)
 }
 
 async function delField({ tableName, column, schema, id, connection }) {
   let opt = {}
-  if (connection.config.dialect === 'mysql') {
+  if (isMysql({ connection })) {
     opt = { type: QueryTypes.RAW }
   }
+
   if (schema) {
     tableName = `${schema}.${tableName}`
   }
@@ -479,34 +366,11 @@ async function mysqlAlter(data) {
 }
 
 async function alterColumn(data) {
-  if (data.connection.config.dialect === 'mysql') {
-    return mysqlAlter(data)
-  }
-  if (data.schema) {
-    data.tableName = `${data.schema}.${data.tableName}`
+  if (isMysql(data)) {
+    return Mysql.alterColumn(data)
   }
 
-  if (data.dataType !== data.oldValue.dataType) {
-    await query({
-      sql: `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} TYPE ${data.dataType} USING ${data.column}::${data.dataType}`,
-      id: data.id
-    })
-  }
-
-  if (data.notnull !== data.oldValue.notnull) {
-    let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
-    if (data.notnull) {
-      sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
-    }
-    await query({ sql, id: data.id })
-  }
-
-  if (data.column !== data.oldValue.column) {
-    await query({
-      sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`,
-      id: data.id
-    })
-  }
+  return Postgres.alterColumn(data)
 }
 
 async function alterTable(data) {
@@ -520,145 +384,54 @@ async function alterTable(data) {
 }
 
 async function addRow({ id, tableName, fields, schema }) {
-  if (schema) {
-    tableName = `${schema}.${tableName}`
+  if (dbMap[id].config.dialect === DataBase.MYSQL) {
+    return Mysql.addRow({ id, tableName, fields })
   }
-  const cols = Object.keys(fields)
-  const vals = cols.map((k) => `'${fields[k]}'`)
-  const sql = `
-    INSERT INTO ${tableName} (${cols.join(',')})
-    VALUES (${vals.join(',')});
-    `
 
-  return query({ sql, id })
+  return Postgres.addRow({ id, tableName, fields, schema })
 }
 
 async function delRows({ id, tableName, ids, schema }) {
-  tableName = `${schema}.${tableName}`
+  if (dbMap[id].config.dialect === DataBase.MYSQL) {
+    return Mysql.delRows({ id, tableName, ids })
+  }
 
-  const sql = `delete from ${tableName} where id in (${ids})`
-
-  return query({ sql, id })
+  return Postgres.delRow({ id, tableName, ids, schema })
 }
 
-async function getIndexs({ id, schema = 'public', tableName }) {
-  const sql = `
-      SELECT
-        ns.nspname as schema_name,
-        tab.relname as table_name,
-        cls.relname as index_name,
-        am.amname as index_type,
-        idx.indisprimary as is_pk,
-        idx.indisunique as is_unique,
-        pg_get_indexdef(idx.indexrelid) || ';' AS columns
-    FROM
-        pg_index idx
-    INNER JOIN pg_class cls ON cls.oid=idx.indexrelid
-    INNER JOIN pg_class tab ON tab.oid=idx.indrelid
-    INNER JOIN pg_am am ON am.oid=cls.relam
-    INNER JOIN pg_namespace ns on ns.oid=tab.relnamespace
-    WHERE ns.nspname = '${schema}' AND tab.relname = '${tableName}' LIMIT 1000
-  `
-
-  const indexs = await query({ sql, id })
-
-  // console.log('indexs: ', indexs)
-
-  indexs.forEach((element) => {
-    // CREATE INDEX test1 ON s1.t2 USING btree (age, name);
-    const match = element.columns.match(/\(([^)]+)\)/)
-    if (match) {
-      element.columns = match[1]
-    }
-  })
-
-  // indexs = indexs.filter((el) => el.schema_name == schema)
-
-  return {
-    rows: indexs,
-    columns: indexs.length
-      ? Object.keys(indexs[0]).map((el) => {
-          return {
-            name: el
-          }
-        })
-      : []
+async function getIndexs(data) {
+  if (isMysql(data)) {
+    return Mysql.getIndexs(data)
   }
+
+  return Postgres.getIndexs(data)
 }
 
 //http://www.postgres.cn/docs/15/sql-createindex.html
 //create index index_name on schema.table_name using btree (column_1, column_2)
-async function editIndex({
-  type,
-  unique,
-  indexName,
-  schema = 'public',
-  tableName,
-  indexType,
-  id,
-  columns
-}) {
-  let sql
-  if (type === 1) {
-    //add
-    sql = `
-          CREATE ${unique ? 'unique' : ''} INDEX  ${indexName} on ${schema ? schema : 'public'}.${tableName} USING ${indexType ? indexType : 'btree'} (${columns.join(',')})
-          `
-  } else {
-    //del
-    sql = `
-    DROP INDEX ${indexName.map((el) => `${schema}.${el}`).join(',')}
-    `
+async function editIndex(data) {
+  if (isMysql(data)) {
+    return Mysql.editIndex(data)
   }
 
-  return query({ sql, id })
+  return Postgres.editIndex(data)
 }
 
 //type 1-drop 2-truncate
-async function editTable({ type, tableName, connection, engine = 'InnoDB', schema = 'public' }) {
-  if (connection.config.dialect === 'postgres') {
-    tableName = `${schema}.${tableName}`
+async function editTable({ type, tableName, connection, engine, schema }) {
+  if (connection.config.dialect === DataBase.MYSQL) {
+    return Mysql.editTable({ type, tableName, connection, engine })
   }
 
-  let sql
-  if (type === 1) {
-    sql = `DROP TABLE ${tableName}`
-  } else if (type === 2) {
-    sql = `TRUNCATE ${tableName}`
-  } else if (type === 3) {
-    if (connection.config.dialect === 'postgres') {
-      sql = `CREATE TABLE ${tableName} ()`
-    } else {
-      sql = `
-       CREATE TABLE ${tableName} (id INT AUTO_INCREMENT PRIMARY KEY) ENGINE=${engine}
-      `
-    }
-  }
-
-  return query({ sql, id: connection.id, config: connection.config, opt: { type: QueryTypes.RAW } })
+  return Postgres.editTable({ type, tableName, connection, schema })
 }
 
-async function editSchema({ type, schema, id }) {
-  let sql
-  if (type === 1) {
-    sql = `DROP SCHEMA ${schema} CASCADE`
-  } else {
-    sql = `CREATE SCHEMA ${schema}`
-  }
-
-  return query({ sql, id })
+async function editSchema(data) {
+  return Postgres.editSchema(data)
 }
 
-async function getRoles({ id, roleName }) {
-  let sql = `SELECT * FROM pg_roles`
-
-  if (roleName) {
-    sql += ` where rolname='${roleName}'`
-  }
-
-  const roles = await query({ sql, id })
-  console.log('roles: ', roles)
-  return roles.filter((el) => !/^pg_/.test(el.rolname))
+async function getRoles(data) {
+  return Postgres.getRoles(data)
 }
 
 // CREATE ROLE u1 NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'u1';
@@ -873,6 +646,7 @@ async function grantRolePermission({
 }
 
 export {
+  execa,
   delRole,
   getRolePermission,
   grantRolePermission,
@@ -883,6 +657,7 @@ export {
   getTables,
   updateDate,
   query,
+  initDb,
   getColums,
   getTableData,
   getSchema,

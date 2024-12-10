@@ -7,13 +7,13 @@ import { getExportData } from '../db'
 export const exportFile = async function (opt) {
   const workbook = new ExcelJS.Workbook()
 
-  workbook.creator = 'DB'
+  workbook.creator = 'DBA'
   workbook.lastModifiedBy = 'Her'
   workbook.created = new Date()
   workbook.modified = new Date()
   workbook.lastPrinted = new Date()
 
-  const worksheet = workbook.addWorksheet('db export')
+  const worksheet = workbook.addWorksheet('dba export')
 
   const data = await getExportData(opt)
 
