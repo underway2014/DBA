@@ -171,7 +171,7 @@ export default class Mysql {
 
   static async getIndexs({ id, dbName, tableName }) {
     const sql = `
-        SELECT 
+        SELECT
           TABLE_NAME,          -- 表名
           INDEX_NAME,          -- 索引名
           COLUMN_NAME,         -- 索引的列名
@@ -184,9 +184,9 @@ export default class Mysql {
           PACKED,              -- 是否压缩
           NULLABLE,            -- 列是否允许 NULL
           COMMENT              -- 索引注释
-      FROM 
+      FROM
           information_schema.STATISTICS
-      WHERE 
+      WHERE
           TABLE_SCHEMA = '${dbName}'  -- 替换为你的数据库名
           AND TABLE_NAME = '${tableName}'  -- 如果
     `

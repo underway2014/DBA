@@ -687,7 +687,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           }
 
           window.api
-            .editTable({ id: keys[4], schema: keys[2], tableName: keys[1], type })
+            .editTable({
+              id: keys[4],
+              schema: keys[2],
+              tableName: keys[1],
+              type,
+              connection: props.connection
+            })
             .then(() => {
               // console.log('getindexs drop res: ', res, type, rightClickNodeRef.current.key)
               if (type === 1 && rightClickNodeRef.current.nodeData) {
