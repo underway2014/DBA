@@ -54,7 +54,24 @@ function initDb({ id, config }) {
   let obj = dbMap[id]
 
   if (!obj) {
-    const db = new Sequelize(config)
+    console.log('cccc: ', {
+      ...config,
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
+      }
+    })
+    const db = new Sequelize({
+      ...config,
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
+      }
+    })
     obj = { db, config }
   }
 

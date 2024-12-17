@@ -1,0 +1,9 @@
+# 项目背景
+- 这个一个支持postgres,mysql 跨平台的桌面工具, 基于electron + nodejs + typescript + react + antd + vite 开发
+
+
+
+# 文件结构
+- src/server/db.ts 是数据库查询的逻辑, 然后根据数据库类型, 执行不同的数据库逻辑
+- src/server/mysql.ts 是mysql 的查询逻辑
+- src/server/postgres.ts 是postgres 的查询逻辑
