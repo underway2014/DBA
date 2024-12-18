@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Form, Input, Select } from 'antd'
+import { Button, Form, Input, Select, Switch } from 'antd'
 
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
@@ -10,16 +10,24 @@ type CustomProps = {
 const ConnectionForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm()
   const [_, setFormLayout] = useState<LayoutType>('horizontal')
+  const [dbType, setDbType] = useState(props.defautValues.dialect || 'postgres')
   const { addConnection } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
     setFormLayout(layout)
   }
 
   const onFinish = (values) => {
+    console.log('form values: ', form.getFieldsValue())
     addConnection({ ...form.getFieldsValue(), id: props.defautValues?.id })
   }
 
   const onFinishFailed = (errorInfo) => { }
+
+  const changeHandler = (value) => {
+    console.log('db value: ', value)
+
+    setDbType(value)
+  }
 
   // host: '35.221.166.196',
   //     port: '8002',
@@ -31,7 +39,12 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
     <Form
       onFinish={onFinish}
       onFinishFailed={onFinishFailed}
-      initialValues={{ dialect: 'postgres', port: '5432', ...props.defautValues }}
+      initialValues={{
+        dialect: 'postgres',
+        port: '5432',
+        ...props.defautValues,
+        ssl: props.defautValues?.dialectOptions?.ssl?.require
+      }}
       labelCol={{ span: 6 }}
       wrapperCol={{ span: 14 }}
       layout="horizontal"
@@ -43,8 +56,9 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       <Form.Item label="dialect" name="dialect" rules={[{ required: true }]}>
         <Select
           style={{ width: '100%' }}
-          defaultValue="postgres"
+          // defaultValue="postgres"
           options={[{ value: 'postgres' }, { value: 'mysql' }]}
+          onChange={changeHandler}
         />
       </Form.Item>
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
@@ -65,6 +79,11 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
       <Form.Item label="database" name="database" rules={[{ required: true }]}>
         <Input placeholder="database" />
       </Form.Item>
+      {dbType === 'postgres' && (
+        <Form.Item label="ssl" name="ssl">
+          <Switch />
+        </Form.Item>
+      )}
 
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
         <div style={{ textAlign: 'center' }}>

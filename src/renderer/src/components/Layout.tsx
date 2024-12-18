@@ -137,16 +137,29 @@ const CLayout: React.FC = () => {
   }
 
   function conAddOk(val) {
+    const config = {
+      host: val.host,
+      port: val.port,
+      username: val.username,
+      password: val.password,
+      dialect: val.dialect,
+      database: val.database
+    }
+
+    if (val.dialect === 'postgres' && val.ssl) {
+      Object.assign(config, {
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
+        }
+      })
+    }
+
     window.api.addStore({
       name: val.name,
-      config: {
-        host: val.host,
-        port: val.port,
-        username: val.username,
-        password: val.password,
-        dialect: val.dialect,
-        database: val.database
-      }
+      config
     })
 
     setData({ ...data, connectionForm: false })
@@ -223,8 +236,8 @@ const CLayout: React.FC = () => {
                       collapsedWidth="0"
                       // onBreakpoint={(broken) => {}}
                       width={400}
-                      // onCollapse={(collapsed, type) => {}}
-                      // style={{ width: '300px' }}
+                    // onCollapse={(collapsed, type) => {}}
+                    // style={{ width: '300px' }}
                     >
                       {noCons ? (
                         <p

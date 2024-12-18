@@ -974,18 +974,31 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   async function editConnectionSumit(val) {
+    const config = {
+      host: val.host,
+      port: val.port,
+      username: val.username,
+      password: val.password,
+      dialect: val.dialect,
+      database: val.database
+    }
+
+    if (val.dialect === 'postgres' && val.ssl) {
+      Object.assign(config, {
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
+        }
+      })
+    }
+
     window.api
       .editStore({
         name: val.name,
         id: props.connection.id,
-        config: {
-          host: val.host,
-          port: val.port,
-          username: val.username,
-          password: val.password,
-          dialect: val.dialect,
-          database: val.database
-        }
+        config
       })
       .then(() => {
         props.updateSlider()
