@@ -10,7 +10,7 @@ type CustomProps = {
 const ConnectionForm: React.FC<CustomProps> = (props) => {
   const [form] = Form.useForm()
   const [_, setFormLayout] = useState<LayoutType>('horizontal')
-  const [dbType, setDbType] = useState(props.defautValues.dialect || 'postgres')
+  const [dbType, setDbType] = useState(props.defautValues?.dialect || 'postgres')
   const { addConnection } = props
   const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
     setFormLayout(layout)
