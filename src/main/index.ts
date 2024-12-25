@@ -3,12 +3,13 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import {
-  addConnection,
   changeMode,
-  delConnection,
   editConnection,
-  getConnections
-} from '../server/lib/wrjson'
+  getConfig,
+  storeAdd,
+  storeDel,
+  storeSearch
+} from '../server/lib/connectionJson'
 import updater from './updater'
 import { menuTemplate } from './menuTemplate'
 
@@ -109,18 +110,21 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => {})
 
   ipcMain.handle('store:get', () => {
-    const data = getConnections()
+    const data = getConfig()
 
     return data
   })
   ipcMain.handle('store:add', (_, val) => {
-    addConnection(val)
+    storeAdd(val)
   })
   ipcMain.handle('store:edit', (_, val) => {
     editConnection(val)
   })
   ipcMain.handle('store:del', (_, val) => {
-    return delConnection(val)
+    return storeDel(val)
+  })
+  ipcMain.handle('store:search', (_, val) => {
+    return storeSearch(val)
   })
   ipcMain.handle('db:backup', async (_, val) => {
     return backup(val)

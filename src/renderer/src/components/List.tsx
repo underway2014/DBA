@@ -1,5 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react'
-import { Flex, Table, Tooltip, Modal, Button, message } from 'antd'
+import { Flex, Table, Tooltip, Modal, Button, Alert } from 'antd'
 import type { TableProps } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import {
@@ -8,7 +8,8 @@ import {
   DeleteOutlined,
   PlusOutlined,
   ExclamationCircleFilled,
-  DownloadOutlined
+  DownloadOutlined,
+  SaveOutlined
 } from '@ant-design/icons'
 import { LogAction, LogType } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
@@ -33,12 +34,12 @@ type CustomProps = {
 }
 
 const pgKeyWords =
-  /\b(select|from|order\s+by|union\s+all|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count)\b/gi
+  /\b(select|from|order\s+by|inner\s+join|right\s+join|left\s+join|union\s+all|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count)\b/gi
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList, isDark } = useContext(CustomContext)
   const inputRef = useRef(null)
-  const defaultSql = props.tabData.sql.trim()
+  const defaultSql = props.tabData.sql?.trim()
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
   const [currentSchema, setSchema] = useState(props.tabData.schema)
   const [tableName, setTableName] = useState(props.tabData.tableName)
@@ -54,6 +55,8 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
 
   const [addForm, setAddForm] = useState(false)
+  const [addSqlForm, setAddSqlForm] = useState(false)
+  const [sqlNote, setSqlNote] = useState('')
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   useEffect(() => {
@@ -284,6 +287,43 @@ const DataList: React.FC<CustomProps> = (props) => {
     return b.find((el) => !!el)
   }
 
+  function saveSqlShow() {
+    setAddSqlForm(true)
+  }
+
+  function saveSql() {
+    console.log('savesql: ', sqlNote, sqlTxt)
+    window.api
+      .addStore({
+        data: {
+          content: sqlTxt,
+          note: sqlNote
+        },
+        type: 2
+      })
+      .then((res) => {
+        console.log('save res', res)
+        setAddSqlForm(false)
+        setSqlNote('')
+        addLog({
+          logList,
+          setLogList,
+          type: LogType.SUCCESS,
+          text: `save success `,
+          action: LogAction.SAVESQL
+        })
+      })
+      .catch((error) => {
+        addLog({
+          logList,
+          setLogList,
+          type: LogType.ERROR,
+          text: `save data fail, ${error.message}`,
+          action: LogAction.EXPORTDATA
+        })
+      })
+  }
+
   function exportData() {
     window.api
       .exportFile({ ...props.tabData, sql: sqlTxt })
@@ -335,6 +375,15 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function delRow() {
+    // if (!selectedRowKeys.length) {
+    //     <Alert
+    //     message="Warning"
+    //     description="Please select the data first"
+    //     type="warning"
+    //     showIcon
+    //     closable
+    //   />
+    // }
     confirm({
       title: 'Do you want to delete these rows?',
       icon: <ExclamationCircleFilled />,
@@ -374,13 +423,17 @@ const DataList: React.FC<CustomProps> = (props) => {
     }
   }
   const onChange = (value) => setSqlTxt(value)
+  const sqlRemarkChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    console.log('Change:', e.target.value)
+    setSqlNote(e.target.value)
+  }
   return (
     <div style={{ height: window.screen.height - 160 + 'px', overflow: 'auto' }}>
       <div
         style={{
           backgroundColor: isDark ? '#1C1C1C' : 'white',
-          minHeight: '50px',
-          maxHeight: '250px',
+          minHeight: '100px',
+          maxHeight: '300px',
           overflow: 'auto',
           marginBottom: '8px',
           padding: '5px'
@@ -406,10 +459,28 @@ const DataList: React.FC<CustomProps> = (props) => {
             <Button size="small" icon={<PlusOutlined />} onClick={addRow} />
           </Tooltip>
           <Tooltip title="delete">
-            <Button size="small" icon={<DeleteOutlined />} onClick={delRow} />
+            <Button
+              size="small"
+              disabled={selectedRowKeys.length === 0}
+              icon={<DeleteOutlined />}
+              onClick={delRow}
+            />
           </Tooltip>
           <Tooltip title="export">
-            <Button size="small" icon={<DownloadOutlined />} onClick={exportData} />
+            <Button
+              size="small"
+              disabled={sqlTxt?.length === 0}
+              icon={<DownloadOutlined />}
+              onClick={exportData}
+            />
+          </Tooltip>
+          <Tooltip title="save sql">
+            <Button
+              size="small"
+              disabled={sqlTxt?.length === 0}
+              icon={<SaveOutlined />}
+              onClick={saveSqlShow}
+            />
           </Tooltip>
         </Flex>
       </Flex>
@@ -444,6 +515,16 @@ const DataList: React.FC<CustomProps> = (props) => {
             setEditRow({ ...editRow, data })
           }}
         />
+      </Modal>
+      <Modal
+        title="Save Sql"
+        open={addSqlForm}
+        onOk={saveSql}
+        onCancel={() => {
+          setAddSqlForm(false)
+        }}
+      >
+        <TextArea showCount maxLength={100} onChange={sqlRemarkChange} placeholder="add a note" />
       </Modal>
 
       <Modal title="Add Row" open={addForm} onCancel={cancelAddRow} footer={[]}>

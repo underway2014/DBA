@@ -20,6 +20,7 @@ export const LogAction = {
   DBEDITINDEX: 'editindex',
   EDITTABLE: 'edittable',
   EXPORTDATA: 'export data',
+  SAVESQL: 'save sql',
   EDITSCHEMA: 'editschema',
   ROLEPERMISSION: 'edit permission'
 }

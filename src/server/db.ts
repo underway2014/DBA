@@ -40,7 +40,7 @@ async function clearDb({ id }) {
   }
 }
 
-async function closeConnection(data) {
+async function closeConnection(data?) {
   if (data?.id) {
     return clearDb(data)
   } else {

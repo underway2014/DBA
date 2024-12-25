@@ -158,8 +158,11 @@ const CLayout: React.FC = () => {
     }
 
     window.api.addStore({
-      name: val.name,
-      config
+      data: {
+        name: val.name,
+        config
+      },
+      type: 1
     })
 
     setData({ ...data, connectionForm: false })

@@ -432,7 +432,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         icon: <ExclamationCircleFilled />,
         content: '',
         onOk() {
-          window.api.delStore(node.key).then(() => {
+          window.api.delStore({ data: node.key, type: 1 }).then(() => {
             props.updateSlider()
           })
         }
