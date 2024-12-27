@@ -24,6 +24,10 @@ body {
   }
 }
 
+.ant-tree-title {
+  display: inline-block;
+}
+
 .cellHover {
   position: relative;
   white-space: nowrap;

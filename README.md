@@ -1,6 +1,6 @@
 # DBA
 
-Hello, welcome to my newly released open-source PostgreSQL desktop tool! This tool is currently available for both macOS and Windows, offering developers and database administrators a simple yet efficient way to manage PostgreSQL databases.
+Hello, welcome to my newly released open-source PostgreSQL/Mysql desktop tool! This tool is currently available for both macOS and Windows, offering developers and database administrators a simple yet efficient way to manage PostgreSQL databases.
 
 Our goal is to create a powerful and user-friendly tool that helps you handle data more easily and boosts your productivity. As the project is still in continuous development and optimization, your feedback and suggestions are incredibly valuable to us. If you encounter any issues or have ideas for feature improvements, performance enhancements, or any other aspect, feel free to raise an issue or contribute on GitHub.
 
@@ -14,6 +14,7 @@ With everyone’s collective effort, we hope to make this tool an even more comp
 - Support dark color mode
 - Excel data export
 - Role permission management
+- Common SQL Management
 
 ## Download
 

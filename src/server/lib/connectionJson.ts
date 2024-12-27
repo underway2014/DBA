@@ -95,7 +95,7 @@ export const addSql = function (val) {
   const data = readFile(FILENAME)
   const sqls = data.sqls || []
   val.id = new Date().getTime() + ''
-  sqls.push(val)
+  sqls.unshift(val)
 
   data.sqls = sqls
 

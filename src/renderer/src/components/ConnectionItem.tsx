@@ -1,7 +1,12 @@
 import React, { useContext, useRef, useState } from 'react'
 import { Dropdown, Modal, Space, Spin, Tree } from 'antd'
 import type { GetProps, MenuProps, TreeDataNode } from 'antd'
-import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleFilled,
+  DatabaseOutlined
+} from '@ant-design/icons'
 import CreateDbForm from './CreateDbFrom'
 import ConnectionForm from './ConnectionForm'
 import CustomContext from '@renderer/utils/context'
@@ -65,6 +70,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     {
       title: props.connection.name,
       otitle: props.connection.name,
+      icon: <DatabaseOutlined />,
       key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`
     }
   ])
@@ -100,7 +106,6 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   function checkLoadingKey(key, type?) {
     const treeNow = treeData[0]
-    console.log('check key: ', key, treeNow, type)
     function check(obj) {
       if (obj.key && obj.key === key) {
         obj.title = !type ? (
@@ -784,6 +789,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           {
             title: props.connection.name,
             otitle: props.connection.name,
+            icon: <DatabaseOutlined />,
             key: `connection${SP}${props.connection.name}${SP}${props.connection.id}`
             // children: []
           }
@@ -860,7 +866,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
     let item = (
       <div className="treeTitle">
-        <span>{nodeData.title}</span>
+        <span style={{ marginRight: 10 }}>{nodeData.title}</span>
         {editButtons}
       </div>
     )
@@ -1042,6 +1048,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     <div>
       <Tree
         showLine
+        showIcon
         blockNode
         virtual
         motion={false}

@@ -6,12 +6,14 @@ import {
   Drawer,
   Dropdown,
   Flex,
+  Input,
   Layout,
   List,
   MenuProps,
   message,
   Modal,
   Popconfirm,
+  Space,
   Splitter,
   Table,
   theme,
@@ -23,7 +25,7 @@ import TabelContent from './TabelContent'
 import { Header } from 'antd/es/layout/layout'
 import ConnectionForm from './ConnectionForm'
 import CreateDbForm from './CreateDbFrom'
-import { EyeOutlined, BulbOutlined, HeartOutlined } from '@ant-design/icons'
+import { EyeOutlined, BulbOutlined, HeartOutlined, SearchOutlined } from '@ant-design/icons'
 import CustomContext from '@renderer/utils/context'
 import { IConnection, IGetTabData, ILogItem } from '../interface'
 import { LogAction, LogType } from '@renderer/utils/constant'
@@ -209,16 +211,12 @@ const CLayout: React.FC = () => {
 
   function getSqlList() {
     window.api.getStore().then((res) => {
-      console.log('res.sqls: ', res.sqls)
-      // for (let i = 0; i < 5; i++) {
-      //   res.sqls.push(...res.sqls)
-      // }
       setSqlListData({ ...sqlListData, isLoading: false, list: res.sqls, show: true })
     })
   }
   const [logList, setLogList] = useState<ILogItem[]>([
     {
-      text: 'Here will output some operation logs',
+      text: 'Here will output some logs',
       type: LogType.NORMAL,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
       action: LogAction.INIT
@@ -238,6 +236,66 @@ const CLayout: React.FC = () => {
     })
   }
 
+  const [searchText, setSearchText] = useState('')
+  const [searchedColumn, setSearchedColumn] = useState('')
+
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm()
+    setSearchText(selectedKeys[0])
+    setSearchedColumn(dataIndex)
+  }
+
+  const handleReset = (clearFilters, confirm) => {
+    clearFilters()
+    setSearchText('')
+    confirm()
+  }
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 100 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => handleReset(clearFilters, confirm)}
+            size="small"
+            style={{ width: 100 }}
+          >
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+        : false
+    // render: (text) =>
+    //   searchedColumn === dataIndex ? (
+    //     <span style={{ fontWeight: 'bold', background: '#ffc069', padding: 0 }}>{text}</span>
+    //   ) : (
+    //     text
+    //   )
+  })
+
   return (
     <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
       <div>
@@ -247,7 +305,7 @@ const CLayout: React.FC = () => {
               <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
 
               <div>
-                <Tooltip title="sql list">
+                <Tooltip title="Common SQL">
                   <Button
                     size="small"
                     shape="circle"
@@ -255,10 +313,10 @@ const CLayout: React.FC = () => {
                     onClick={showSqlList}
                   />
                 </Tooltip>
-                <Tooltip title="show log">
+                <Tooltip title="Logs">
                   <Button size="small" shape="circle" icon={<EyeOutlined />} onClick={showLog} />
                 </Tooltip>
-                <Tooltip title={isDark ? 'light' : 'dark'}>
+                <Tooltip title={isDark ? 'Light' : 'Dark'}>
                   <Button
                     size="small"
                     shape="circle"
@@ -361,7 +419,7 @@ const CLayout: React.FC = () => {
             <CreateDbForm createDatabase={addDbOk}></CreateDbForm>
           </Modal>
           <Modal
-            title="SQL LIST"
+            title="Common SQL"
             open={sqlListData.show}
             width={1000}
             footer={[]}
@@ -372,9 +430,15 @@ const CLayout: React.FC = () => {
           >
             <Table
               columns={[
-                { title: 'note', key: 'note', dataIndex: 'note', width: 300 },
                 {
-                  title: 'content',
+                  title: <span style={{ fontWeight: 600 }}>Note</span>,
+                  key: 'note',
+                  dataIndex: 'note',
+                  width: 300,
+                  ...getColumnSearchProps('note')
+                },
+                {
+                  title: 'Content',
                   key: 'content',
                   dataIndex: 'content',
                   // ellipsis: true,
@@ -387,7 +451,7 @@ const CLayout: React.FC = () => {
                   }
                 },
                 {
-                  title: 'operater',
+                  title: 'Operater',
                   key: 'id',
                   dataIndex: 'operate',
                   width: 130,
