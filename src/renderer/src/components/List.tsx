@@ -1,5 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react'
-import { Flex, Table, Tooltip, Modal, Button, Alert } from 'antd'
+import { Flex, Table, Tooltip, Modal, Button } from 'antd'
 import type { TableProps } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import {
@@ -524,7 +524,11 @@ const DataList: React.FC<CustomProps> = (props) => {
           setAddSqlForm(false)
         }}
       >
-        <TextArea showCount maxLength={100} onChange={sqlRemarkChange} placeholder="add a note" />
+        <TextArea
+          maxLength={70}
+          onChange={sqlRemarkChange}
+          placeholder="add a note, max length is 70"
+        />
       </Modal>
 
       <Modal title="Add Row" open={addForm} onCancel={cancelAddRow} footer={[]}>

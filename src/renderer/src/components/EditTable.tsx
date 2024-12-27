@@ -16,7 +16,7 @@ type DataType = {
   title: string
   dataIndex: string
   key: string
-  with: string
+  width: string
   // render: Function;
 }
 
@@ -129,7 +129,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
         title: el,
         dataIndex: el,
         key: el,
-        with: '50px',
+        width: '50px',
         render: (text, _) => {
           return <div style={{ maxWidth: '150px' }}>{text}</div>
         }
@@ -139,7 +139,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
     cms.push({
       title: 'operater',
       key: 'operater',
-      with: '100px',
+      width: '100px',
       dataIndex: '100',
       render: (_, record) => {
         return (

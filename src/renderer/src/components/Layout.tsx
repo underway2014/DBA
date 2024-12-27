@@ -9,17 +9,21 @@ import {
   Layout,
   List,
   MenuProps,
+  message,
   Modal,
+  Popconfirm,
   Splitter,
+  Table,
   theme,
-  Tooltip
+  Tooltip,
+  Typography
 } from 'antd'
 import ConnectionItem from './ConnectionItem'
 import TabelContent from './TabelContent'
 import { Header } from 'antd/es/layout/layout'
 import ConnectionForm from './ConnectionForm'
 import CreateDbForm from './CreateDbFrom'
-import { EyeOutlined, BulbOutlined } from '@ant-design/icons'
+import { EyeOutlined, BulbOutlined, HeartOutlined } from '@ant-design/icons'
 import CustomContext from '@renderer/utils/context'
 import { IConnection, IGetTabData, ILogItem } from '../interface'
 import { LogAction, LogType } from '@renderer/utils/constant'
@@ -47,6 +51,14 @@ type TabContent = {
 const CLayout: React.FC = () => {
   const [connections, setConnections] = useState([])
   const [noCons, setNoCons] = useState(true)
+  const [sqlListData, setSqlListData] = useState({
+    show: false,
+    isLoading: false,
+    list: [
+      // { id: '3', content: 'select *', note: 'updaccccte user data', date: 112131313 },
+    ]
+  })
+
   const [data, setData] = useState<ConItem>({
     showForm: false,
     connections: [
@@ -190,6 +202,20 @@ const CLayout: React.FC = () => {
     setLogOpen(true)
   }
 
+  function showSqlList() {
+    setSqlListData({ ...sqlListData, show: true, isLoading: true })
+    getSqlList()
+  }
+
+  function getSqlList() {
+    window.api.getStore().then((res) => {
+      console.log('res.sqls: ', res.sqls)
+      // for (let i = 0; i < 5; i++) {
+      //   res.sqls.push(...res.sqls)
+      // }
+      setSqlListData({ ...sqlListData, isLoading: false, list: res.sqls, show: true })
+    })
+  }
   const [logList, setLogList] = useState<ILogItem[]>([
     {
       text: 'Here will output some operation logs',
@@ -198,6 +224,19 @@ const CLayout: React.FC = () => {
       action: LogAction.INIT
     }
   ])
+
+  function delSql(data) {
+    window.api.delStore({ data: data.id, type: 2 }).then(() => {
+      getSqlList()
+      message.success('Delete success')
+    })
+  }
+
+  function copySql(data) {
+    navigator.clipboard.writeText(data.content).then(() => {
+      message.success('Copy success')
+    })
+  }
 
   return (
     <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
@@ -208,6 +247,14 @@ const CLayout: React.FC = () => {
               <Breadcrumb style={{ marginLeft: '250px' }} separator=">" items={data.dbInfo} />
 
               <div>
+                <Tooltip title="sql list">
+                  <Button
+                    size="small"
+                    shape="circle"
+                    icon={<HeartOutlined />}
+                    onClick={showSqlList}
+                  />
+                </Tooltip>
                 <Tooltip title="show log">
                   <Button size="small" shape="circle" icon={<EyeOutlined />} onClick={showLog} />
                 </Tooltip>
@@ -312,6 +359,58 @@ const CLayout: React.FC = () => {
             footer={[]}
           >
             <CreateDbForm createDatabase={addDbOk}></CreateDbForm>
+          </Modal>
+          <Modal
+            title="SQL LIST"
+            open={sqlListData.show}
+            width={1000}
+            footer={[]}
+            onCancel={() => {
+              console.log('on cancel')
+              setSqlListData({ ...sqlListData, show: false })
+            }}
+          >
+            <Table
+              columns={[
+                { title: 'note', key: 'note', dataIndex: 'note', width: 300 },
+                {
+                  title: 'content',
+                  key: 'content',
+                  dataIndex: 'content',
+                  // ellipsis: true,
+                  render: (text) => {
+                    return (
+                      <Tooltip title={text} overlayStyle={{ maxWidth: '500px' }}>
+                        <span>{text?.substring(0, 70)}</span>
+                      </Tooltip>
+                    )
+                  }
+                },
+                {
+                  title: 'operater',
+                  key: 'id',
+                  dataIndex: 'operate',
+                  width: 130,
+                  render: (_, record) => {
+                    return (
+                      <span>
+                        <Typography.Link
+                          onClick={() => copySql(record)}
+                          style={{ marginInlineEnd: 8 }}
+                        >
+                          Copy
+                        </Typography.Link>
+                        <Popconfirm title="Sure to delete?" onConfirm={() => delSql(record)}>
+                          <a>Delete</a>
+                        </Popconfirm>
+                      </span>
+                    )
+                  }
+                }
+              ]}
+              // rowSelection={{}}
+              dataSource={sqlListData.list}
+            />
           </Modal>
         </CustomContext.Provider>
       </div>
