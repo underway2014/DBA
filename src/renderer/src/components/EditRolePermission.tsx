@@ -317,7 +317,12 @@ const EditRolePermission: React.FC<CustomProps> = (props) => {
               <Divider />
               <Alert
                 showIcon
-                description="The permissions above are applied to all currently checked tables."
+                description={
+                  <>
+                    The permissions above are applied to all currently{' '}
+                    <span style={{ color: 'red', fontWeight: 700 }}>checked</span> tables.
+                  </>
+                }
                 type="warning"
               />
             </div>
@@ -349,7 +354,12 @@ const EditRolePermission: React.FC<CustomProps> = (props) => {
               <Divider />
               <Alert
                 showIcon
-                description="The permissions above are applied to the currently selected table."
+                description={
+                  <>
+                    The permissions above are applied to the currently
+                    <span style={{ color: 'red', fontWeight: 700 }}>selected</span> tables.
+                  </>
+                }
                 type="warning"
               />
             </div>

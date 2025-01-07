@@ -9,7 +9,21 @@ function getConfigPath(fileName) {
 export const readFile = function (fileName) {
   const filePath = getConfigPath(fileName)
   if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify({ version: '1.0', theme: 'light', connections: [] }))
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify({
+        version: '1.0',
+        theme: 'light',
+        connections: [],
+        sqls: [
+          {
+            id: 'abcdefj',
+            content: 'select * from companies',
+            note: 'search company'
+          }
+        ]
+      })
+    )
   }
 
   const data = fs.readFileSync(filePath, { encoding: 'utf-8' })

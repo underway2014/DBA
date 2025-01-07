@@ -3,8 +3,8 @@ import { AutoComplete, Button, Checkbox, Form, Input } from 'antd'
 
 type LayoutType = Parameters<typeof Form>[0]['layout']
 type CustomProps = {
-  addColumn: Function
-  defautValues?: Object
+  addColumn: (values, defaultvalues) => void
+  defautValues?: object
   isMysql: boolean
 }
 
@@ -16,13 +16,13 @@ const AddColumnForm: React.FC<CustomProps> = (props) => {
     setFormLayout(layout)
   }
 
-  const onFinish = (values) => {
+  const onFinish = () => {
     addColumn(form.getFieldsValue(), props.defautValues)
 
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => { }
+  const onFinishFailed = () => { }
 
   form.setFieldsValue(props.defautValues)
 

@@ -5,7 +5,7 @@ import { ILogItem } from '@renderer/interface'
 
 type LogOpt = {
   logList: ILogItem[]
-  setLogList: Function
+  setLogList: (a) => void
   text: string
   action: string
   affectRows?: number | null
