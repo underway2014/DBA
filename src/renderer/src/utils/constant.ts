@@ -22,7 +22,8 @@ export const LogAction = {
   EXPORTDATA: 'export data',
   SAVESQL: 'save sql',
   EDITSCHEMA: 'editschema',
-  ROLEPERMISSION: 'edit permission'
+  ROLEPERMISSION: 'edit permission',
+  DELETEROWS: 'deleterows'
 }
 
 export const SliderRightMenu = {

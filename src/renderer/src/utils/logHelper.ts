@@ -8,14 +8,18 @@ type LogOpt = {
   setLogList: Function
   text: string
   action: string
+  affectRows?: number | null
+  sql?: string | undefined
   type: number
 }
 
-export const addLog = ({ logList, setLogList, text, action, type }: LogOpt) => {
+export const addLog = ({ logList, affectRows, sql, setLogList, text, action, type }: LogOpt) => {
   setLogList([
     ...logList,
     {
       type,
+      sql,
+      affectRows,
       action,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
       text

@@ -71,8 +71,12 @@ function initDb({ id, config }) {
   return obj.db
 }
 
-async function query({ sql, id, opt, config }: QueryType) {
+async function query({ sql, id, opt = {}, config }: QueryType) {
   const db = initDb({ id, config })
+
+  if (/^\s*\b(update|delete)\b/gi.test(sql)) {
+    Object.assign(opt, { type: QueryTypes.UPDATE })
+  }
 
   const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
 
@@ -212,7 +216,7 @@ async function getTableData(data) {
     return query({ sql: data.sql, id: data.id })
   }
 
-  if (/show\s+max_connections/i.test(data.sql)) {
+  if (/show\s+max_connections\b/i.test(data.sql)) {
     const rows = await query({ sql: data.sql, id: data.id })
     return {
       rows,
@@ -220,7 +224,7 @@ async function getTableData(data) {
     }
   }
 
-  if (/^\s*select/i.test(data.sql)) {
+  if (/^\s*select\b/i.test(data.sql)) {
     return getRowAndColumns({
       sql: data.sql,
       total: data.total,

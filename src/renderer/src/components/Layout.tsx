@@ -391,9 +391,17 @@ const CLayout: React.FC = () => {
               dataSource={logList}
               renderItem={(item) => {
                 return (
-                  <p style={{ fontSize: 14, margin: 0 }}>
-                    [{item.type}] [{item.date}] {item.text}
-                  </p>
+                  <div style={{ fontSize: 14 }}>
+                    <span>
+                      [{item.type}] [{item.date}] {item.text}
+                    </span>
+                    <span style={{ marginLeft: 10 }}>
+                      {item.affectRows || item.affectRows === 0
+                        ? `AffectRows: ${item.affectRows}`
+                        : ''}
+                    </span>
+                    <span>{item.sql ? <p>SQL: {item.sql}</p> : ''}</span>
+                  </div>
                 )
               }}
             />

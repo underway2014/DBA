@@ -3,7 +3,9 @@ import { LogType } from '@renderer/utils/constant'
 export interface ILogItem {
   type: LogType
   action: any
+  affectRows?: number | null
   date: string
+  sql: string
   text: string
 }
 

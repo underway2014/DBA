@@ -34,12 +34,12 @@ type CustomProps = {
 }
 
 const pgKeyWords =
-  /\b(select|from|order\s+by|inner\s+join|right\s+join|left\s+join|union\s+all|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count)\b/gi
+  /\b(select|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList, isDark } = useContext(CustomContext)
   const inputRef = useRef(null)
-  const defaultSql = props.tabData.sql?.trim()
+  const defaultSql = props.tabData.sql?.trim() || ''
   const [sqlTxt, setSqlTxt] = useState(defaultSql)
   const [currentSchema, setSchema] = useState(props.tabData.schema)
   const [tableName, setTableName] = useState(props.tabData.tableName)
@@ -69,15 +69,20 @@ const DataList: React.FC<CustomProps> = (props) => {
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
-        console.log('getAndUpdateTable: ', data, sqlTxt)
-        if (/^\s*(select|show\s+max_connections)/i.test(sqlTxt)) {
+        if (/^\s*(SELECT[\s\S]*?FROM|show\s+max_connections)/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
         } else {
+          // let text = `sql: ${sqlTxt}   status: success `
+          // if (data.length > 1) {
+          //   text = `${text} AffectedRows: ${data[1]} `
+          // }
           addLog({
             type: LogType.SUCCESS,
             logList,
             setLogList,
+            sql: sqlTxt,
+            affectRows: data?.length > 1 ? data[1] : null,
             text: 'success',
             action: LogAction.EDITTABLE
           })
@@ -88,6 +93,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         addLog({
           type: LogType.ERROR,
           logList,
+          sql: sqlTxt,
           setLogList,
           text: err.message,
           action: LogAction.EDITTABLE
@@ -146,7 +152,7 @@ const DataList: React.FC<CustomProps> = (props) => {
             key: el.name,
             // ellipsis: true,
             width: 100,
-            render: (address, a, b, c) => {
+            render: (address, a) => {
               if (el.name === 'id') return address
               if (!address) address = ''
               let s = address
@@ -292,7 +298,6 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function saveSql() {
-    console.log('savesql: ', sqlNote, sqlTxt)
     window.api
       .addStore({
         data: {
@@ -364,8 +369,8 @@ const DataList: React.FC<CustomProps> = (props) => {
         fields: data,
         schema: props.tabData.schema
       })
-      .then((res) => {
-        if (/^\s*select/i.test(sqlTxt)) {
+      .then(() => {
+        if (/^\s*\bselect\b/i.test(sqlTxt)) {
           getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
         }
       })
@@ -395,14 +400,24 @@ const DataList: React.FC<CustomProps> = (props) => {
           return val.id
         })
 
-        console.log('del xx: ', currentSchema, tableName)
-
         window.api
           .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName })
-          .then((res) => {
+          .then((data) => {
             if (/^\s*select/i.test(sqlTxt)) {
               getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
             }
+
+            addLog({
+              type: LogType.SUCCESS,
+              logList,
+              setLogList,
+              affectRows: data?.length > 1 ? data[1] : null,
+              text: 'success',
+              action: LogAction.DELETEROWS
+            })
+          })
+          .catch((error) => {
+            addDbError({ error })
           })
       },
       onCancel() { }
