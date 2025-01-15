@@ -79,7 +79,6 @@ async function query({ sql, id, opt = {}, config }: QueryType) {
   }
 
   const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
-
   return data
 }
 
@@ -212,7 +211,7 @@ async function getExportData({ sql, id }) {
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
 async function getTableData(data) {
-  if (/(pg_terminate_backend|nextval)\(/i.test(data.sql)) {
+  if (/(select\s+pg_terminate_backend)\(/i.test(data.sql)) {
     return query({ sql: data.sql, id: data.id })
   }
 
@@ -221,6 +220,13 @@ async function getTableData(data) {
     return {
       rows,
       columns: [{ name: 'max_connections' }]
+    }
+  }
+  if (/select\s+nextval\(/i.test(data.sql)) {
+    const rows = await query({ sql: data.sql, id: data.id })
+    return {
+      rows,
+      columns: [{ name: 'nextval' }]
     }
   }
 

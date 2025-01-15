@@ -34,7 +34,7 @@ type CustomProps = {
 }
 
 const pgKeyWords =
-  /\b(select|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
+  /\b(select|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList, isDark } = useContext(CustomContext)
@@ -69,14 +69,10 @@ const DataList: React.FC<CustomProps> = (props) => {
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
-        if (/^\s*(SELECT[\s\S]*?FROM|show\s+max_connections)/i.test(sqlTxt)) {
+        if (/^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+nextval)/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
         } else {
-          // let text = `sql: ${sqlTxt}   status: success `
-          // if (data.length > 1) {
-          //   text = `${text} AffectedRows: ${data[1]} `
-          // }
           addLog({
             type: LogType.SUCCESS,
             logList,
