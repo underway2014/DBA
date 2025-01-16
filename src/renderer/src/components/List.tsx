@@ -34,7 +34,7 @@ type CustomProps = {
 }
 
 const pgKeyWords =
-  /\b(select|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
+  /\b(select|begin|commit|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList, isDark } = useContext(CustomContext)

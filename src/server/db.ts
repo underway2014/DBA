@@ -137,6 +137,7 @@ async function getRowAndColumns({
   dbName
 }) {
   const res = { rows: [], columns: [], total }
+  sql = sql.replace(/(;|\uFF1B)\s*$/, '')
   if (!total) {
     try {
       if (!/\blimit\b/i.test(sql)) {
@@ -147,10 +148,9 @@ async function getRowAndColumns({
           totalSql = sql
             .replace(/\n/g, ' ')
             .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
-            .replace(/order by.*(asc|desc)/i, '')
-            .replace(/order by.*(?=limit)/i, '')
-            .replace(/order by.*/i, '')
-            .replace(/;\s*$/, '')
+            .replace(/order\s+by.*(asc|desc)/i, '')
+            .replace(/order\s+by.*(?=limit)/i, '')
+            .replace(/order\s+by.*/i, '')
 
           if (/\bgroup\s+by\b/i.test(sql)) {
             totalSql = `select count(*) as count from ( ${totalSql} ) lrq2019`
@@ -176,11 +176,9 @@ async function getRowAndColumns({
     }
   }
 
-  // console.log('id: ', id, sql, dbMap[id], isMysql({ id }))
   if (isMysql({ id })) {
     const data = await query({ sql, opt: { type: QueryTypes.SELECT }, id })
     res.rows = data
-    // console.log('data: ', data)
 
     if (!data.length) {
       res.columns = await getColums({ tableName, schema, id, dbName })
