@@ -208,7 +208,12 @@ async function getExportData({ sql, id }) {
 }
 
 // tableName: parseKeys[1], type: 1, schema: parseKeys[2], dbName: parseKeys[3] sql: ''
+async function getDDL(data) {
+  return Postgres.getDDL(data)
+}
+
 async function getTableData(data) {
+  // await Postgres.getDDL(data)
   if (/(select\s+pg_terminate_backend)\(/i.test(data.sql)) {
     return query({ sql: data.sql, id: data.id })
   }
@@ -687,5 +692,6 @@ export {
   getIndexs,
   editIndex,
   editTable,
-  getExportData
+  getExportData,
+  getDDL
 }

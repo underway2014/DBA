@@ -38,7 +38,8 @@ export const SliderRightMenu = {
 export const TableMenu = {
   EDITINDEX: 10,
   DROPTABLE: 20,
-  TRUNCATE: 21
+  TRUNCATE: 21,
+  SHOWDDL: 30
 }
 
 // export const RolePermissionKey = [
@@ -73,4 +74,5 @@ export const RolePermissionMap = {
 
 // export const RolePermssionKey = Object.keys(RolePermissionMap)
 
-console.log(RolePermissionMap['rolcanlogin'])
+export const PGKEYS =
+  /\b(select|begin|commit|VALUES|comment|public\.|PARTITION\s+OF|FOR\s+VALUES|SERIAL|CREATE\s+TABLE|PARTITION\s+BY\s+RANGE|PRIMARY\s+KEY|RENAME\s+TO|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi

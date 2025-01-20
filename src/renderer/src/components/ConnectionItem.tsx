@@ -451,6 +451,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       key: 10
     },
     {
+      label: 'Show DDL',
+      key: 30
+    },
+    {
       type: 'divider'
     },
     {
@@ -677,6 +681,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         tableName: keys[1],
         connection: props.connection,
         type: 3,
+        schema: keys[2],
+        dbName: keys[3]
+      })
+    } else if (+e.key === TableMenu.SHOWDDL) {
+      props.getTableDataByName({
+        id: keys[4],
+        tableName: keys[1],
+        connection: props.connection,
+        type: 5,
         schema: keys[2],
         dbName: keys[3]
       })

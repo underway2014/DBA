@@ -109,6 +109,29 @@ export default class Postgres {
     }
   }
 
+  static async getDDL({ connection, tableName, schema }) {
+    // ./pg_dump -U postgres -h 127.0.0.1 -d postgres -t game_bet --schema-only
+    const pgPath = await Common.getPostgresToolPath({ type: 2 })
+
+    tableName = `${schema}.${tableName}`
+
+    const res = await execa({
+      env: { PGPASSWORD: connection.config.password }
+    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-t', tableName, '--schema-only']}`
+
+    // console.log('get DDL: ', JSON.stringify(res, null, 2))
+
+    const sql = res.stdout.match(/CREATE([^;]*);/i)[0]
+    const comments = res.stdout.match(/COMMENT ON COLUMN [^;]+;/gi)
+
+    return `${sql}\n\n${comments?.length ? comments.join('\n') : ''}`
+
+    // const regex = /--\n-- Name[^;]+--[^;]+;/g
+    // const result = res.stdout.replace(regex, '')
+
+    // return result
+  }
+
   static async backup({ connection }) {
     initDb({ id: connection.id, config: connection.config })
 
@@ -166,7 +189,12 @@ export default class Postgres {
     }
 
     if (defaltValue) {
-      sql = `${sql} default ${defaltValue}`
+      if (/nextval/.test(defaltValue)) {
+        // a.replace(/(nextval\(|:|regclass\)|')/ig, '')
+        const nextSql = `ALTER SEQUENCE game_bet_id_seq1 RENAME TO game_bet_id_seq`
+      } else {
+        sql = `${sql} default ${defaltValue}`
+      }
     }
 
     const res = await query({ sql, id })

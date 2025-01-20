@@ -4,7 +4,8 @@ import {
   UnorderedListOutlined,
   EditOutlined,
   HighlightOutlined,
-  UserOutlined
+  UserOutlined,
+  ConsoleSqlOutlined
 } from '@ant-design/icons'
 
 import List from './List'
@@ -12,6 +13,7 @@ import EditTable from './EditTable'
 import EditIndex from './EditIndex'
 import { IGetTabData } from '@renderer/interface'
 import EditRolePermission from './EditRolePermission'
+import DdlSql from './DdlSql'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string
 type TabItem = {
@@ -134,6 +136,15 @@ const TabelContent: React.FC = (_, parentRef) => {
         label: genTabTitle({ title: data.roleName, key: newActiveKey }),
         icon: <UserOutlined />,
         children: <EditRolePermission connection={data}></EditRolePermission>,
+        key: newActiveKey
+      })
+    } else if (data.type === 5) {
+      console.log('tab data: ', data)
+      //edit role
+      newItems.push({
+        label: genTabTitle({ title: `${data.tableName}_DDL`, key: newActiveKey }),
+        icon: <ConsoleSqlOutlined />,
+        children: <DdlSql tabData={data}></DdlSql>,
         key: newActiveKey
       })
     }

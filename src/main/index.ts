@@ -26,6 +26,7 @@ import {
   editSchema,
   editTable,
   getColums,
+  getDDL,
   getIndexs,
   getRolePermission,
   getRoles,
@@ -208,6 +209,9 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('db:delrole', (_, val) => {
     return delRole(val)
+  })
+  ipcMain.handle('db:getddl', (_, val) => {
+    return getDDL(val)
   })
 
   createWindow()

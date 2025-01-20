@@ -91,6 +91,9 @@ const api = {
   },
   delRole: (val) => {
     return ipcRenderer.invoke('db:delrole', val)
+  },
+  getDDL: (val) => {
+    return ipcRenderer.invoke('db:getddl', val)
   }
 }
 

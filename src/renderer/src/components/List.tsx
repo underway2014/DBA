@@ -11,7 +11,7 @@ import {
   DownloadOutlined,
   SaveOutlined
 } from '@ant-design/icons'
-import { LogAction, LogType } from '@renderer/utils/constant'
+import { LogAction, LogType, PGKEYS } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
 import AddRowForm from './AddRowForm'
 import { addLog } from '@renderer/utils/logHelper'
@@ -32,9 +32,6 @@ interface DataType {
 type CustomProps = {
   tabData: IGetTabData
 }
-
-const pgKeyWords =
-  /\b(select|begin|commit|VALUES|PARTITION\s+OF|FOR\s+VALUES|SERIAL|CREATE\s+TABLE|PARTITION\s+BY\s+RANGE|PRIMARY\s+KEY|RENAME\s+TO|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections)\b/gi
 
 const DataList: React.FC<CustomProps> = (props) => {
   const { logList, setLogList, isDark } = useContext(CustomContext)
@@ -433,7 +430,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
     }
   }
-  const onChange = (value) => setSqlTxt(value)
+  const onChange = (value) => setSqlTxt(value || '')
   const sqlRemarkChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     console.log('Change:', e.target.value)
     setSqlNote(e.target.value)
@@ -452,10 +449,11 @@ const DataList: React.FC<CustomProps> = (props) => {
       >
         <HighlightWithinTextarea
           value={sqlTxt}
+          placeholder=""
           onChange={onChange}
           highlight={[
             {
-              highlight: pgKeyWords,
+              highlight: PGKEYS,
               className: 'chighlight'
             }
           ]}

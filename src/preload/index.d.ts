@@ -32,6 +32,7 @@ interface ApiFunction {
   grantRolePermission: (val) => DBReturn
   getRolePermission: (val) => DBReturn
   delRole: (val) => DBReturn
+  getDDL: (val) => DBReturn
 }
 
 declare global {

@@ -51,6 +51,8 @@ type CustomProps = {
 }
 
 const EditTable: React.FC<CustomProps> = (props) => {
+  const [isloading, setIsloading] = useState(true)
+
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,
@@ -103,6 +105,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
 
   useEffect(() => {
+    console.log('get aaa: ', JSON.stringify(props.tabData, null, 2))
     getTableData()
   }, [])
 
@@ -113,7 +116,14 @@ const EditTable: React.FC<CustomProps> = (props) => {
         sql
       })
       .then((data) => {
-        updateList({ listData: data, tableName: props.tabData.tableName })
+        updateList({
+          listData: data,
+          tableName: props.tabData.tableName
+        })
+        setIsloading(false)
+      })
+      .catch((error) => {
+        setIsloading(false)
       })
   }
 
@@ -317,6 +327,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
       <Table
         scroll={{ x: 'max-content' }}
         size="small"
+        loading={isloading}
         pagination={false}
         rowSelection={rowSelection}
         columns={columns}

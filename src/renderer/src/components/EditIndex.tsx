@@ -51,7 +51,6 @@ type CustomProps = {
 }
 
 const EditIndex: React.FC<CustomProps> = (props) => {
-  console.log('EditIndex: ', props.tabData)
   const [alterModal, setAlterModal] = useState({
     add: false,
     alter: false,
@@ -60,6 +59,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
   })
 
   const { logList, setLogList } = useContext(CustomContext)
+  const [isloading, setIsloading] = useState(true)
 
   const inputRef = useRef(null)
   const [tableName, setTableName] = useState(props.tabData.tableName)
@@ -78,17 +78,17 @@ const EditIndex: React.FC<CustomProps> = (props) => {
   function getTableData() {
     // { id: keys[4], schema: keys[2], tableNmae: keys[1] }
     window.api.getIndexs(props.tabData).then((data) => {
-      console.log('getindexs res: ', data)
       updateList({ listData: data, tableName: props.tabData.tableName })
+      setIsloading(false)
     })
 
     window.api.getColums(props.tabData).then((data) => {
-      console.log('getColums res: ', data)
       setTableColumns(
         data.map((el) => {
           return { value: el.column_name || el.name }
         })
       )
+      setIsloading(false)
     })
   }
 
@@ -267,6 +267,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
         scroll={{ x: 'max-content' }}
         size="small"
         pagination={false}
+        loading={isloading}
         rowSelection={rowSelection}
         columns={columns}
         dataSource={listRows}
