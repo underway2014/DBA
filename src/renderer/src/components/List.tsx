@@ -9,7 +9,8 @@ import {
   PlusOutlined,
   ExclamationCircleFilled,
   DownloadOutlined,
-  SaveOutlined
+  SaveOutlined,
+  AlignCenterOutlined
 } from '@ant-design/icons'
 import { LogAction, LogType, PGKEYS } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
@@ -17,6 +18,7 @@ import AddRowForm from './AddRowForm'
 import { addLog } from '@renderer/utils/logHelper'
 import HighlightWithinTextarea from 'react-highlight-within-textarea'
 import { IGetTabData } from '@renderer/interface'
+import { format } from 'sql-formatter'
 
 const { confirm } = Modal
 
@@ -114,15 +116,19 @@ const DataList: React.FC<CustomProps> = (props) => {
     }
 
     listData.rows.forEach(
-      (el) => (el.key = `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+      (el) => (el.key = el.id || `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
     )
 
     listData.rows.forEach((el) => {
       Object.keys(el).forEach((key) => {
-        if (el[key] && typeof el[key] === 'object') {
+        if (el[key] === null || el[key] === undefined) {
+          el[key] = ''
+        } else if (typeof el[key] === 'object') {
           el[key] = JSON.stringify(el[key])
         } else if (typeof el[key] === 'boolean') {
           el[key] = el[key] ? 'true' : 'false'
+        } else {
+          el[key] = String(el[key])
         }
       })
     })
@@ -372,6 +378,16 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
   }
 
+  function formatSql() {
+    const formatRes = format(sqlTxt, {
+      language: 'postgresql',
+      tabWidth: 2,
+      keywordCase: 'upper',
+      linesBetweenQueries: 2
+    })
+    setSqlTxt(formatRes)
+  }
+
   function delRow() {
     // if (!selectedRowKeys.length) {
     //     <Alert
@@ -387,11 +403,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       icon: <ExclamationCircleFilled />,
       content: '',
       onOk() {
-        const delIds = selectedRowKeys.map((el) => {
-          const val = listRows.rows.find((a) => a.key === el)
-
-          return val.id
-        })
+        const delIds = selectedRowKeys
 
         window.api
           .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName })
@@ -474,6 +486,9 @@ const DataList: React.FC<CustomProps> = (props) => {
               icon={<DeleteOutlined />}
               onClick={delRow}
             />
+          </Tooltip>
+          <Tooltip title="sql format">
+            <Button size="small" icon={<AlignCenterOutlined />} onClick={formatSql} />
           </Tooltip>
           <Tooltip title="export">
             <Button

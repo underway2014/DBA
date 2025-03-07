@@ -147,14 +147,11 @@ async function getRowAndColumns({
         } else {
           totalSql = sql
             .replace(/\n/g, ' ')
-            .replace(/(?<=select).*?(?=from)/i, ' count(*) count ')
             .replace(/order\s+by.*(asc|desc)/i, '')
             .replace(/order\s+by.*(?=limit)/i, '')
             .replace(/order\s+by.*/i, '')
 
-          if (/\bgroup\s+by\b/i.test(sql)) {
-            totalSql = `select count(*) as count from ( ${totalSql} ) lrq2019`
-          }
+          totalSql = `select count(*) as count from ( ${totalSql} ) lrq2019`
         }
 
         const totalRes = await query({ sql: totalSql, id })

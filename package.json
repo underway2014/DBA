@@ -43,6 +43,7 @@
     "pg-hstore": "^2.3.4",
     "react-highlight-within-textarea": "^3.2.2",
     "sequelize": "^6.37.3",
+    "sql-formatter": "^15.4.11",
     "zx": "^8.1.4"
   },
   "devDependencies": {
