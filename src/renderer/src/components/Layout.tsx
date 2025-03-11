@@ -127,10 +127,23 @@ const CLayout: React.FC = () => {
     }
   }
 
+  function logRightmenuHandler(e) {
+    e.domEvent.stopPropagation()
+
+    setLogList([])
+  }
+
   const items: MenuProps['items'] = [
     {
       label: 'Add Connection',
       key: '5'
+    }
+  ]
+
+  const logRightItems: MenuProps['items'] = [
+    {
+      label: 'Clear',
+      key: '1'
     }
   ]
 
@@ -385,26 +398,33 @@ const CLayout: React.FC = () => {
           </Layout>
 
           <Drawer title={`LOG`} placement="right" size={'large'} onClose={logClose} open={logOpen}>
-            <List
-              size="small"
-              // bordered
-              dataSource={logList}
-              renderItem={(item) => {
-                return (
-                  <div style={{ fontSize: 14 }}>
-                    <span>
-                      [{item.type}] [{item.date}] {item.text}
-                    </span>
-                    <span style={{ marginLeft: 10 }}>
-                      {item.affectRows || item.affectRows === 0
-                        ? `AffectRows: ${item.affectRows}`
-                        : ''}
-                    </span>
-                    <span>{item.sql ? <p>SQL: {item.sql}</p> : ''}</span>
-                  </div>
-                )
-              }}
-            />
+            <Dropdown
+              menu={{ items: logRightItems, onClick: logRightmenuHandler }}
+              trigger={['contextMenu']}
+            >
+              <div>
+                <List
+                  size="small"
+                  dataSource={logList}
+                  renderItem={(item) => {
+                    return (
+                      <div style={{ fontSize: 14 }}>
+                        <span style={{ fontWeight: 600 }}>[{item.type}]</span>
+                        <span>
+                          [{item.date}] {item.text}
+                        </span>
+                        <span style={{ marginLeft: 10 }}>
+                          {item.affectRows || item.affectRows === 0
+                            ? `AffectRows: ${item.affectRows}`
+                            : ''}
+                        </span>
+                        <span>{item.sql ? <p>SQL: {item.sql}</p> : ''}</span>
+                      </div>
+                    )
+                  }}
+                />
+              </div>
+            </Dropdown>
           </Drawer>
 
           <Modal

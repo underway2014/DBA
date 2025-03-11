@@ -42,15 +42,6 @@ export const TableMenu = {
   SHOWDDL: 30
 }
 
-// export const RolePermissionKey = [
-//   'rolcanlogin',
-//   'rolcreatedb',
-//   'rolcreaterole',
-//   'rolsuper',
-//   'rolreplication',
-//   'rolinherit'
-// ]
-
 export const RolePermissionVal = [
   'LOGIN', // 允许角色登录
   'SUPERUSER', // 授予超级用户权限
