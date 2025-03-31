@@ -117,7 +117,7 @@ export default class Postgres {
 
     const res = await execa({
       env: { PGPASSWORD: connection.config.password }
-    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-t', tableName, '--schema-only']}`
+    })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-d', connection.config.database, '-t', tableName, '--schema-only']}`
 
     // console.log('get DDL: ', JSON.stringify(res, null, 2))
 
