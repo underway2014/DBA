@@ -8,5 +8,12 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'off'
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {
+        project: ['./tsconfig.web.json', './tsconfig.node.json']
+      }
+    }
   }
 }

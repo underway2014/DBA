@@ -174,7 +174,7 @@ export default class Postgres {
     tableName,
     column,
     dataType,
-    defaltValue,
+    defaultValue,
     comment,
     notnull,
     id,
@@ -188,12 +188,12 @@ export default class Postgres {
       sql = `${sql} NOT NULL`
     }
 
-    if (defaltValue) {
-      if (/nextval/.test(defaltValue)) {
+    if (defaultValue) {
+      if (/nextval/.test(defaultValue)) {
         // a.replace(/(nextval\(|:|regclass\)|')/ig, '')
         const nextSql = `ALTER SEQUENCE game_bet_id_seq1 RENAME TO game_bet_id_seq`
       } else {
-        sql = `${sql} default ${defaltValue}`
+        sql = `${sql} default '${defaultValue}'`
       }
     }
 
@@ -229,6 +229,15 @@ export default class Postgres {
     if (data.column !== data.oldValue.column) {
       await query({
         sql: `ALTER TABLE ${data.tableName} RENAME COLUMN ${data.oldValue.column} TO ${data.column}`,
+        id: data.id
+      })
+    }
+
+    if (data.defaultValue !== data.oldValue.defaultValue) {
+      await query({
+        sql: `ALTER TABLE ${data.tableName}
+              ALTER COLUMN ${data.column}
+              SET DEFAULT '${data.defaultValue}'`,
         id: data.id
       })
     }

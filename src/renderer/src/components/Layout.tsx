@@ -357,8 +357,8 @@ const CLayout: React.FC = () => {
                       collapsedWidth="0"
                       // onBreakpoint={(broken) => {}}
                       width={400}
-                    // onCollapse={(collapsed, type) => {}}
-                    // style={{ width: '300px' }}
+                      // onCollapse={(collapsed, type) => {}}
+                      // style={{ width: '300px' }}
                     >
                       {noCons ? (
                         <p

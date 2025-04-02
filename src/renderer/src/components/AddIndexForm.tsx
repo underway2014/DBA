@@ -1,44 +1,47 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
 
-type LayoutType = Parameters<typeof Form>[0]['layout']
-type CustomProps = {
-  editIndex: Function
-  isMysql: boolean
-  columns: Array
+interface IndexFormValues {
+  name: string
+  columns: string[]
+  unique: boolean
+  type: string
 }
 
-const AddIndexForm: React.FC<CustomProps> = (props) => {
-  const [form] = Form.useForm()
-  const [_, setFormLayout] = useState<LayoutType>('horizontal')
-  const { editIndex } = props
-  const onFormLayoutChange = ({ layout }: { layout: LayoutType }) => {
-    setFormLayout(layout)
-  }
+interface CustomProps {
+  editIndex: (values: IndexFormValues) => void
+  isMysql: boolean
+  columns: Array<{ value: string; label: string }>
+  defaultValues?: Partial<IndexFormValues>
+}
 
-  const onFinish = (values) => {
-    editIndex(form.getFieldsValue())
+const AddIndexForm: React.FC<CustomProps> = ({ editIndex, isMysql, columns, defaultValues }) => {
+  const [form] = Form.useForm<IndexFormValues>()
 
+  const onFinish = () => {
+    const values = form.getFieldsValue()
+    editIndex(values)
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => { }
+  const onFinishFailed = () => {
+    // 可以添加错误处理逻辑
+  }
 
-  form.setFieldsValue(props.defautValues)
-  const IndexTypeOptions = props.isMysql
+  if (defaultValues) {
+    form.setFieldsValue(defaultValues)
+  }
+
+  const IndexTypeOptions = isMysql
     ? [{ value: 'btree' }, { value: 'hash' }, { value: 'rtree' }]
     : [
-      { value: 'btree' },
-      { value: 'hash' },
-      { value: 'gist' },
-      { value: 'spgist' },
-      { value: 'gin' },
-      { value: 'brin' }
-    ]
-
-  const handleChange = (value: string[]) => {
-    console.log(`selected ${value}`)
-  }
+        { value: 'btree' },
+        { value: 'hash' },
+        { value: 'gist' },
+        { value: 'spgist' },
+        { value: 'gin' },
+        { value: 'brin' }
+      ]
 
   return (
     <Form
@@ -49,37 +52,39 @@ const AddIndexForm: React.FC<CustomProps> = (props) => {
       layout="horizontal"
       initialValues={{ type: 'btree' }}
       form={form}
-      onValuesChange={onFormLayoutChange}
       style={{ maxWidth: 700 }}
     >
       <Form.Item label="name" name="name" rules={[{ required: true }]}>
-        <Input placeholder="" />
+        <Input placeholder="Please input index name" />
       </Form.Item>
+
       <Form.Item label="columns" name="columns" rules={[{ required: true }]}>
         <Select
           mode="multiple"
           allowClear
           style={{ width: '100%' }}
-          placeholder="Please select"
-          // defaultValue={['a10', 'c12']}
-          onChange={handleChange}
-          options={props.columns}
+          placeholder="Please select columns"
+          options={columns}
         />
       </Form.Item>
-      <Form.Item label="unique" name="unique">
+
+      <Form.Item label="unique" name="unique" valuePropName="checked">
         <Switch />
       </Form.Item>
+
       <Form.Item label="type" name="type">
         <Select
           allowClear
           style={{ width: '100%' }}
-          // defaultValue="btree"
-          onChange={handleChange}
+          placeholder="Please select index type"
           options={IndexTypeOptions}
         />
       </Form.Item>
+
       <Form.Item wrapperCol={{ span: 14, offset: 4 }}>
-        <Button htmlType="submit">Submit</Button>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
       </Form.Item>
     </Form>
   )

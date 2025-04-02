@@ -65,29 +65,50 @@ const EditTable: React.FC<CustomProps> = (props) => {
   const columnsStr =
     props.tabData.connection?.config.dialect === 'postgres'
       ? [
-        'column_name',
-        'data_type',
-        'column_default',
-        'is_nullable',
-        'character_maximum_length',
-        'numeric_precision',
-        'numeric_precision_radix',
-        'udt_name'
-      ]
+          'column_name',
+          'data_type',
+          'column_default',
+          'is_nullable',
+          'character_maximum_length',
+          'numeric_precision',
+          'numeric_precision_radix',
+          'udt_name'
+        ]
       : ['COLUMN_NAME', 'DATA_TYPE', 'IS_NULLABLE', 'COLUMN_DEFAULT', 'COLUMN_KEY'].map((el) =>
-        el.toLowerCase()
-      )
+          el.toLowerCase()
+        )
 
   const inputRef = useRef(null)
+  // SELECT
+  //     ${columnsStr}
+  // FROM
+  // information_schema.columns
+  // WHERE
+  // table_name = '${props.tabData.tableName}' LIMIT 500
   const sql =
     props.tabData.connection?.config.dialect === 'postgres'
       ? `
-  SELECT
-      ${columnsStr}
-  FROM
-  information_schema.columns
-  WHERE
-  table_name = '${props.tabData.tableName}' LIMIT 500
+      SELECT
+      column_name,
+          data_type,
+          column_default,
+          is_nullable,
+          character_maximum_length,
+          numeric_precision,
+          numeric_precision_radix,
+          udt_name,
+            CASE
+                WHEN column_default IS NULL THEN NULL
+                ELSE TRIM(BOTH '''' FROM REGEXP_REPLACE(column_default, '::[^)]+$', ''))
+            END as column_default
+        FROM
+            information_schema.columns
+        WHERE
+            table_schema = '${props.tabData.schema}'
+            AND table_name = '${props.tabData.tableName}'
+        ORDER BY
+            ordinal_position
+        limit 500
   `
       : `
   SELECT ${columnsStr.map((el) => `LOWER(${el}) as ${el.toLowerCase()}`)}
@@ -166,6 +187,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
   }
 
   function editHandler(record) {
+    console.log('editHandler: ', record, alterModal)
     setAlterModal({
       ...alterModal,
       alter: true,
@@ -253,7 +275,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
           setListRows(leftRows)
         })
       },
-      onCancel() { }
+      onCancel() {}
     })
   }
 
