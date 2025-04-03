@@ -66,4 +66,4 @@ export const RolePermissionMap = {
 // export const RolePermssionKey = Object.keys(RolePermissionMap)
 
 export const PGKEYS =
-  /\b(select|as|begin|commit|VALUES|comment|public\.|PARTITION\s+OF|FOR\s+VALUES|SERIAL|CREATE\s+TABLE|PARTITION\s+BY\s+RANGE|PRIMARY\s+KEY|RENAME\s+TO|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections|sum)\b/gi
+  /\b(select|as|begin|case|when|then|else|end|with|coalesce|filter|=|commit|VALUES|comment|public\.|PARTITION\s+OF|FOR\s+VALUES|SERIAL|CREATE\s+TABLE|PARTITION\s+BY\s+RANGE|PRIMARY\s+KEY|RENAME\s+TO|from|order\s+by|inner\s+join|and|join|right\s+join|left\s+join|union\s+all|drop\scolumn|modify\scolumn|limit|offset|asc|desc|group\s+by|pg_terminate_backend|alter\s+table|nextval|alter|SEQUENCE|column|on|update|set|insert\s+into|delete\s+from|where|count|show\s+max_connections|sum)\b/gi
