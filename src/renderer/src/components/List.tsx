@@ -68,6 +68,7 @@ const DataList: React.FC<CustomProps> = (props) => {
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
+        console.log('getTableData data: ', data)
         if (/^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+nextval)/i.test(sqlTxt)) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
@@ -116,7 +117,8 @@ const DataList: React.FC<CustomProps> = (props) => {
     }
 
     listData.rows.forEach(
-      (el) => (el.key = el.id || `${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
+      (el) =>
+        (el.key = `${el.id ? el.id : ''}_${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
     )
 
     listData.rows.forEach((el) => {
@@ -425,7 +427,7 @@ const DataList: React.FC<CustomProps> = (props) => {
             addDbError({ error })
           })
       },
-      onCancel() { }
+      onCancel() {}
     })
   }
 
