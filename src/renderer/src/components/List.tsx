@@ -69,7 +69,9 @@ const DataList: React.FC<CustomProps> = (props) => {
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
         console.log('getTableData data: ', data)
-        if (/^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+nextval)/i.test(sqlTxt)) {
+        if (
+          /^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+nextval|with\s+)/i.test(sqlTxt)
+        ) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })
         } else {

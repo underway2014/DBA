@@ -230,7 +230,7 @@ async function getTableData(data) {
     }
   }
 
-  if (/^\s*select\b/i.test(data.sql)) {
+  if (/^\s*(select|with)\b/i.test(data.sql)) {
     return getRowAndColumns({
       sql: data.sql,
       total: data.total,
