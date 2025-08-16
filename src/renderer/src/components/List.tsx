@@ -64,13 +64,15 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   function getAndUpdateTable({ page, pageSize } = {}) {
     setIsloading(true)
-    console.log('props.tabData: ', props.tabData)
+    console.log('props.tabData: ', props.tabData, sqlTxt)
     window.api
       .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
       .then((data) => {
         console.log('getTableData data: ', data)
         if (
-          /^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+nextval|with\s+)/i.test(sqlTxt)
+          /^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+pg_terminate_backend|SELECT\s+pg_cancel_backend|select\s+now\(|select\s+nextval|with\s+)/i.test(
+            sqlTxt
+          )
         ) {
           const tableName = getTableName(sqlTxt)
           updateList({ listData: data, tableName: tableName, page, pageSize })

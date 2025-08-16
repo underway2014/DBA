@@ -21,6 +21,7 @@ type QueryType = {
   config?: IConnection
   sql: string
   opt?: { type?: string; transaction?: Transaction; raw?: boolean }
+  replacements?: { [key: string | number]: unknown }
 }
 
 const dbMap = {}
@@ -71,14 +72,14 @@ function initDb({ id, config }) {
   return obj.db
 }
 
-async function query({ sql, id, opt = {}, config }: QueryType) {
+async function query({ sql, id, opt = {}, config, replacements }: QueryType) {
   const db = initDb({ id, config })
 
   if (/^\s*\b(update|delete)\b/gi.test(sql)) {
     Object.assign(opt, { type: QueryTypes.UPDATE })
   }
 
-  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt })
+  const data = await db.query(sql, { type: QueryTypes.SELECT, ...opt, replacements })
   return data
 }
 
@@ -210,25 +211,38 @@ async function getDDL(data) {
 }
 
 async function getTableData(data) {
-  // await Postgres.getDDL(data)
-  if (/(select\s+pg_terminate_backend)\(/i.test(data.sql)) {
-    return query({ sql: data.sql, id: data.id })
+  if (
+    /(select\s+pg_terminate_backend|SELECT\s+pg_cancel_backend|show\s+max_connections|select\s+nextval\(|select\s+now\()/i.test(
+      data.sql
+    )
+  ) {
+    const rows = await query({ sql: data.sql, id: data.id })
+    console.log('now1: ', JSON.stringify(rows))
+    const columnName = Object.keys(rows[0]).map((el) => {
+      return { name: el }
+    })
+    return {
+      rows,
+      columns: columnName
+    }
   }
+  // if (/select\s+nextval\(/i.test(data.sql)) {
+  //   const rows = await query({ sql: data.sql, id: data.id })
+  //   console.log('now2: ', JSON.stringify(rows))
+  //   return {
+  //     rows,
+  //     columns: [{ name: 'nextval' }]
+  //   }
+  // }
 
-  if (/show\s+max_connections\b/i.test(data.sql)) {
-    const rows = await query({ sql: data.sql, id: data.id })
-    return {
-      rows,
-      columns: [{ name: 'max_connections' }]
-    }
-  }
-  if (/select\s+nextval\(/i.test(data.sql)) {
-    const rows = await query({ sql: data.sql, id: data.id })
-    return {
-      rows,
-      columns: [{ name: 'nextval' }]
-    }
-  }
+  // if (/select\s+now\(/i.test(data.sql)) {
+  //   const rows = await query({ sql: data.sql, id: data.id })
+  //   console.log('now3: ', JSON.stringify(rows))
+  //   return {
+  //     rows,
+  //     columns: [{ name: 'now' }]
+  //   }
+  // }
 
   if (/^\s*(select|with)\b/i.test(data.sql)) {
     return getRowAndColumns({
@@ -248,11 +262,15 @@ async function getTableData(data) {
 
 async function updateOneField({ tableName, dataId, id, field, value }) {
   const sql = `
-    update ${tableName} set ${field} = '${value}'
-    where id = ${dataId}
+    update ${tableName} set ${field} = :value
+    where id = :dataId
     `
+  const replacements = {
+    value: value,
+    dataId: dataId
+  }
 
-  await query({ sql, id, opt: { type: QueryTypes.UPDATE } })
+  await query({ sql, id, opt: { type: QueryTypes.UPDATE }, replacements })
 }
 
 async function updateDate({ tableName, id, dataId, data, type }) {
@@ -260,22 +278,20 @@ async function updateDate({ tableName, id, dataId, data, type }) {
     return updateOneField({ tableName, id, dataId, ...data })
   }
   console.log('updateDate: ', tableName, id, type, dataId, data)
+  const replacements = { id: dataId }
   const updateFields = Object.keys(data)
     .map((key) => {
-      if (Number.isInteger(data[key])) {
-        return `${key} = ${data[key]}`
-      } else {
-        return `${key} = '${data[key]}'`
-      }
+      replacements[key] = data[key]
+      return `${key} = :${key}`
     })
     .join(',')
 
   const sql = `
     update ${tableName} set ${updateFields}
-    where id = ${dataId}
+    where id = :id
     `
 
-  await query({ sql, id })
+  await query({ sql, id, replacements })
 }
 
 // type 1-struct 2-struct and data
@@ -477,7 +493,7 @@ async function createRole({ id, name, password, permissions, validuntil, oldName
 }
 
 async function delRole({ id, roleName }) {
-  const transaction = await dbMap[id].transaction()
+  const transaction = await dbMap[id].db.transaction()
 
   try {
     await revokeAllPermission({ roleName, id, transaction })
@@ -500,7 +516,7 @@ async function editRole({ id, name, password, permissions, validuntil, oldName }
   const roles = await getRoles({ id, roleName: oldName })
   const role = roles[0]
 
-  const transaction = await dbMap[id].transaction()
+  const transaction = await dbMap[id].db.transaction()
 
   try {
     if (!/^\*+\*$/.test(password)) {
@@ -628,7 +644,7 @@ async function grantRolePermission({
     throw new Error(`grant permisson error: role not exist`)
   }
 
-  const transaction = await dbMap[id].transaction()
+  const transaction = await dbMap[id].db.transaction()
   try {
     if (type === 1) {
       await revokeAllPermission({ id, roleName, transaction })
