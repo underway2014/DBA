@@ -391,7 +391,7 @@ const CLayout: React.FC = () => {
               </Splitter.Panel>
               <Splitter.Panel>
                 <Content style={{ height: window.screen.height - 64 - 30 + 'px' }}>
-                  <TabelContent ref={tabsRef}></TabelContent>
+                  <TabelContent ref={tabsRef} setDbInfo={setDbInfo}></TabelContent>
                 </Content>
               </Splitter.Panel>
             </Splitter>

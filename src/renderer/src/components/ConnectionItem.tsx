@@ -278,6 +278,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       props.getTableDataByName({
         id: props.connection.id,
         tableName: parseKeys[1],
+        databaseName: props.connection.config.database,
         type: 1,
         schema: parseKeys[2],
         dbName: parseKeys[3],
@@ -892,12 +893,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
                 props.connection.config.dialect === 'postgres'
                   ? items
                   : [
-                    ...items,
-                    {
-                      label: 'Create table',
-                      key: SliderRightMenu.CREATETABLE
-                    }
-                  ],
+                      ...items,
+                      {
+                        label: 'Create table',
+                        key: SliderRightMenu.CREATETABLE
+                      }
+                    ],
               onClick: (e) => rightMenuHandler(e, nodeData)
             }}
             trigger={['contextMenu']}
@@ -1139,4 +1140,4 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   )
 }
 
-export default ConnectionItem
+export default React.memo(ConnectionItem)

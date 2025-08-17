@@ -578,4 +578,4 @@ const DataList: React.FC<CustomProps> = (props) => {
 }
 
 // export default DataList;
-export default forwardRef(DataList)
+export default React.memo(forwardRef(DataList))

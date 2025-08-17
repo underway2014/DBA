@@ -34,7 +34,7 @@ const defaultPanes = new Array(1).fill(null).map((_, index) => {
   }
 })
 
-const TabelContent: React.FC = (_, parentRef) => {
+const TabelContent: React.FC = (props, parentRef) => {
   const [activeKey, setActiveKey] = useState(defaultPanes[0].key)
   const [items, setItems] = useState<TabItem[]>([])
   const newTabIndex = useRef(0)
@@ -49,7 +49,12 @@ const TabelContent: React.FC = (_, parentRef) => {
   })
 
   const onChange = (key: string) => {
+    console.log('onChange aaa: ', key)
+    const dbInfo = key.split('@')[1].split('#')
     setActiveKey(key)
+    setTimeout(() => {
+      props.setDbInfo(dbInfo)
+    }, 1)
   }
 
   function rightMenuHandler(e, key) {
@@ -103,7 +108,7 @@ const TabelContent: React.FC = (_, parentRef) => {
   }
 
   const addTab = (data: IGetTabData) => {
-    const newActiveKey = `tab${newTabIndex.current++}`
+    const newActiveKey = `tab${newTabIndex.current++}@${data.dbName}#${data.databaseName}#${data.schema}`
     // setItems([...items, { label: 'New Tab', children: 'abcd', key: newActiveKey }]);
 
     console.log('table content data: ', data)
@@ -197,4 +202,4 @@ const TabelContent: React.FC = (_, parentRef) => {
   )
 }
 
-export default forwardRef(TabelContent)
+export default React.memo(forwardRef(TabelContent))
