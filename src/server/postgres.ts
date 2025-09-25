@@ -118,23 +118,15 @@ export default class Postgres {
     const res = await execa({
       env: { PGPASSWORD: connection.config.password }
     })`${pgPath} ${['-U', connection.config.username, '-h', connection.config.host, '-p', connection.config.port, '-d', connection.config.database, '-t', tableName, '--schema-only']}`
-
     let sql = res.stdout.match(/CREATE([^;]*);/i)[0]
     const primaryKey = res.stdout.match(/PRIMARY KEY ([^;]*)/i)[0]
-    console.log('primarykey: ', primaryKey)
-    sql = sql.replace('\n);', `,\n   ${primaryKey}\n);`)
+    sql = sql.replace(/\n\)/, `,\n    ${primaryKey}\n)`)
+
     const comments = res.stdout.match(/COMMENT ON COLUMN [^;]+;/gi)
     // CREATE INDEX name_index ON public.active USING btree (name)
     // CREATE INDEX cycle_status_test_index ON public.active USING btree (cycle, status);
     const indexSql = res.stdout.match(/CREATE INDEX ([^;]*);/gi)
-    return `${sql}\n\n
-    ${indexSql?.length ? indexSql.join('\n') : ''}\n\n
-    ${comments?.length ? comments.join('\n') : ''}`
-
-    // const regex = /--\n-- Name[^;]+--[^;]+;/g
-    // const result = res.stdout.replace(regex, '')
-
-    // return result
+    return `${sql}\n\n${indexSql?.length ? indexSql.join('\n') : ''}\n\n${comments?.length ? comments.join('\n') : ''}\n\n`
   }
 
   static async backup({ connection }) {
