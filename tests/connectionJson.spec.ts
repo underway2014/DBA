@@ -7,7 +7,7 @@ import {
   searchSql,
   changeMode,
   addConnection,
-  delConnection,
+  delConnection
 } from '../src/server/lib/connectionJson'
 
 describe('connectionJson storage', () => {
@@ -15,7 +15,7 @@ describe('connectionJson storage', () => {
     version: '1.0',
     theme: 'light',
     connections: [],
-    sqls: [],
+    sqls: []
   }
 
   beforeEach(() => {
@@ -35,7 +35,19 @@ describe('connectionJson storage', () => {
   })
 
   it('add and delete connection', async () => {
-    addConnection({ data: { name: 'local', config: { host: '127.0.0.1', port: 5432, username: 'u', password: 'p', dialect: 'postgres', database: 'db' } } } as any)
+    addConnection({
+      data: {
+        name: 'local',
+        config: {
+          host: '127.0.0.1',
+          port: 5432,
+          username: 'u',
+          password: 'p',
+          dialect: 'postgres',
+          database: 'db'
+        }
+      }
+    } as any)
     expect(mem.connections.length).toBe(1)
     const key = `connection@local@${mem.connections[0].id}`
     await storeDel({ type: 1, data: key })

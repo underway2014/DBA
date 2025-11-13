@@ -14,14 +14,14 @@ vi.mock('sequelize', () => {
         return [
           [
             { id: 1, name: 'a' },
-            { id: 2, name: 'b' },
+            { id: 2, name: 'b' }
           ],
-          { fields: [{ name: 'id' }, { name: 'name' }] },
+          { fields: [{ name: 'id' }, { name: 'name' }] }
         ]
       }
       return [
         { id: 1, name: 'a' },
-        { id: 2, name: 'b' },
+        { id: 2, name: 'b' }
       ]
     }
     async close() {}
@@ -31,7 +31,7 @@ vi.mock('sequelize', () => {
   }
   return {
     Sequelize: MockSequelize as any,
-    QueryTypes: { SELECT: 'SELECT', RAW: 'RAW', UPDATE: 'UPDATE' },
+    QueryTypes: { SELECT: 'SELECT', RAW: 'RAW', UPDATE: 'UPDATE' }
   }
 })
 
@@ -68,7 +68,15 @@ describe('db query and table data', () => {
     const spy = vi.spyOn(Mysql, 'getColums').mockResolvedValue([{ name: 'id' }, { name: 'name' }])
     const sql = 'select id, name from empty_table'
     const querySpy = vi.spyOn(DB, 'query').mockResolvedValueOnce([] as any)
-    const res = await DB.getTableData({ sql, id, page: 1, pageSize: 5, tableName: 'empty_table', dbName: 'testdb', schema: 'public' })
+    const res = await DB.getTableData({
+      sql,
+      id,
+      page: 1,
+      pageSize: 5,
+      tableName: 'empty_table',
+      dbName: 'testdb',
+      schema: 'public'
+    })
     expect(res.columns).toEqual([{ name: 'id' }, { name: 'name' }])
     querySpy.mockRestore()
   })
@@ -76,10 +84,12 @@ describe('db query and table data', () => {
   it('query sets UPDATE type for update/delete', async () => {
     const id = 'pg2'
     const mod = await import('sequelize')
-    const spy = vi.spyOn((mod as any).Sequelize.prototype, 'query').mockImplementation(async (sql: string, opt: any) => {
-      expect(opt?.type).toBe('UPDATE')
-      return []
-    })
+    const spy = vi
+      .spyOn((mod as any).Sequelize.prototype, 'query')
+      .mockImplementation(async (sql: string, opt: any) => {
+        expect(opt?.type).toBe('UPDATE')
+        return []
+      })
     await DB.query({ id, sql: "update users set name='x'" })
     spy.mockRestore()
   })

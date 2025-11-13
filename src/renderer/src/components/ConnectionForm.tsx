@@ -21,7 +21,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
     addConnection({ ...form.getFieldsValue(), id: props.defautValues?.id })
   }
 
-  const onFinishFailed = (errorInfo) => { }
+  const onFinishFailed = (errorInfo) => {}
 
   const changeHandler = (value) => {
     console.log('db value: ', value)

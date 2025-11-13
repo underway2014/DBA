@@ -232,7 +232,8 @@ const CLayout: React.FC = () => {
       text: 'Here will output some logs',
       type: LogType.NORMAL,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
-      action: LogAction.INIT
+      action: LogAction.INIT,
+      sql: ''
     }
   ])
 
@@ -456,37 +457,37 @@ const CLayout: React.FC = () => {
               setSqlListData({ ...sqlListData, show: false })
             }}
           >
-              <Table
-                columns={[
-                  {
-                    title: <span style={{ fontWeight: 600 }}>Note</span>,
-                    key: 'note',
-                    dataIndex: 'note',
-                    width: 300,
-                    ...getColumnSearchProps('note')
-                  },
-                  {
-                    title: 'Date',
-                    key: 'date',
-                    dataIndex: 'date',
-                    width: 180,
-                    render: (text) => {
-                      return <span>{text ? moment(text).format('YYYY-MM-DD HH:mm:ss') : ''}</span>
-                    }
-                  },
-                  {
-                    title: 'Content',
-                    key: 'content',
-                    dataIndex: 'content',
-                    // ellipsis: true,
-                    render: (text) => {
-                      return (
-                        <Tooltip title={text} overlayStyle={{ maxWidth: '500px' }}>
-                          <span>{text?.substring(0, 70)}</span>
-                        </Tooltip>
-                      )
-                    }
-                  },
+            <Table
+              columns={[
+                {
+                  title: <span style={{ fontWeight: 600 }}>Note</span>,
+                  key: 'note',
+                  dataIndex: 'note',
+                  width: 300,
+                  ...getColumnSearchProps('note')
+                },
+                {
+                  title: 'Date',
+                  key: 'date',
+                  dataIndex: 'date',
+                  width: 180,
+                  render: (text) => {
+                    return <span>{text ? moment(text).format('YYYY-MM-DD HH:mm:ss') : ''}</span>
+                  }
+                },
+                {
+                  title: 'Content',
+                  key: 'content',
+                  dataIndex: 'content',
+                  // ellipsis: true,
+                  render: (text) => {
+                    return (
+                      <Tooltip title={text} overlayStyle={{ maxWidth: '500px' }}>
+                        <span>{text?.substring(0, 70)}</span>
+                      </Tooltip>
+                    )
+                  }
+                },
                 {
                   title: 'Operater',
                   key: 'id',

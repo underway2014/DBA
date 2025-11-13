@@ -6,8 +6,8 @@ describe('Common tools path', () => {
     vi.resetModules()
     vi.mock('electron', () => ({
       app: {
-        getAppPath: () => '/app',
-      },
+        getAppPath: () => '/app'
+      }
     }))
   })
 

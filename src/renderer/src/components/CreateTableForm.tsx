@@ -21,7 +21,7 @@ const CreateTableForm: React.FC<CustomProps> = (props) => {
     form.resetFields()
   }
 
-  const onFinishFailed = (errorInfo) => { }
+  const onFinishFailed = (errorInfo) => {}
 
   return (
     <Form

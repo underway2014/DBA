@@ -211,7 +211,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
             })
           })
       },
-      onCancel() { }
+      onCancel() {}
     })
   }
 

@@ -57,7 +57,7 @@ const CreateMysqlDbForm: React.FC<CustomProps> = (props) => {
     { value: 'binary' }
   ]
 
-  const onFinishFailed = (errorInfo) => { }
+  const onFinishFailed = (errorInfo) => {}
   return (
     <Form
       onFinish={onFinish}

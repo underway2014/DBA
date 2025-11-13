@@ -7,6 +7,10 @@ type ContextOpt = {
   isDark: boolean
 }
 
-const CustomContext = createContext<ContextOpt>({})
+const CustomContext = createContext<ContextOpt>({
+  setLogList: () => {},
+  logList: [],
+  isDark: false
+})
 
 export default CustomContext

@@ -66,7 +66,11 @@ const DataList: React.FC<CustomProps> = (props) => {
     getAndUpdateTable(listRows)
   }, [])
 
-  function getAndUpdateTable({ page, pageSize, overrideSql }: { page?: number; pageSize?: number; overrideSql?: string } = {}) {
+  function getAndUpdateTable({
+    page,
+    pageSize,
+    overrideSql
+  }: { page?: number; pageSize?: number; overrideSql?: string } = {}) {
     setIsloading(true)
     const start = performance.now()
     const curSql = overrideSql || sqlTxt
@@ -77,7 +81,12 @@ const DataList: React.FC<CustomProps> = (props) => {
         if (/^\s*explain\b/i.test(curSql)) {
           let text = ''
           try {
-            if (Array.isArray(data) && data.length && data[0] && (data[0]['QUERY PLAN'] || data[0]['Query Plan'])) {
+            if (
+              Array.isArray(data) &&
+              data.length &&
+              data[0] &&
+              (data[0]['QUERY PLAN'] || data[0]['Query Plan'])
+            ) {
               const v = data[0]['QUERY PLAN'] || data[0]['Query Plan']
               const plan = typeof v === 'string' ? JSON.parse(v) : v
               text = JSON.stringify(plan, null, 2)
@@ -86,7 +95,7 @@ const DataList: React.FC<CustomProps> = (props) => {
             }
           } catch (e) {
             if (Array.isArray(data)) {
-              const lines = data.map((el) => el && (el['QUERY PLAN'] || el['Query Plan']) || '')
+              const lines = data.map((el) => (el && (el['QUERY PLAN'] || el['Query Plan'])) || '')
               text = lines.join('\n')
             } else {
               text = JSON.stringify(data, null, 2)
@@ -504,7 +513,7 @@ const DataList: React.FC<CustomProps> = (props) => {
       })
     }
   }
-  const onChange = (value) => setSqlTxt(value || '')
+  const onChange = (value: string) => setSqlTxt(value || '')
   const sqlRemarkChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     console.log('Change:', e.target.value)
     setSqlNote(e.target.value)

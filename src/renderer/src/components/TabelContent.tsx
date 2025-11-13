@@ -34,7 +34,10 @@ const defaultPanes = new Array(1).fill(null).map((_, index) => {
   }
 })
 
-const TabelContent: React.FC = (props, parentRef) => {
+type TabelContentRef = { updateList: (d: IGetTabData) => void }
+type TabelContentProps = { setDbInfo: (a: string[]) => void }
+
+const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo }, parentRef) => {
   const [activeKey, setActiveKey] = useState(defaultPanes[0].key)
   const [items, setItems] = useState<TabItem[]>([])
   const newTabIndex = useRef(0)
@@ -53,7 +56,7 @@ const TabelContent: React.FC = (props, parentRef) => {
     const dbInfo = key.split('@')[1].split('#')
     setActiveKey(key)
     setTimeout(() => {
-      props.setDbInfo(dbInfo)
+      setDbInfo(dbInfo)
     }, 1)
   }
 
@@ -178,10 +181,10 @@ const TabelContent: React.FC = (props, parentRef) => {
     }
   }
 
-  const renderTabBar: TabsProps['renderTabBar'] = (props, DefaultTabBar) => {
+  const renderTabBar: TabsProps['renderTabBar'] = (tabProps, DefaultTabBar) => {
     return (
-      <div id={props.activeKey} data-a={props.activeKey}>
-        <DefaultTabBar {...props} />
+      <div id={tabProps.activeKey} data-a={tabProps.activeKey}>
+        <DefaultTabBar {...tabProps} />
       </div>
     )
   }
@@ -200,6 +203,7 @@ const TabelContent: React.FC = (props, parentRef) => {
       />
     </div>
   )
-}
+})
+TabelContent.displayName = 'TabelContent'
 
-export default React.memo(forwardRef(TabelContent))
+export default React.memo(TabelContent)
