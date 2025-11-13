@@ -10,6 +10,12 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@main/*": ["src/main/*"],
+      "@renderer/*": ["src/renderer/src/*"]
+    },
     "types": [
       "electron-vite/node"
     ]
