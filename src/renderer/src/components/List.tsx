@@ -10,7 +10,9 @@ import {
   ExclamationCircleFilled,
   DownloadOutlined,
   SaveOutlined,
-  AlignCenterOutlined
+  AlignCenterOutlined,
+  ConsoleSqlOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons'
 import { LogAction, LogType, PGKEYS } from '@renderer/utils/constant'
 import CustomContext from '@renderer/utils/context'
@@ -56,34 +58,74 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [addForm, setAddForm] = useState(false)
   const [addSqlForm, setAddSqlForm] = useState(false)
   const [sqlNote, setSqlNote] = useState('')
+  const [explainOpen, setExplainOpen] = useState(false)
+  const [explainResult, setExplainResult] = useState('')
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   useEffect(() => {
     getAndUpdateTable(listRows)
   }, [])
 
-  function getAndUpdateTable({ page, pageSize } = {}) {
+  function getAndUpdateTable({ page, pageSize, overrideSql }: { page?: number; pageSize?: number; overrideSql?: string } = {}) {
     setIsloading(true)
-    console.log('props.tabData: ', props.tabData, sqlTxt)
+    const start = performance.now()
+    const curSql = overrideSql || sqlTxt
     window.api
-      .getTableData({ ...props.tabData, sql: sqlTxt, page, pageSize })
+      .getTableData({ ...props.tabData, sql: curSql, page, pageSize })
       .then((data) => {
-        console.log('getTableData data: ', data)
-        if (
+        const duration = Math.ceil(performance.now() - start)
+        if (/^\s*explain\b/i.test(curSql)) {
+          let text = ''
+          try {
+            if (Array.isArray(data) && data.length && data[0] && (data[0]['QUERY PLAN'] || data[0]['Query Plan'])) {
+              const v = data[0]['QUERY PLAN'] || data[0]['Query Plan']
+              const plan = typeof v === 'string' ? JSON.parse(v) : v
+              text = JSON.stringify(plan, null, 2)
+            } else {
+              text = JSON.stringify(data, null, 2)
+            }
+          } catch (e) {
+            if (Array.isArray(data)) {
+              const lines = data.map((el) => el && (el['QUERY PLAN'] || el['Query Plan']) || '')
+              text = lines.join('\n')
+            } else {
+              text = JSON.stringify(data, null, 2)
+            }
+          }
+          setExplainResult(text)
+          setExplainOpen(true)
+          addLog({
+            type: LogType.SUCCESS,
+            logList,
+            setLogList,
+            sql: curSql,
+            text: `success (${duration}ms)`,
+            action: LogAction.EDITTABLE
+          })
+        } else if (
           /^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+pg_terminate_backend|SELECT\s+pg_cancel_backend|select\s+now\(|select\s+nextval|with\s+)/i.test(
-            sqlTxt
+            curSql
           )
         ) {
-          const tableName = getTableName(sqlTxt)
+          const tableName = getTableName(curSql)
           updateList({ listData: data, tableName: tableName, page, pageSize })
+          addLog({
+            type: LogType.SUCCESS,
+            logList,
+            setLogList,
+            sql: curSql,
+            affectRows: Array.isArray(data?.rows) ? data.rows.length : null,
+            text: `success (${duration}ms)`,
+            action: LogAction.EDITTABLE
+          })
         } else {
           addLog({
             type: LogType.SUCCESS,
             logList,
             setLogList,
-            sql: sqlTxt,
+            sql: curSql,
             affectRows: data?.length > 1 ? data[1] : null,
-            text: 'success',
+            text: `success (${duration}ms)`,
             action: LogAction.EDITTABLE
           })
         }
@@ -93,7 +135,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         addLog({
           type: LogType.ERROR,
           logList,
-          sql: sqlTxt,
+          sql: curSql,
           setLogList,
           text: err.message,
           action: LogAction.EDITTABLE
@@ -275,6 +317,20 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   function runSql() {
     sqlHandler()
+  }
+
+  function runExplain() {
+    const s = sqlTxt.trim()
+    if (!s) return
+    const explainSql = `EXPLAIN ${s}`
+    getAndUpdateTable({ overrideSql: explainSql })
+  }
+
+  function runAnalyze() {
+    const s = sqlTxt.trim()
+    if (!s) return
+    const explainSql = `EXPLAIN ANALYZE ${s}`
+    getAndUpdateTable({ overrideSql: explainSql })
   }
 
   function addRow() {
@@ -482,6 +538,12 @@ const DataList: React.FC<CustomProps> = (props) => {
           <Tooltip title="run">
             <Button size="small" icon={<CaretRightOutlined />} onClick={runSql} />
           </Tooltip>
+          <Tooltip title="explain">
+            <Button size="small" icon={<ConsoleSqlOutlined />} onClick={runExplain} />
+          </Tooltip>
+          <Tooltip title="analyze">
+            <Button size="small" icon={<ExperimentOutlined />} onClick={runAnalyze} />
+          </Tooltip>
           <Tooltip title="add">
             <Button size="small" icon={<PlusOutlined />} onClick={addRow} />
           </Tooltip>
@@ -535,6 +597,15 @@ const DataList: React.FC<CustomProps> = (props) => {
         ref={inputRef}
       />
 
+      <Modal
+        title="Execution Plan"
+        open={explainOpen}
+        onOk={() => setExplainOpen(false)}
+        onCancel={() => setExplainOpen(false)}
+        width={900}
+      >
+        <TextArea rows={16} value={explainResult} readOnly />
+      </Modal>
       <Modal title="Edit Data" open={editRow.show} onOk={editRowOk} onCancel={editRowCancel}>
         <TextArea
           rows={4}
