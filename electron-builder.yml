@@ -11,10 +11,17 @@ files:
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!screenshot/*'
+  - '!tests/**'
+  - '!coverage/**'
+  - '!**/*.map'
 asarUnpack:
   - resources/**
+compression: maximum
 win:
   executableName: DBA
+  files:
+    - '!resources/postgres/mac/**'
+    - '!resources/mysql/mac/**'
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -28,6 +35,9 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  files:
+    - '!resources/postgres/win/**'
+    - '!resources/mysql/win/**'
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
 linux:
@@ -37,6 +47,11 @@ linux:
     - deb
   maintainer: electronjs.org
   category: Utility
+  files:
+    - '!resources/postgres/win/**'
+    - '!resources/mysql/win/**'
+    - '!resources/postgres/mac/**'
+    - '!resources/mysql/mac/**'
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
