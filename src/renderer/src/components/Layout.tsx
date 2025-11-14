@@ -324,7 +324,9 @@ const CLayout: React.FC = () => {
           fontSize: 13,
           controlHeight: 28,
           colorBgContainer: isDark ? '#0f0f0f' : '#ffffff',
-          colorText: isDark ? 'rgba(235,235,245,0.86)' : '#1b1b1f'
+          colorText: isDark ? 'rgba(235,235,245,0.86)' : '#1b1b1f',
+          fontFamily:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif'
         },
         components: {
           Table: {

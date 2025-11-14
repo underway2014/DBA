@@ -5,6 +5,18 @@ body {
   /* background-color: white; */
 }
 
+/* Force safe font stack to avoid CoreText .PingFangSC-Regular warnings */
+body,
+.ant-typography,
+.ant-btn,
+.ant-input,
+.ant-table,
+.ant-modal,
+.ant-dropdown,
+.ant-tree {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+}
+
 .chighlight {
   color: #f37bb7;
   background-color: transparent;
