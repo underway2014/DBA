@@ -180,8 +180,9 @@ const DataList: React.FC<CustomProps> = (props) => {
 
     listData.rows.forEach((el) => {
       Object.keys(el).forEach((key) => {
-        if (el[key] === null || el[key] === undefined) {
-          el[key] = ''
+        if (el[key] === undefined) {
+          el[key] = null
+        } else if (el[key] === null) {
         } else if (typeof el[key] === 'object') {
           el[key] = JSON.stringify(el[key])
         } else if (typeof el[key] === 'boolean') {
@@ -212,25 +213,42 @@ const DataList: React.FC<CustomProps> = (props) => {
             width: 100,
             render: (address, a) => {
               if (el.name === 'id') return address
-              if (!address) address = ''
-              let s = address
-              if (address.length > 50) {
-                s = address.substring(0, 45) + '...  '
+              if (address === null) {
+                const color = isDark ? 'rgba(235, 235, 245, 0.38)' : '#999'
+                return (
+                  <div className="cellHover">
+                    <span style={{ color, fontStyle: 'italic' }}>NULL</span>
+                    <div
+                      className="cellPlus"
+                      onClick={(e) => showEditCell(e, { content: 'NULL', id: a.id, field: el.name })}
+                    >
+                      <EditOutlined />
+                    </div>
+                  </div>
+                )
+              }
+              let s = address || ''
+              if (typeof s === 'string') {
+                s = stripQuotesIfDate(s)
+              }
+              if (s.length > 50) {
+                s = s.substring(0, 45) + '...  '
               }
               return (
                 <div className="cellHover">
                   {s}
-
-                  {
-                    <div
-                      className="cellPlus"
-                      onClick={(e) =>
-                        showEditCell(e, { content: address, id: a.id, field: el.name })
+                  <div
+                    className="cellPlus"
+                    onClick={(e) => {
+                      let content = address || ''
+                      if (typeof content === 'string') {
+                        content = stripQuotesIfDate(content)
                       }
-                    >
-                      <EditOutlined />
-                    </div>
-                  }
+                      showEditCell(e, { content, id: a.id, field: el.name })
+                    }}
+                  >
+                    <EditOutlined />
+                  </div>
                 </div>
               )
             }
@@ -293,11 +311,15 @@ const DataList: React.FC<CustomProps> = (props) => {
     }
 
     console.log('edit row: ', props.tabData)
+    let val: any = editRow.data.content
+    if (typeof val === 'string' && /^\s*NULL\s*$/i.test(val)) {
+      val = null
+    }
     window.api
       .updateDate({
         tableName: tableName,
         dataId: editRow.data.id,
-        data: { field: editRow.data.field, value: editRow.data.content },
+        data: { field: editRow.data.field, value: val },
         type: 2,
         id: props.tabData.id
       })
@@ -663,3 +685,13 @@ const DataList: React.FC<CustomProps> = (props) => {
 
 // export default DataList;
 export default React.memo(forwardRef(DataList))
+  function stripQuotesIfDate(text: string) {
+    if (!text) return text || ''
+    const m = text.match(/^(["'])(.*)\1$/)
+    if (!m) return text
+    const inner = m[2]
+    const isDate = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/.test(
+      inner
+    )
+    return isDate ? inner : text
+  }
