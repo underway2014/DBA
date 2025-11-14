@@ -282,7 +282,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         type: 1,
         schema: parseKeys[2],
         dbName: parseKeys[3],
-        sql
+        sql,
+        connection: props.connection
       })
     }
   }
@@ -486,6 +487,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     {
       label: 'Add Schema',
       key: 10
+    },
+    {
+      type: 'divider'
+    },
+    {
+      label: 'Open Sql',
+      key: 30
     }
   ]
 
@@ -539,7 +547,21 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     e.domEvent.stopPropagation()
 
     rightClickNodeRef.current.nodeData = nodeData
-    toggleForm('schema', true)
+    if (+e.key === 30) {
+      props.getTableDataByName({
+        id: props.connection.id,
+        type: 1,
+        schema:
+          props.connection.config.dialect === 'postgres'
+            ? 'public'
+            : props.connection.config.database,
+        dbName: props.connection.config.database,
+        tableName: `SQL`,
+        connection: props.connection
+      })
+    } else {
+      toggleForm('schema', true)
+    }
   }
 
   function roleRightHandler(e, nodeData) {
@@ -597,6 +619,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
     } else if (+e.key === 20) {
       toggleForm('table', true)
+    } else if (+e.key === 30) {
+      props.getTableDataByName({
+        id: props.connection.id,
+        type: 1,
+        schema: keys[1],
+        dbName: props.connection.config.database,
+        tableName: `SQL(${keys[1]})`
+      })
     }
   }
 

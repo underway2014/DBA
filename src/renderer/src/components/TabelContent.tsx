@@ -116,23 +116,24 @@ const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo
 
     console.log('table content data: ', data)
     const newItems = [...items]
+    const connName = data.connection?.name || data.dbName || ''
     if (data.type === 1) {
       newItems.push({
-        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        label: genTabTitle({ title: connName ? `${data.tableName} (${connName})` : data.tableName, key: newActiveKey }),
         icon: <UnorderedListOutlined />,
         children: <List tabData={data}></List>,
         key: newActiveKey
       })
     } else if (data.type === 2) {
       newItems.push({
-        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        label: genTabTitle({ title: connName ? `${data.tableName} (${connName})` : data.tableName, key: newActiveKey }),
         icon: <EditOutlined />,
         children: <EditTable tabData={data}></EditTable>,
         key: newActiveKey
       })
     } else if (data.type === 3) {
       newItems.push({
-        label: genTabTitle({ title: data.tableName, key: newActiveKey }),
+        label: genTabTitle({ title: connName ? `${data.tableName} (${connName})` : data.tableName, key: newActiveKey }),
         icon: <HighlightOutlined />,
         children: <EditIndex tabData={data}></EditIndex>,
         key: newActiveKey
@@ -141,7 +142,7 @@ const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo
       console.log('tab data: ', data)
       //edit role
       newItems.push({
-        label: genTabTitle({ title: data.roleName, key: newActiveKey }),
+        label: genTabTitle({ title: connName ? `${data.roleName} (${connName})` : data.roleName, key: newActiveKey }),
         icon: <UserOutlined />,
         children: <EditRolePermission connection={data}></EditRolePermission>,
         key: newActiveKey
@@ -150,7 +151,7 @@ const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo
       console.log('tab data: ', data)
       //edit role
       newItems.push({
-        label: genTabTitle({ title: `${data.tableName}_DDL`, key: newActiveKey }),
+        label: genTabTitle({ title: connName ? `${data.tableName}_DDL (${connName})` : `${data.tableName}_DDL`, key: newActiveKey }),
         icon: <ConsoleSqlOutlined />,
         children: <DdlSql tabData={data}></DdlSql>,
         key: newActiveKey

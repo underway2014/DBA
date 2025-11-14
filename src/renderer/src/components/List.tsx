@@ -63,7 +63,9 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   useEffect(() => {
-    getAndUpdateTable(listRows)
+    if (sqlTxt && sqlTxt.trim()) {
+      getAndUpdateTable(listRows)
+    }
   }, [])
 
   function getAndUpdateTable({
@@ -75,7 +77,7 @@ const DataList: React.FC<CustomProps> = (props) => {
     const start = performance.now()
     const curSql = overrideSql || sqlTxt
     window.api
-      .getTableData({ ...props.tabData, sql: curSql, page, pageSize })
+      .getTableData({ ...props.tabData, sql: curSql, page, pageSize, schema: currentSchema })
       .then((data) => {
         const duration = Math.ceil(performance.now() - start)
         if (/^\s*explain\b/i.test(curSql)) {
@@ -137,7 +139,8 @@ const DataList: React.FC<CustomProps> = (props) => {
             sql: curSql,
             affectRows: data?.length > 1 ? data[1] : null,
             text: `success (${duration}ms)`,
-            action: LogAction.EDITTABLE
+            action: LogAction.EDITTABLE,
+            toast: !!curSql.trim().length
           })
         }
         setIsloading(false)
@@ -157,6 +160,17 @@ const DataList: React.FC<CustomProps> = (props) => {
 
   const [columns, setColumns] = useState<React.Key[]>([])
 
+  function stripQuotesIfDate(text: string) {
+    if (!text) return text || ''
+    const m = text.match(/^(["'])(.*)\1$/)
+    if (!m) return text
+    const inner = m[2]
+    const isDate = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/.test(
+      inner
+    )
+    return isDate ? inner : text
+  }
+
   function showEditCell(e, data) {
     setEditRow({ data, show: true })
   }
@@ -164,7 +178,7 @@ const DataList: React.FC<CustomProps> = (props) => {
   function updateList({ listData, tableName, page, pageSize }) {
     if (tableName) {
       const a = tableName.split('.')
-      let schema = 'public'
+      let schema = currentSchema || props.tabData.schema || 'public'
       if (a.length > 1) {
         schema = a[0]
         tableName = a[1]
@@ -461,7 +475,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         tableName,
         id: props.tabData.id,
         fields: data,
-        schema: props.tabData.schema
+        schema: currentSchema
       })
       .then(() => {
         if (/^\s*\bselect\b/i.test(sqlTxt)) {
