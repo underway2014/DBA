@@ -544,6 +544,7 @@ const CLayout: React.FC = () => {
               ]}
               // rowSelection={{}}
               dataSource={sqlListData.list}
+              rowKey="id"
             />
           </Modal>
         </CustomContext.Provider>

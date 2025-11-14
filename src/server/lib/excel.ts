@@ -39,7 +39,7 @@ export const exportFile = async function (opt) {
 
   const downPath = path.join(
     app.getPath('downloads'),
-    `dba_${moment().format('YYYYMMDDHHmmss')}.xlsx`
+    `dba_${moment().format('YYYYMMDDHHmmss')}.csv`
   )
 
   await workbook.xlsx.writeFile(downPath)
