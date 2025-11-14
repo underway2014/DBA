@@ -109,7 +109,8 @@ const DataList: React.FC<CustomProps> = (props) => {
             setLogList,
             sql: curSql,
             text: `success (${duration}ms)`,
-            action: LogAction.EDITTABLE
+            action: LogAction.EDITTABLE,
+            toast: false
           })
         } else if (
           /^\s*(SELECT[\s\S]*?FROM|show\s+max_connections|select\s+pg_terminate_backend|SELECT\s+pg_cancel_backend|select\s+now\(|select\s+nextval|with\s+)/i.test(
@@ -125,7 +126,8 @@ const DataList: React.FC<CustomProps> = (props) => {
             sql: curSql,
             affectRows: Array.isArray(data?.rows) ? data.rows.length : null,
             text: `success (${duration}ms)`,
-            action: LogAction.EDITTABLE
+            action: LogAction.EDITTABLE,
+            toast: false
           })
         } else {
           addLog({
@@ -479,7 +481,8 @@ const DataList: React.FC<CustomProps> = (props) => {
         window.api
           .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName })
           .then((data) => {
-            if (/^\s*select/i.test(sqlTxt)) {
+            const needRefresh = /^\s*select/i.test(sqlTxt)
+            if (needRefresh) {
               getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
             }
 
@@ -489,7 +492,8 @@ const DataList: React.FC<CustomProps> = (props) => {
               setLogList,
               affectRows: data?.length > 1 ? data[1] : null,
               text: 'success',
-              action: LogAction.DELETEROWS
+              action: LogAction.DELETEROWS,
+              toast: !needRefresh
             })
           })
           .catch((error) => {
