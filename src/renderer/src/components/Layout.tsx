@@ -103,6 +103,9 @@ const CLayout: React.FC = () => {
       setConnections(res.connections)
       if (res.connections.length) {
         setNoCons(false)
+      } else {
+        setNoCons(true)
+        setData((d) => ({ ...d, connectionForm: true }))
       }
 
       if (res.theme) {

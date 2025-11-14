@@ -217,7 +217,6 @@ async function getTableData(data) {
     )
   ) {
     const rows = await query({ sql: data.sql, id: data.id })
-    console.log('now1: ', JSON.stringify(rows))
     const columnName = Object.keys(rows[0]).map((el) => {
       return { name: el }
     })
