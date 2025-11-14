@@ -26,7 +26,7 @@ type AddRowType = {
   dataType: string
   comment: string
   defaultValue: string
-  notnull: boolean
+  isNullable: boolean
   type?: number
   oldValue?: AddRowType
   schema?: string
@@ -65,18 +65,18 @@ const EditTable: React.FC<CustomProps> = (props) => {
   const columnsStr =
     props.tabData.connection?.config.dialect === 'postgres'
       ? [
-          'column_name',
-          'data_type',
-          'column_default',
-          'is_nullable',
-          'character_maximum_length',
-          'numeric_precision',
-          'numeric_precision_radix',
-          'udt_name'
-        ]
+        'column_name',
+        'data_type',
+        'column_default',
+        'is_nullable',
+        'character_maximum_length',
+        'numeric_precision',
+        'numeric_precision_radix',
+        'udt_name'
+      ]
       : ['COLUMN_NAME', 'DATA_TYPE', 'IS_NULLABLE', 'COLUMN_DEFAULT', 'COLUMN_KEY'].map((el) =>
-          el.toLowerCase()
-        )
+        el.toLowerCase()
+      )
 
   const inputRef = useRef(null)
   // SELECT
@@ -194,7 +194,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
       editData: {
         name: record.column_name,
         type: record.udt_name || record.data_type,
-        notnull: record.is_nullable.toLowerCase() === 'yes' ? true : false,
+        isNullable: record.is_nullable.toLowerCase() === 'yes',
         default: record.column_default
       }
     })
@@ -275,7 +275,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
           setListRows(leftRows)
         })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 
@@ -296,7 +296,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
       dataType: val.type,
       comment: val.comment,
       defaultValue: val.default,
-      notnull: val.notnull,
+      isNullable: !!val.isNullable,
       type,
       schema: props.tabData.schema,
       id: props.tabData.id,
@@ -312,7 +312,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
           dataType: oldValue.type,
           comment: oldValue.comment,
           defaultValue: oldValue.default,
-          notnull: oldValue.notnull
+          isNullable: !!oldValue.isNullable
         }
       }
     }
@@ -363,6 +363,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[]}
+        destroyOnClose
       >
         <AddColumnForm
           isMysql={props.tabData.connection.config.dialect !== 'postgres'}
@@ -376,6 +377,7 @@ const EditTable: React.FC<CustomProps> = (props) => {
         onOk={handleOk}
         onCancel={handleCancel}
         footer={[]}
+        destroyOnClose
       >
         <AddColumnForm
           isMysql={props.tabData.connection.config.dialect !== 'postgres'}

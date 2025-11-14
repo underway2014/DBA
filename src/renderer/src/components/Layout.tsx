@@ -314,7 +314,36 @@ const CLayout: React.FC = () => {
   })
 
   return (
-    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : undefined }}>
+    <ConfigProvider
+      theme={{
+        algorithm: isDark ? theme.darkAlgorithm : undefined,
+        token: {
+          colorPrimary: '#6f7af7',
+          colorInfo: '#6f7af7',
+          borderRadius: 8,
+          fontSize: 13,
+          controlHeight: 28,
+          colorBgContainer: isDark ? '#0f0f0f' : '#ffffff',
+          colorText: isDark ? 'rgba(235,235,245,0.86)' : '#1b1b1f'
+        },
+        components: {
+          Table: {
+            headerBg: isDark ? '#141414' : '#fafafa',
+            headerColor: isDark ? 'rgba(235,235,245,0.86)' : '#1b1b1f',
+            rowHoverBg: isDark ? '#1a1a1a' : '#f5f5f5',
+            borderColor: isDark ? '#262626' : '#f0f0f0'
+          },
+          Modal: {
+            headerBg: isDark ? '#121212' : '#ffffff',
+            contentBg: isDark ? '#0f0f0f' : '#ffffff',
+            borderRadiusLG: 12
+          },
+          Button: {
+            borderRadius: 8
+          }
+        }
+      }}
+    >
       <div>
         <CustomContext.Provider value={{ logList, setLogList, isDark }}>
           <Header style={{ height: '30px', backgroundColor: isDark ? '#000' : '#fff' }}>
@@ -345,7 +374,7 @@ const CLayout: React.FC = () => {
             </Flex>
           </Header>
 
-          <Layout>
+          <Layout style={{ height: 'calc(100vh - 30px)' }}>
             <Splitter>
               <Splitter.Panel defaultSize={300} min={50} max={400} collapsible>
                 <Dropdown menu={{ items, onClick: rightMenuHandler }} trigger={['contextMenu']}>
@@ -394,7 +423,7 @@ const CLayout: React.FC = () => {
                 </Dropdown>
               </Splitter.Panel>
               <Splitter.Panel>
-                <Content style={{ height: window.screen.height - 64 - 30 + 'px' }}>
+                <Content style={{ height: '100%', backgroundColor: isDark ? '#0f0f0f' : '#ffffff' }}>
                   <TabelContent ref={tabsRef} setDbInfo={setDbInfo}></TabelContent>
                 </Content>
               </Splitter.Panel>

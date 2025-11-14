@@ -630,6 +630,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         scroll={{ x: 'max-content' }}
         size="small"
         loading={isloading}
+        rowKey="id"
         pagination={{
           defaultPageSize: listRows.pageSize,
           pageSize: listRows.pageSize,

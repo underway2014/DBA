@@ -341,7 +341,7 @@ async function createDb(data) {
 //   dataType,
 //   defaltValue,
 //   comment,
-//   notnull,
+//   isNullable,
 //   id,
 //   schema = 'public',
 //   connection
@@ -374,9 +374,9 @@ async function delField({ tableName, column, schema, id, connection }) {
 
 //语句文档地址http://www.postgres.cn/docs/9.6/ddl-alter.html
 async function mysqlAlter(data) {
-  if (data.dataType !== data.oldValue.dataType || data.notnull !== data.oldValue.notnull) {
+  if (data.dataType !== data.oldValue.dataType || data.isNullable !== data.oldValue.isNullable) {
     let sql = `ALTER TABLE ${data.tableName} MODIFY COLUMN ${data.column} ${data.dataType}`
-    if (data.notnull) {
+    if (data.isNullable) {
       sql += ` NOT NULL`
     } else {
       sql += ` NULL`

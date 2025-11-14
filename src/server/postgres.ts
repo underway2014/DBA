@@ -173,7 +173,7 @@ export default class Postgres {
     dataType,
     defaultValue,
     comment,
-    notnull,
+    isNullable,
     id,
     schema = 'public'
   }) {
@@ -181,7 +181,7 @@ export default class Postgres {
 
     let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
 
-    if (notnull) {
+    if (!isNullable) {
       sql = `${sql} NOT NULL`
     }
 
@@ -215,9 +215,9 @@ export default class Postgres {
       })
     }
 
-    if (data.notnull !== data.oldValue.notnull) {
+    if (data.isNullable !== data.oldValue.isNullable) {
       let sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} SET NOT NULL`
-      if (data.notnull) {
+      if (!data.isNullable) {
         sql = `ALTER TABLE ${data.tableName} ALTER COLUMN ${data.column} DROP NOT NULL`
       }
       await query({ sql, id: data.id })

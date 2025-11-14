@@ -25,7 +25,7 @@ type AddRowType = {
   dataType: string
   comment: string
   defaultValue: string
-  notnull: boolean
+  isNullable: boolean
   type?: number
   oldValue?: AddRowType
 }
@@ -211,7 +211,7 @@ const EditIndex: React.FC<CustomProps> = (props) => {
             })
           })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 

@@ -122,12 +122,12 @@ export default class Mysql {
     }
   }
 
-  static async addField({ tableName, column, dataType, defaltValue, comment, notnull, id }) {
+  static async addField({ tableName, column, dataType, defaltValue, comment, isNullable, id }) {
     const opt = { type: QueryTypes.RAW }
 
     let sql = `ALTER TABLE ${tableName} ADD ${column} ${dataType}`
 
-    if (notnull) {
+    if (isNullable) {
       sql = `${sql} NOT NULL`
     }
 
@@ -145,9 +145,9 @@ export default class Mysql {
   }
 
   static async alterColumn(data) {
-    if (data.dataType !== data.oldValue.dataType || data.notnull !== data.oldValue.notnull) {
+    if (data.dataType !== data.oldValue.dataType || data.isNullable !== data.oldValue.isNullable) {
       let sql = `ALTER TABLE ${data.tableName} MODIFY COLUMN ${data.column} ${data.dataType}`
-      if (data.notnull) {
+      if (data.isNullable) {
         sql += ` NOT NULL`
       } else {
         sql += ` NULL`

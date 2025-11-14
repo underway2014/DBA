@@ -191,8 +191,9 @@ const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo
   }
 
   return (
-    <div>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Tabs
+        style={{ flex: 1 }}
         renderTabBar={renderTabBar}
         hideAdd
         onChange={onChange}

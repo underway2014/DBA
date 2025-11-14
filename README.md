@@ -1,4 +1,4 @@
-# DBA（简体中文）
+# DBA
 
 [English](README.en.md) | [简体中文](README.md)
 
