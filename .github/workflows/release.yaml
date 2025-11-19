@@ -24,6 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+      - name: Clean dist directory
+        run: rm -rf dist
       - name: macos
         if: startsWith(matrix.os, 'macos')
         run: npm run build:mac
