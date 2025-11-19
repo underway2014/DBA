@@ -16,7 +16,6 @@ files:
   - '!**/*.map'
 asarUnpack:
   - resources/**
-compression: maximum
 win:
   executableName: DBA
   files:
@@ -50,8 +49,6 @@ linux:
   files:
     - '!resources/postgres/win/**'
     - '!resources/mysql/win/**'
-    - '!resources/postgres/mac/**'
-    - '!resources/mysql/mac/**'
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
