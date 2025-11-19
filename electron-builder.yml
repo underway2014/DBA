@@ -15,7 +15,7 @@ files:
   - '!coverage/**'
   - '!**/*.map'
 asarUnpack:
-  - resources/**
+  - 'resources/**'
 win:
   executableName: DBA
   files:
