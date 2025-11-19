@@ -24,23 +24,15 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
       - name: Clean dist directory
-        run: rm -rf dist
+        run: npx del-cli dist
       - name: macos
         if: startsWith(matrix.os, 'macos')
         run: npm run build:mac
       - name: win
         if: startsWith(matrix.os, 'win')
         run: npm run build:win
-      - name: Cleanup Artifacts for Windows
-        if: startsWith(matrix.os, 'win')
-        run: |
-          npx del-cli "dist/*" "!dist/*.exe" "!dist/*.zip" "!dist/*.yml"
-
-      - name: Cleanup Artifacts for MacOS
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          npx del-cli "dist/*" "!dist/(*.dmg|*.zip|latest*.yml)"
 
       - name: Display structure of downloaded files
         run: |
