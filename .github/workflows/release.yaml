@@ -32,7 +32,10 @@ jobs:
         run: npm run build:mac
       - name: win
         if: startsWith(matrix.os, 'win')
-        run: npm run build:win
+        run: npm run build:win      
+        
+      - name: Cleanup Artifacts for Windows
+        if: startsWith(matrix.os, 'win')
         run: |
           npx del-cli "dist/*" "!dist/*.exe" "!dist/*.zip" "!dist/*.yml"
 
@@ -40,6 +43,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           npx del-cli "dist/*" "!dist/(*.dmg|*.zip|latest*.yml)"
+
 
       - name: Display structure of downloaded files
         run: |
