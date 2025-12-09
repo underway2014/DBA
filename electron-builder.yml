@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.lrq.dba
 productName: DBA
 directories:
   buildResources: build
@@ -15,13 +15,12 @@ files:
   - '!coverage/**'
   - '!**/*.map'
 asarUnpack:
+  - 'resources/**'
 win:
   executableName: DBA
   files:
-    - '!resources/**'
-    - 'resources/icon.png'
-    - 'resources/postgres/win/**'
-    - 'resources/mysql/win/**'
+    - '!resources/postgres/mac/**'
+    - '!resources/mysql/mac/**'
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -36,12 +35,20 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
   files:
-    - '!resources/**'
-    - 'resources/icon.png'
-    - 'resources/postgres/mac/**'
-    - 'resources/mysql/mac/**'
+    - '!resources/postgres/win/**'
+    - '!resources/mysql/win/**'
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+  files:
+    - '!resources/postgres/win/**'
+    - '!resources/mysql/win/**'
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
