@@ -18,9 +18,6 @@ asarUnpack:
   - 'resources/**'
 win:
   executableName: DBA
-  files:
-    - '!resources/postgres/mac/**'
-    - '!resources/mysql/mac/**'
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -34,9 +31,6 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
-  files:
-    - '!resources/postgres/win/**'
-    - '!resources/mysql/win/**'
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
 linux:
