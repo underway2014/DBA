@@ -188,10 +188,10 @@ const DataList: React.FC<CustomProps> = (props) => {
       setSchema(schema)
     }
 
-    listData.rows.forEach(
-      (el) =>
-        (el.key = `${el.id ? el.id : ''}_${new Date().getTime()}_${(Math.random() + '').replace('.', '')}`)
-    )
+    listData.rows.forEach((el, index) => {
+      // 如果有id则使用id，否则使用索引
+      el.key = el.id ? String(el.id) : `row_${index}_${new Date().getTime()}_${Math.random()}`
+    })
 
     listData.rows.forEach((el) => {
       Object.keys(el).forEach((key) => {
@@ -635,7 +635,7 @@ const DataList: React.FC<CustomProps> = (props) => {
         scroll={{ x: 'max-content' }}
         size="small"
         loading={isloading}
-        rowKey="id"
+        rowKey={(record) => record.key || `row_${new Date().getTime()}_${Math.random()}`}
         pagination={{
           defaultPageSize: 10,
           pageSize: listRows.pageSize,
