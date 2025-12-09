@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from 'react'
+import React, { useContext, useRef, useState, useCallback, useMemo } from 'react'
 import { Dropdown, Modal, Space, Spin, Tree } from 'antd'
 import type { GetProps, MenuProps, TreeDataNode } from 'antd'
 import {
@@ -75,7 +75,8 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   ])
 
-  const handleOk = () => {
+  // ... existing code ...
+  const handleOk = useCallback(() => {
     setShowForm({
       database: false,
       schema: false,
@@ -83,16 +84,16 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       connection: false,
       role: false
     })
-
     setRoleData(null)
-  }
-  const handleCancel = () => {
+  }, [])
+  // ... existing code ...
+  const handleCancel = useCallback(() => {
     handleOk()
-  }
+  }, [handleOk])
 
-  const toggleForm = (k: keyof FormType, v: boolean) => {
-    setShowForm({ ...showForm, [k]: v })
-  }
+  const toggleForm = useCallback((k: keyof FormType, v: boolean) => {
+    setShowForm((prev) => ({ ...prev, [k]: v }))
+  }, [])
 
   function addDbError({ error }) {
     addLog({
@@ -105,37 +106,41 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   }
 
   function checkLoadingKey(key, type?) {
-    const treeNow = treeData[0]
-    function check(obj) {
-      if (obj.key && obj.key === key) {
-        obj.title = !type ? (
-          <span>
-            <Spin size="small" /> {obj.otitle}
-          </span>
-        ) : (
-          obj.otitle
-        )
-
-        return
+    setTreeData((prevTreeData) => {
+      const treeNow = { ...prevTreeData[0] }
+      function check(obj) {
+        if (obj.key && obj.key === key) {
+          obj.title = !type ? (
+            <span>
+              <Spin size="small" /> {obj.otitle}
+            </span>
+          ) : (
+            obj.otitle
+          )
+          return
+        }
+        if (obj.children?.length) {
+          obj.children = obj.children.map((child) => {
+            const newChild = { ...child }
+            check(newChild)
+            return newChild
+          })
+        }
       }
-
-      if (obj.children?.length) {
-        obj.children.forEach(check)
-      }
-    }
-
-    check(treeNow)
-
-    setTreeData([treeNow])
+      check(treeNow)
+      return [treeNow]
+    })
   }
 
-  const onSelect: DirectoryTreeProps['onSelect'] = (keys, info) => {
-    console.log('on select >>>>', keys, info)
-    if (!keys.length) {
-      keys = [info.node.key]
-    }
-    triggerSelect(keys)
-  }
+  const onSelect: DirectoryTreeProps['onSelect'] = useCallback(
+    (keys, info) => {
+      if (!keys.length) {
+        keys = [info.node.key]
+      }
+      triggerSelect(keys)
+    },
+    [treeData]
+  )
 
   const triggerSelect = (keys) => {
     const treeNow = treeData[0]
@@ -447,94 +452,109 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     }
   }
 
-  const tableMenuItems: MenuProps['items'] = [
-    {
-      label: 'Edit indexs',
-      key: 10
-    },
-    {
-      label: 'Show DDL',
-      key: 30
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Drop',
-      key: 20
-    },
-    {
-      label: 'Truncate table',
-      key: 21
-    }
-  ]
+  const tableMenuItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        label: 'Edit indexs',
+        key: 10
+      },
+      {
+        label: 'Show DDL',
+        key: 30
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Drop',
+        key: 20
+      },
+      {
+        label: 'Truncate table',
+        key: 21
+      }
+    ],
+    []
+  )
 
-  const schemaAlongItems: MenuProps['items'] = [
-    {
-      label: 'Create table',
-      key: 20
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Drop Schema',
-      key: 10
-    }
-  ]
+  const schemaAlongItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        label: 'Create table',
+        key: 20
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Drop Schema',
+        key: 10
+      }
+    ],
+    []
+  )
 
-  const schemasItems: MenuProps['items'] = [
-    {
-      label: 'Add Schema',
-      key: 10
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Open Sql',
-      key: 30
-    }
-  ]
+  const schemasItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        label: 'Add Schema',
+        key: 10
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Open Sql',
+        key: 30
+      }
+    ],
+    []
+  )
 
-  const roleItems: MenuProps['items'] = [
-    {
-      label: 'Add Role',
-      key: 10
-    }
-  ]
+  const roleItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        label: 'Add Role',
+        key: 10
+      }
+    ],
+    []
+  )
 
-  const items: MenuProps['items'] = [
-    {
-      label: 'Create Database',
-      key: SliderRightMenu.CREATEDB
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Disconnect',
-      key: SliderRightMenu.DISCONNECT
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Backup',
-      key: SliderRightMenu.BACKUP
-    },
-    {
-      type: 'divider'
-    },
-    {
-      label: 'Restore struct',
-      key: SliderRightMenu.RESTORESTRUCE
-    },
-    {
-      label: 'Restore struct and data',
-      key: SliderRightMenu.RESTOREDATA
-    }
-  ]
+  const items: MenuProps['items'] = useMemo(
+    () => [
+      {
+        label: 'Create Database',
+        key: SliderRightMenu.CREATEDB
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Disconnect',
+        key: SliderRightMenu.DISCONNECT
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Backup',
+        key: SliderRightMenu.BACKUP
+      },
+      {
+        type: 'divider'
+      },
+      {
+        label: 'Restore struct',
+        key: SliderRightMenu.RESTORESTRUCE
+      },
+      {
+        label: 'Restore struct and data',
+        key: SliderRightMenu.RESTOREDATA
+      }
+    ],
+    []
+  )
 
   //export PGPASSWORD='postgres' && pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc jogo_gaming_dev > /Users/apple/Documents/dbBackup/testdata.sql
 
@@ -877,118 +897,120 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     event.stopPropagation()
   }
 
-  function titleRender(nodeData) {
-    let editButtons
-    if (!/^schema/.test(nodeData.key)) {
-      let delButton
+  const titleRender = useCallback(
+    (nodeData) => {
+      let editButtons
+      if (!/^schema/.test(nodeData.key)) {
+        let delButton
 
-      if (!/^table/.test(nodeData.key)) {
-        delButton = (
-          <DeleteOutlined
-            className="marginlr20"
-            onClick={(e) => {
-              e.stopPropagation()
-              delConnection(nodeData)
-            }}
-          />
+        if (!/^table/.test(nodeData.key)) {
+          delButton = (
+            <DeleteOutlined
+              className="marginlr20"
+              onClick={(e) => {
+                e.stopPropagation()
+                delConnection(nodeData)
+              }}
+            />
+          )
+        }
+
+        editButtons = (
+          <Space className="treeBtn">
+            {delButton}
+            <EditOutlined
+              onClick={(e) => {
+                e.stopPropagation()
+                editConnection(nodeData)
+              }}
+            />
+          </Space>
         )
       }
 
-      editButtons = (
-        <Space className="treeBtn">
-          {delButton}
-          <EditOutlined
-            onClick={(e) => {
-              e.stopPropagation()
-
-              editConnection(nodeData)
-            }}
-          />
-        </Space>
+      let item = (
+        <div className="treeTitle">
+          <span style={{ marginRight: 10, flex: 1 }}>{nodeData.title}</span>
+          {editButtons}
+        </div>
       )
-    }
-
-    let item = (
-      <div className="treeTitle">
-        <span style={{ marginRight: 10 }}>{nodeData.title}</span>
-        {editButtons}
-      </div>
-    )
-    if (/connection/.test(nodeData.key)) {
-      item = (
-        <div>
-          <Dropdown
-            menu={{
-              items:
-                props.connection.config.dialect === 'postgres'
-                  ? items
-                  : [
+      if (/connection/.test(nodeData.key)) {
+        item = (
+          <div>
+            <Dropdown
+              menu={{
+                items:
+                  props.connection.config.dialect === 'postgres'
+                    ? items
+                    : [
                       ...items,
                       {
                         label: 'Create table',
                         key: SliderRightMenu.CREATETABLE
                       }
                     ],
-              onClick: (e) => rightMenuHandler(e, nodeData)
-            }}
+                onClick: (e) => rightMenuHandler(e, nodeData)
+              }}
+              trigger={['contextMenu']}
+            >
+              {item}
+            </Dropdown>
+
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
+              <input
+                ref={selectSqlFile}
+                type="file"
+                style={{ display: 'none' }}
+                onChange={selectFile}
+              />
+            </div>
+          </div>
+        )
+      } else if (/schemas/.test(nodeData.key)) {
+        item = (
+          <Dropdown
+            menu={{ items: schemasItems, onClick: (e) => schemasRightHandler(e, nodeData) }}
             trigger={['contextMenu']}
           >
             {item}
           </Dropdown>
-
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
+        )
+      } else if (/roles/.test(nodeData.key)) {
+        item = (
+          <Dropdown
+            menu={{ items: roleItems, onClick: (e) => roleRightHandler(e, nodeData) }}
+            trigger={['contextMenu']}
           >
-            <input
-              ref={selectSqlFile}
-              type="file"
-              style={{ display: 'none' }}
-              onChange={selectFile}
-            />
-          </div>
-        </div>
-      )
-    } else if (/schemas/.test(nodeData.key)) {
-      item = (
-        <Dropdown
-          menu={{ items: schemasItems, onClick: (e) => schemasRightHandler(e, nodeData) }}
-          trigger={['contextMenu']}
-        >
-          {item}
-        </Dropdown>
-      )
-    } else if (/roles/.test(nodeData.key)) {
-      item = (
-        <Dropdown
-          menu={{ items: roleItems, onClick: (e) => roleRightHandler(e, nodeData) }}
-          trigger={['contextMenu']}
-        >
-          {item}
-        </Dropdown>
-      )
-    } else if (/schema/.test(nodeData.key)) {
-      item = (
-        <Dropdown
-          menu={{ items: schemaAlongItems, onClick: (e) => schemaAlongRightHandler(e, nodeData) }}
-          trigger={['contextMenu']}
-        >
-          {item}
-        </Dropdown>
-      )
-    } else if (/table/.test(nodeData.key)) {
-      item = (
-        <Dropdown
-          menu={{ items: tableMenuItems, onClick: (e) => tableRightMenuHandler(e, nodeData) }}
-          trigger={['contextMenu']}
-        >
-          {item}
-        </Dropdown>
-      )
-    }
-    return <div>{item}</div>
-  }
+            {item}
+          </Dropdown>
+        )
+      } else if (/schema/.test(nodeData.key)) {
+        item = (
+          <Dropdown
+            menu={{ items: schemaAlongItems, onClick: (e) => schemaAlongRightHandler(e, nodeData) }}
+            trigger={['contextMenu']}
+          >
+            {item}
+          </Dropdown>
+        )
+      } else if (/table/.test(nodeData.key)) {
+        item = (
+          <Dropdown
+            menu={{ items: tableMenuItems, onClick: (e) => tableRightMenuHandler(e, nodeData) }}
+            trigger={['contextMenu']}
+          >
+            {item}
+          </Dropdown>
+        )
+      }
+      return <div>{item}</div>
+    },
+    [items, schemaAlongItems, schemasItems, roleItems, tableMenuItems, props.connection]
+  )
 
   async function editSchema(val) {
     window.api
@@ -1083,10 +1105,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       })
   }
 
-  function onExpand(keys) {
-    console.log('on expand keys: ', keys)
+  const onExpand = useCallback((keys) => {
     setExpandedKeys(keys)
-  }
+  }, [])
 
   return (
     <div>

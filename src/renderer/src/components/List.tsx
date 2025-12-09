@@ -165,9 +165,10 @@ const DataList: React.FC<CustomProps> = (props) => {
     const m = text.match(/^(["'])(.*)\1$/)
     if (!m) return text
     const inner = m[2]
-    const isDate = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/.test(
-      inner
-    )
+    const isDate =
+      /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/.test(
+        inner
+      )
     return isDate ? inner : text
   }
 
@@ -234,7 +235,9 @@ const DataList: React.FC<CustomProps> = (props) => {
                     <span style={{ color, fontStyle: 'italic' }}>NULL</span>
                     <div
                       className="cellPlus"
-                      onClick={(e) => showEditCell(e, { content: 'NULL', id: a.id, field: el.name })}
+                      onClick={(e) =>
+                        showEditCell(e, { content: 'NULL', id: a.id, field: el.name })
+                      }
                     >
                       <EditOutlined />
                     </div>
@@ -536,21 +539,23 @@ const DataList: React.FC<CustomProps> = (props) => {
             addDbError({ error })
           })
       },
-      onCancel() {}
+      onCancel() { }
     })
   }
 
   function pageChange(page, pageSize) {
     if (pageSize !== listRows.pageSize) {
-      page = 1
-    }
-
-    if (!/\blimit\b/i.test(sqlTxt)) {
-      getAndUpdateTable({ page, pageSize })
+      // pageSize changed, reset to page 1
+      getAndUpdateTable({ page: 1, pageSize })
     } else {
-      setListRows((a) => {
-        return { ...a, page }
-      })
+      // only page changed
+      if (!/\blimit\b/i.test(sqlTxt)) {
+        getAndUpdateTable({ page, pageSize })
+      } else {
+        setListRows((a) => {
+          return { ...a, page }
+        })
+      }
     }
   }
   const onChange = (value: string) => setSqlTxt(value || '')
@@ -632,13 +637,13 @@ const DataList: React.FC<CustomProps> = (props) => {
         loading={isloading}
         rowKey="id"
         pagination={{
-          defaultPageSize: listRows.pageSize,
+          defaultPageSize: 10,
           pageSize: listRows.pageSize,
-          // defaultCurrent: 1,
           current: listRows.page,
           onChange: pageChange,
-          total: listRows.total
-          // pageSizeOptions: listRows.pageSizeList
+          total: listRows.total,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100']
         }}
         // components={components}
         rowSelection={rowSelection}
@@ -700,13 +705,3 @@ const DataList: React.FC<CustomProps> = (props) => {
 
 // export default DataList;
 export default React.memo(forwardRef(DataList))
-  function stripQuotesIfDate(text: string) {
-    if (!text) return text || ''
-    const m = text.match(/^(["'])(.*)\1$/)
-    if (!m) return text
-    const inner = m[2]
-    const isDate = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/.test(
-      inner
-    )
-    return isDate ? inner : text
-  }

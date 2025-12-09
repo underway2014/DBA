@@ -24,16 +24,19 @@ body,
 
 .treeTitle {
   display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
 
   .treeBtn {
     display: none;
+    margin-left: 8px;
   }
 }
 
-.treeTitle:hover {
-  .treeBtn {
-    display: flex;
-  }
+/* 整行 hover 时显示按钮 */
+.ant-tree-node-content-wrapper:hover .treeBtn {
+  display: flex !important;
 }
 
 .ant-tree-title {
@@ -72,10 +75,12 @@ body,
   width: 10px;
   height: 10px;
 }
+
 *::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
 }
+
 *::-webkit-scrollbar-track {
   background-color: transparent;
 }
