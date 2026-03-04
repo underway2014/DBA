@@ -27,6 +27,9 @@ import {
   editTable,
   getColums,
   getDDL,
+  getForeignKeys,
+  delForeignKey,
+  getReferencingForeignKeys,
   getIndexs,
   getRolePermission,
   getRoles,
@@ -165,6 +168,15 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('db:indexs', (_, val) => {
     return getIndexs(val)
+  })
+  ipcMain.handle('db:foreignkeys', (_, val) => {
+    return getForeignKeys(val)
+  })
+  ipcMain.handle('db:delforeignkey', (_, val) => {
+    return delForeignKey(val)
+  })
+  ipcMain.handle('db:referencingforeignkeys', (_, val) => {
+    return getReferencingForeignKeys(val)
   })
   ipcMain.handle('db:editindexs', (_, val) => {
     return editIndex(val)

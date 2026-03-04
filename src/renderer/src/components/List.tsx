@@ -62,6 +62,8 @@ const DataList: React.FC<CustomProps> = (props) => {
   const [explainResult, setExplainResult] = useState('')
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [primaryKey, setPrimaryKey] = useState<string>('id')
+
   useEffect(() => {
     if (sqlTxt && sqlTxt.trim()) {
       getAndUpdateTable(listRows)
@@ -176,21 +178,51 @@ const DataList: React.FC<CustomProps> = (props) => {
     setEditRow({ data, show: true })
   }
 
+  // 获取表的主键列名
+  function fetchPrimaryKey(tableName: string, schema: string) {
+    if (!tableName) return
+    const dbName = props.tabData.database || props.tabData.config?.database || ''
+    window.api
+      .getIndexs({
+        id: props.tabData.id,
+        schema: schema || 'public',
+        tableName,
+        dbName
+      })
+      .then((res: any) => {
+        if (res?.rows?.length) {
+          // 查找主键 (is_pk = true)
+          const pkIndex = res.rows.find((el: any) => el.is_pk)
+          if (pkIndex?.columns) {
+            // 主键可能是多列，取第一列
+            const pkCol = pkIndex.columns.split(',')[0].trim()
+            setPrimaryKey(pkCol)
+          }
+        }
+      })
+      .catch(() => {
+        // 获取失败时使用默认的 id
+        setPrimaryKey('id')
+      })
+  }
+
   function updateList({ listData, tableName, page, pageSize }) {
+    let schema = currentSchema || props.tabData.schema || 'public'
     if (tableName) {
       const a = tableName.split('.')
-      let schema = currentSchema || props.tabData.schema || 'public'
       if (a.length > 1) {
         schema = a[0]
         tableName = a[1]
       }
       setTableName(tableName)
       setSchema(schema)
+      // 获取表的主键信息
+      fetchPrimaryKey(tableName, schema)
     }
 
     listData.rows.forEach((el, index) => {
-      // 如果有id则使用id，否则使用索引
-      el.key = el.id ? String(el.id) : `row_${index}_${new Date().getTime()}_${Math.random()}`
+      // 使用主键列作为key
+      el.key = el[primaryKey] ? String(el[primaryKey]) : `row_${index}_${new Date().getTime()}_${Math.random()}`
     })
 
     listData.rows.forEach((el) => {
@@ -501,46 +533,110 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function delRow() {
-    // if (!selectedRowKeys.length) {
-    //     <Alert
-    //     message="Warning"
-    //     description="Please select the data first"
-    //     type="warning"
-    //     showIcon
-    //     closable
-    //   />
-    // }
-    confirm({
-      title: 'Do you want to delete these rows?',
-      icon: <ExclamationCircleFilled />,
-      content: '',
-      onOk() {
-        const delIds = selectedRowKeys
+    // 先检查外键约束（查询引用当前表的外键，用于级联删除检查）
+    const dbName = props.tabData.database || props.tabData.config?.database || ''
+    window.api
+      .getReferencingForeignKeys({
+        id: props.tabData.id,
+        schema: currentSchema || 'public',
+        tableName: tableName,
+        dbName
+      })
+      .then((fkRes: any) => {
+        const hasForeignKeys = fkRes?.rows?.length > 0
 
-        window.api
-          .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName })
-          .then((data) => {
-            const needRefresh = /^\s*select/i.test(sqlTxt)
-            if (needRefresh) {
-              getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
-            }
+        // 构建确认消息
+        let content = ''
+        let title = 'Do you want to delete these rows?'
+        let okText = 'OK'
+        let danger = true
 
-            addLog({
-              type: LogType.SUCCESS,
-              logList,
-              setLogList,
-              affectRows: data?.length > 1 ? data[1] : null,
-              text: 'success',
-              action: LogAction.DELETEROWS,
-              toast: !needRefresh
-            })
-          })
-          .catch((error) => {
-            addDbError({ error })
-          })
-      },
-      onCancel() { }
-    })
+        if (hasForeignKeys) {
+          // 有外键约束，显示警告
+          title = 'Warning: Foreign Key Constraints'
+          const fkTables = fkRes.rows
+            .map((r: any) => r.table_name)
+            .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) // 去重
+            .join(', ')
+          content = `This record is referenced by other tables: ${fkTables}. Do you want to delete it together with the referenced records?`
+          okText = 'Delete with references (CASCADE)'
+        }
+
+        confirm({
+          title,
+          icon: hasForeignKeys ? <ExclamationCircleFilled style={{ color: '#faad14' }} /> : <ExclamationCircleFilled />,
+          content,
+          okText,
+          okButtonProps: hasForeignKeys ? { danger: true, style: { backgroundColor: '#ff4d4f' } } : { danger: true },
+          onOk() {
+            const delIds = selectedRowKeys
+
+            window.api
+              .delRows({
+                ...props.tabData,
+                ids: delIds,
+                schema: currentSchema,
+                tableName: tableName,
+                primaryKey,
+                cascade: hasForeignKeys // 启用级联删除
+              })
+              .then((data) => {
+                const needRefresh = /^\s*select/i.test(sqlTxt)
+                if (needRefresh) {
+                  getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+                }
+
+                addLog({
+                  type: LogType.SUCCESS,
+                  logList,
+                  setLogList,
+                  affectRows: data?.length > 1 ? data[1] : null,
+                  text: hasForeignKeys ? 'success (cascade delete)' : 'success',
+                  action: LogAction.DELETEROWS,
+                  toast: !needRefresh
+                })
+              })
+              .catch((error) => {
+                addDbError({ error })
+              })
+          },
+          onCancel() { }
+        })
+      })
+      .catch(() => {
+        // 如果获取外键失败，直接执行删除
+        confirm({
+          title: 'Do you want to delete these rows?',
+          icon: <ExclamationCircleFilled />,
+          content: '',
+          onOk() {
+            const delIds = selectedRowKeys
+
+            window.api
+              .delRows({ ...props.tabData, ids: delIds, schema: currentSchema, tableName: tableName, primaryKey })
+              .then((data) => {
+                const needRefresh = /^\s*select/i.test(sqlTxt)
+                if (needRefresh) {
+                  getAndUpdateTable({ page: 1, pageSize: listRows.pageSize })
+                }
+
+                addLog({
+                  type: LogType.SUCCESS,
+                  logList,
+                  setLogList,
+                  affectRows: data?.length > 1 ? data[1] : null,
+                  text: 'success',
+                  action: LogAction.DELETEROWS,
+                  toast: !needRefresh
+                })
+              })
+              .catch((error) => {
+                addDbError({ error })
+              })
+          },
+          onCancel() { }
+        })
+      })
   }
 
   function pageChange(page, pageSize) {

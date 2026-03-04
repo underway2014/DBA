@@ -424,12 +424,12 @@ async function addRow({ id, tableName, fields, schema }) {
   return Postgres.addRow({ id, tableName, fields, schema })
 }
 
-async function delRows({ id, tableName, ids, schema }) {
+async function delRows({ id, tableName, ids, schema, primaryKey, cascade }) {
   if (dbMap[id].config.dialect === DataBase.MYSQL) {
-    return Mysql.delRows({ id, tableName, ids })
+    return Mysql.delRows({ id, tableName, ids, primaryKey, cascade })
   }
 
-  return Postgres.delRow({ id, tableName, ids, schema })
+  return Postgres.delRow({ id, tableName, ids, schema, primaryKey, cascade })
 }
 
 async function getIndexs(data) {
@@ -438,6 +438,30 @@ async function getIndexs(data) {
   }
 
   return Postgres.getIndexs(data)
+}
+
+async function getForeignKeys(data) {
+  if (isMysql(data)) {
+    return Mysql.getForeignKeys(data)
+  }
+
+  return Postgres.getForeignKeys(data)
+}
+
+async function delForeignKey(data) {
+  if (isMysql(data)) {
+    return Mysql.delForeignKey(data)
+  }
+
+  return Postgres.delForeignKey(data)
+}
+
+async function getReferencingForeignKeys(data) {
+  if (isMysql(data)) {
+    return Mysql.getReferencingForeignKeys(data)
+  }
+
+  return Postgres.getReferencingForeignKeys(data)
 }
 
 //http://www.postgres.cn/docs/15/sql-createindex.html
@@ -702,6 +726,9 @@ export {
   addRow,
   closeConnection,
   getIndexs,
+  getForeignKeys,
+  delForeignKey,
+  getReferencingForeignKeys,
   editIndex,
   editTable,
   getExportData,

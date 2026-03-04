@@ -59,6 +59,15 @@ const api = {
   getIndexs: async (val) => {
     return ipcRenderer.invoke('db:indexs', val)
   },
+  getForeignKeys: async (val) => {
+    return ipcRenderer.invoke('db:foreignkeys', val)
+  },
+  delForeignKey: async (val) => {
+    return ipcRenderer.invoke('db:delforeignkey', val)
+  },
+  getReferencingForeignKeys: async (val) => {
+    return ipcRenderer.invoke('db:referencingforeignkeys', val)
+  },
   editIndex: async (val) => {
     return ipcRenderer.invoke('db:editindexs', val)
   },

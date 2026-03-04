@@ -59,8 +59,38 @@ export default class Mysql {
 
   // mysql -u root -p my_database < my_database_backup.sql  恢复数据库
 
-  static async delRows({ id, tableName, ids }) {
-    const sql = `delete from ${tableName} where id in (${ids})`
+  static async delRows({ id, tableName, ids, primaryKey = 'id', cascade = false }) {
+    // 如果是字符串类型的主键值，需要加引号
+    const processedIds = ids.map((item: any) => {
+      if (typeof item === 'string') {
+        return `'${item}'`
+      }
+      return item
+    })
+
+    // 如果是级联删除，先获取所有引用该表的外键表并删除
+    if (cascade) {
+      // 先查询所有引用该表的外键约束
+      const dbName = (await query({ sql: 'SELECT DATABASE() as db', id, opt: { type: QueryTypes.RAW } }))[0]?.db
+      const fkSql = `
+        SELECT
+          TABLE_SCHEMA,
+          TABLE_NAME,
+          COLUMN_NAME
+        FROM information_schema.KEY_COLUMN_USAGE
+        WHERE REFERENCED_TABLE_SCHEMA = '${dbName}'
+          AND REFERENCED_TABLE_NAME = '${tableName}'
+          AND REFERENCED_TABLE_NAME IS NOT NULL
+      `
+      const fks = await query({ sql: fkSql, id })
+      // 删除引用记录
+      for (const fk of fks) {
+        const refSql = `delete from ${fk.TABLE_NAME} where ${fk.COLUMN_NAME} in (${processedIds.join(',')})`
+        await query({ sql: refSql, id, opt: { type: QueryTypes.RAW } })
+      }
+    }
+
+    const sql = `delete from ${tableName} where ${primaryKey} in (${processedIds.join(',')})`
 
     return query({ sql, id, opt: { type: QueryTypes.RAW } })
   }
@@ -237,6 +267,66 @@ export default class Mysql {
       })
 
       return Promise.all(works)
+    }
+  }
+
+  // 获取当前表拥有的外键（当前表引用其他表）
+  static async getForeignKeys({ id, dbName, tableName }) {
+    const sql = `
+      SELECT
+        CONSTRAINT_NAME AS constraint_name,
+        TABLE_SCHEMA AS table_schema,
+        TABLE_NAME AS table_name,
+        COLUMN_NAME AS column_name,
+        REFERENCED_TABLE_SCHEMA AS foreign_table_schema,
+        REFERENCED_TABLE_NAME AS foreign_table_name,
+        REFERENCED_COLUMN_NAME AS foreign_column_name
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = '${dbName}'
+        AND TABLE_NAME = '${tableName}'
+        AND REFERENCED_TABLE_NAME IS NOT NULL
+    `
+
+    const foreignKeys = await query({ sql, id })
+
+    return {
+      rows: foreignKeys,
+      columns: foreignKeys.length
+        ? Object.keys(foreignKeys[0]).map((el) => ({ name: el }))
+        : []
+    }
+  }
+
+  // 删除外键约束
+  static async delForeignKey({ id, tableName, constraintName }) {
+    const sql = `ALTER TABLE ${tableName} DROP FOREIGN KEY ${constraintName}`
+    return query({ sql, id, opt: { type: QueryTypes.RAW } })
+  }
+
+  // 获取引用当前表的外键（用于级联删除检查）
+  static async getReferencingForeignKeys({ id, dbName, tableName }) {
+    const sql = `
+      SELECT
+        CONSTRAINT_NAME AS constraint_name,
+        TABLE_SCHEMA AS table_schema,
+        TABLE_NAME AS table_name,
+        COLUMN_NAME AS column_name,
+        REFERENCED_TABLE_SCHEMA AS foreign_table_schema,
+        REFERENCED_TABLE_NAME AS foreign_table_name,
+        REFERENCED_COLUMN_NAME AS foreign_column_name
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE REFERENCED_TABLE_SCHEMA = '${dbName}'
+        AND REFERENCED_TABLE_NAME = '${tableName}'
+        AND REFERENCED_TABLE_NAME IS NOT NULL
+    `
+
+    const foreignKeys = await query({ sql, id })
+
+    return {
+      rows: foreignKeys,
+      columns: foreignKeys.length
+        ? Object.keys(foreignKeys[0]).map((el) => ({ name: el }))
+        : []
     }
   }
 }

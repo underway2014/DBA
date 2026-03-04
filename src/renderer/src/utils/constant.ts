@@ -37,6 +37,7 @@ export const SliderRightMenu = {
 
 export const TableMenu = {
   EDITINDEX: 10,
+  EDITFOREIGNKEY: 11,
   DROPTABLE: 20,
   TRUNCATE: 21,
   SHOWDDL: 30

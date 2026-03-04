@@ -459,6 +459,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         key: 10
       },
       {
+        label: 'Edit Foreign Keys',
+        key: 11
+      },
+      {
         label: 'Show DDL',
         key: 30
       },
@@ -732,6 +736,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         tableName: keys[1],
         connection: props.connection,
         type: 3,
+        schema: keys[2],
+        dbName: keys[3]
+      })
+    } else if (+e.key === TableMenu.EDITFOREIGNKEY) {
+      props.getTableDataByName({
+        id: keys[4],
+        tableName: keys[1],
+        connection: props.connection,
+        type: 11,
         schema: keys[2],
         dbName: keys[3]
       })

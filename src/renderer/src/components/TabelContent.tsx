@@ -11,6 +11,7 @@ import {
 import List from './List'
 import EditTable from './EditTable'
 import EditIndex from './EditIndex'
+import EditForeignKey from './EditForeignKey'
 import { IGetTabData } from '@renderer/interface'
 import EditRolePermission from './EditRolePermission'
 import DdlSql from './DdlSql'
@@ -136,6 +137,13 @@ const TabelContent = forwardRef<TabelContentRef, TabelContentProps>(({ setDbInfo
         label: genTabTitle({ title: connName ? `${data.tableName} (${connName})` : data.tableName, key: newActiveKey }),
         icon: <HighlightOutlined />,
         children: <EditIndex tabData={data}></EditIndex>,
+        key: newActiveKey
+      })
+    } else if (data.type === 11) {
+      newItems.push({
+        label: genTabTitle({ title: connName ? `${data.tableName} FK (${connName})` : `${data.tableName} FK`, key: newActiveKey }),
+        icon: <HighlightOutlined />,
+        children: <EditForeignKey tabData={data}></EditForeignKey>,
         key: newActiveKey
       })
     } else if (data.type === 4) {

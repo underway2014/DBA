@@ -8,9 +8,45 @@ import Common from './common'
 const defaultSchemas = ['information_schema', 'pg_catalog', 'pg_toast']
 
 export default class Postgres {
-  static async delRow({ id, tableName, ids, schema }) {
+  static async delRow({ id, tableName, ids, schema, primaryKey = 'id', cascade = false }) {
     tableName = `${schema}.${tableName}`
-    const sql = `delete from ${tableName} where id in (${ids})`
+    // 如果是字符串类型的主键值，需要加引号
+    const processedIds = ids.map((item: any) => {
+      if (typeof item === 'string') {
+        return `'${item}'`
+      }
+      return item
+    })
+
+    // 如果是级联删除，先获取所有引用该表的外键表并删除
+    if (cascade) {
+      // 先查询所有引用该表的外键约束
+      const fkSql = `
+        SELECT
+          tc.table_schema,
+          tc.table_name,
+          kcu.column_name
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+          AND ccu.table_schema = tc.table_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND ccu.table_schema = '${schema}'
+          AND ccu.table_name = '${tableName.replace(`${schema}.`, '')}'
+      `
+      const fks = await query({ sql: fkSql, id })
+      // 删除引用记录
+      for (const fk of fks) {
+        const refTableName = `${fk.table_schema}.${fk.table_name}`
+        const refSql = `delete from ${refTableName} where ${fk.column_name} in (${processedIds.join(',')})`
+        await query({ sql: refSql, id })
+      }
+    }
+
+    const sql = `delete from ${tableName} where ${primaryKey} in (${processedIds.join(',')})`
 
     return query({ sql, id })
   }
@@ -309,5 +345,77 @@ export default class Postgres {
     }
 
     return query({ sql, id })
+  }
+
+  // 获取当前表拥有的外键（当前表引用其他表）
+  static async getForeignKeys({ id, schema = 'public', tableName }) {
+    const sql = `
+      SELECT
+        tc.constraint_name,
+        tc.table_schema,
+        tc.table_name,
+        kcu.column_name,
+        ccu.table_schema AS foreign_table_schema,
+        ccu.table_name AS foreign_table_name,
+        ccu.column_name AS foreign_column_name
+      FROM information_schema.table_constraints AS tc
+      JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+        AND tc.table_schema = kcu.table_schema
+      JOIN information_schema.constraint_column_usage AS ccu
+        ON ccu.constraint_name = tc.constraint_name
+        AND ccu.table_schema = tc.table_schema
+      WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND tc.table_schema = '${schema}'
+        AND tc.table_name = '${tableName}'
+    `
+
+    const foreignKeys = await query({ sql, id })
+
+    return {
+      rows: foreignKeys,
+      columns: foreignKeys.length
+        ? Object.keys(foreignKeys[0]).map((el) => ({ name: el }))
+        : []
+    }
+  }
+
+  // 删除外键约束
+  static async delForeignKey({ id, schema = 'public', tableName, constraintName }) {
+    const sql = `ALTER TABLE ${schema}.${tableName} DROP CONSTRAINT ${constraintName}`
+    return query({ sql, id })
+  }
+
+  // 获取引用当前表的外键（用于级联删除检查）
+  static async getReferencingForeignKeys({ id, schema = 'public', tableName }) {
+    const sql = `
+      SELECT
+        tc.constraint_name,
+        tc.table_schema,
+        tc.table_name,
+        kcu.column_name,
+        ccu.table_schema AS foreign_table_schema,
+        ccu.table_name AS foreign_table_name,
+        ccu.column_name AS foreign_column_name
+      FROM information_schema.table_constraints AS tc
+      JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+        AND tc.table_schema = kcu.table_schema
+      JOIN information_schema.constraint_column_usage AS ccu
+        ON ccu.constraint_name = tc.constraint_name
+        AND ccu.table_schema = tc.table_schema
+      WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND ccu.table_schema = '${schema}'
+        AND ccu.table_name = '${tableName}'
+    `
+
+    const foreignKeys = await query({ sql, id })
+
+    return {
+      rows: foreignKeys,
+      columns: foreignKeys.length
+        ? Object.keys(foreignKeys[0]).map((el) => ({ name: el }))
+        : []
+    }
   }
 }
