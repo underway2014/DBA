@@ -259,24 +259,36 @@ async function getTableData(data) {
   }
 }
 
-async function updateOneField({ tableName, dataId, id, field, value }) {
+async function updateOneField({ tableName, dataId, id, field, value, primaryKey }) {
+  if (dataId === undefined) {
+    throw new Error('dataId is required for updateOneField')
+  }
+  if (!primaryKey) {
+    throw new Error('primaryKey is required for updateOneField')
+  }
   const sql = `
     update ${tableName} set ${field} = :value
-    where id = :dataId
+    where ${primaryKey} = :dataId
     `
-  const replacements = {
-    value: value,
-    dataId: dataId
-  }
+  const replacements = { value, dataId }
 
   await query({ sql, id, opt: { type: QueryTypes.UPDATE }, replacements })
 }
 
-async function updateDate({ tableName, id, dataId, data, type }) {
+async function updateDate({ tableName, id, dataId, data, type, primaryKey }) {
   if (type === 2) {
-    return updateOneField({ tableName, id, dataId, ...data })
+    if (dataId === undefined) {
+      throw new Error('updateDate: dataId is required when type is 2')
+    }
+    if (!primaryKey) {
+      throw new Error('updateDate: primaryKey is required when type is 2')
+    }
+    return updateOneField({ tableName, id, dataId, primaryKey, ...data })
   }
   console.log('updateDate: ', tableName, id, type, dataId, data)
+  if (dataId === undefined) {
+    throw new Error('updateDate: dataId is required')
+  }
   const replacements = { id: dataId }
   const updateFields = Object.keys(data)
     .map((key) => {

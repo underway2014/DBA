@@ -67,7 +67,7 @@ export default class Common {
       tool += '.exe'
       toolPath = path.join(appPath, 'resources', 'postgres', os, '16', tool)
     } else {
-      toolPath = path.join(appPath, 'resources', 'postgres', os, '17', 'bin', tool)
+      toolPath = path.join(appPath, 'resources', 'postgres', os, '18', 'bin', tool)
     }
 
     return toolPath

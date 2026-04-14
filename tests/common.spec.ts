@@ -29,7 +29,7 @@ describe('Common tools path', () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' })
     process.env.NODE_ENV = 'development'
     const p = await Common.getPostgresToolPath({ type: 2 })
-    expect(p).toBe('/app/resources/postgres/mac/17/bin/pg_dump')
+    expect(p).toBe('/app/resources/postgres/mac/18/bin/pg_dump')
   })
 
   it('getPostgresToolPath on win pg_restore exe', async () => {

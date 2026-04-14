@@ -21,7 +21,7 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
     addConnection({ ...form.getFieldsValue(), id: props.defautValues?.id })
   }
 
-  const onFinishFailed = (errorInfo) => {}
+  const onFinishFailed = (errorInfo) => { }
 
   const changeHandler = (value) => {
     console.log('db value: ', value)
@@ -29,10 +29,10 @@ const ConnectionForm: React.FC<CustomProps> = (props) => {
     setDbType(value)
   }
 
-  // host: '35.221.166.196',
+  // host: '135.221.166.96',
   //     port: '8002',
   //     username: 'postgres',
-  //     password: 'ZLKLMqzHy2308jU6',
+  //     password: '08jU6',
   //     dialect: 'postgres',
   //     database: 'postgres'
   return (

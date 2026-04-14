@@ -53,7 +53,7 @@ const DataList: React.FC<CustomProps> = (props) => {
     total: 0
   })
 
-  const [editRow, setEditRow] = useState({ show: false, data: { content: '', id: 0, field: '' } })
+  const [editRow, setEditRow] = useState({ show: false, data: { content: '', field: '' }, pkValue: null as any })
 
   const [addForm, setAddForm] = useState(false)
   const [addSqlForm, setAddSqlForm] = useState(false)
@@ -174,8 +174,8 @@ const DataList: React.FC<CustomProps> = (props) => {
     return isDate ? inner : text
   }
 
-  function showEditCell(e, data) {
-    setEditRow({ data, show: true })
+  function showEditCell(e, data, pkValue) {
+    setEditRow({ data, show: true, pkValue })
   }
 
   // 获取表的主键列名
@@ -268,7 +268,7 @@ const DataList: React.FC<CustomProps> = (props) => {
                     <div
                       className="cellPlus"
                       onClick={(e) =>
-                        showEditCell(e, { content: 'NULL', id: a.id, field: el.name })
+                        showEditCell(e, { content: 'NULL', field: el.name }, a[primaryKey])
                       }
                     >
                       <EditOutlined />
@@ -293,7 +293,7 @@ const DataList: React.FC<CustomProps> = (props) => {
                       if (typeof content === 'string') {
                         content = stripQuotesIfDate(content)
                       }
-                      showEditCell(e, { content, id: a.id, field: el.name })
+                      showEditCell(e, { content, field: el.name }, a[primaryKey])
                     }}
                   >
                     <EditOutlined />
@@ -348,14 +348,14 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function editRowOk() {
-    const editData = listRows.rows.find((el) => el.id === editRow.data.id)
+    const editData = listRows.rows.find((el) => el[primaryKey] === editRow.pkValue)
     if (!editData) {
-      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+      setEditRow({ show: false, data: { content: '', field: '' }, pkValue: null })
       return
     }
 
     if (editData[editRow.data.field] === editRow.data.content) {
-      setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+      setEditRow({ show: false, data: { content: '', field: '' }, pkValue: null })
       return
     }
 
@@ -367,14 +367,15 @@ const DataList: React.FC<CustomProps> = (props) => {
     window.api
       .updateDate({
         tableName: tableName,
-        dataId: editRow.data.id,
+        dataId: editRow.pkValue,
+        primaryKey: primaryKey,
         data: { field: editRow.data.field, value: val },
         type: 2,
         id: props.tabData.id
       })
       .then(() => {
         // setListRows(newData);
-        setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+        setEditRow({ show: false, data: { content: '', field: '' }, pkValue: null })
 
         getAndUpdateTable(listRows)
       })
@@ -394,7 +395,7 @@ const DataList: React.FC<CustomProps> = (props) => {
   }
 
   function editRowCancel() {
-    setEditRow({ show: false, data: { content: '', id: 0, field: '' } })
+    setEditRow({ show: false, data: { content: '', field: '' }, pkValue: null })
   }
 
   function runSql() {
