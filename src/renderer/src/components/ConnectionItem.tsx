@@ -66,6 +66,10 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   const SP = '@'
 
+  function getNodeType(key: React.Key) {
+    return String(key).split(SP)[0]
+  }
+
   const [treeData, setTreeData] = useState<NodeData[]>([
     {
       title: props.connection.name,
@@ -151,7 +155,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
     const parseKeys = key.split(SP)
 
-    const nodeType = parseKeys[0]
+    const nodeType = getNodeType(key)
 
     if (['connection', 'schema', 'roles'].includes(nodeType)) {
       checkLoadingKey(key)
@@ -421,7 +425,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   function delConnection(node) {
     console.log('del node: ', node)
-    if (/^role/.test(node.key)) {
+    if (getNodeType(node.key) === 'role') {
       confirm({
         title: `Do you want to delete the ${node.title} role?`,
         icon: <ExclamationCircleFilled />,
@@ -912,11 +916,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   const titleRender = useCallback(
     (nodeData) => {
+      const nodeType = getNodeType(nodeData.key)
       let editButtons
-      if (!/^schema/.test(nodeData.key)) {
+      if (!['schema', 'schemas'].includes(nodeType)) {
         let delButton
 
-        if (!/^table/.test(nodeData.key)) {
+        if (nodeType !== 'table') {
           delButton = (
             <DeleteOutlined
               className="marginlr20"
@@ -947,7 +952,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           {editButtons}
         </div>
       )
-      if (/connection/.test(nodeData.key)) {
+      if (nodeType === 'connection') {
         item = (
           <div>
             <Dropdown
@@ -956,12 +961,12 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
                   props.connection.config.dialect === 'postgres'
                     ? items
                     : [
-                      ...items,
-                      {
-                        label: 'Create table',
-                        key: SliderRightMenu.CREATETABLE
-                      }
-                    ],
+                        ...items,
+                        {
+                          label: 'Create table',
+                          key: SliderRightMenu.CREATETABLE
+                        }
+                      ],
                 onClick: (e) => rightMenuHandler(e, nodeData)
               }}
               trigger={['contextMenu']}
@@ -983,7 +988,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
             </div>
           </div>
         )
-      } else if (/schemas/.test(nodeData.key)) {
+      } else if (nodeType === 'schemas') {
         item = (
           <Dropdown
             menu={{ items: schemasItems, onClick: (e) => schemasRightHandler(e, nodeData) }}
@@ -992,7 +997,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
             {item}
           </Dropdown>
         )
-      } else if (/roles/.test(nodeData.key)) {
+      } else if (nodeType === 'roles') {
         item = (
           <Dropdown
             menu={{ items: roleItems, onClick: (e) => roleRightHandler(e, nodeData) }}
@@ -1001,7 +1006,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
             {item}
           </Dropdown>
         )
-      } else if (/schema/.test(nodeData.key)) {
+      } else if (nodeType === 'schema') {
         item = (
           <Dropdown
             menu={{ items: schemaAlongItems, onClick: (e) => schemaAlongRightHandler(e, nodeData) }}
@@ -1010,7 +1015,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
             {item}
           </Dropdown>
         )
-      } else if (/table/.test(nodeData.key)) {
+      } else if (nodeType === 'table') {
         item = (
           <Dropdown
             menu={{ items: tableMenuItems, onClick: (e) => tableRightMenuHandler(e, nodeData) }}
