@@ -36,6 +36,7 @@ export const SliderRightMenu = {
 }
 
 export const TableMenu = {
+  EDITCOLUMNS: 9,
   EDITINDEX: 10,
   EDITFOREIGNKEY: 11,
   DROPTABLE: 20,

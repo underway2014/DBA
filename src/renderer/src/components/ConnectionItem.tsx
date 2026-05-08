@@ -34,6 +34,8 @@ type CustomProps = {
 interface NodeData extends TreeDataNode {
   children?: NodeData[]
   otitle?: string
+  sizeK?: number | string | null
+  sizeLabel?: string
 }
 
 type FormType = {
@@ -48,6 +50,40 @@ type RightMenuRef = {
   backupDbName?: string
   restoreType?: number
   nodeData?: NodeData
+}
+
+type TableRow = {
+  table_name?: string
+  TABLE_NAME?: string
+  size_k?: number | string | null
+}
+
+function formatTableSize(sizeK?: number | string | null) {
+  if (sizeK == null) {
+    return undefined
+  }
+
+  const size = Number(sizeK)
+
+  if (!Number.isFinite(size) || size <= 0) {
+    return '0K'
+  }
+
+  if (size < 1024) {
+    return `${Math.round(size)}K`
+  }
+
+  if (size < 1024 * 1024) {
+    return `${formatSizeValue(size / 1024)}M`
+  }
+
+  return `${formatSizeValue(size / (1024 * 1024))}G`
+}
+
+function formatSizeValue(value: number) {
+  const precision = value >= 100 ? 0 : 1
+
+  return value.toFixed(precision).replace(/\.0$/, '')
 }
 
 const ConnectionItem: React.FC<CustomProps> = (props) => {
@@ -304,7 +340,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         console.log('get tables: ', res, parseKeys, schema, key)
 
         treeNow.isLeaf = false
-        treeNow.children = res.map((el) => {
+        treeNow.children = res.map((el: TableRow) => {
           const name = el.table_name || el.TABLE_NAME
           return {
             isLeaf: true,
@@ -340,13 +376,15 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
         if (schema) {
           schema.isLeaf = false
-          schema.children = res.map((el) => {
+          schema.children = res.map((el: TableRow) => {
             const name = el.table_name || el.TABLE_NAME
             return {
               isLeaf: true,
               key: `table${SP}${name}${SP}${parseKeys[1]}${SP}${parseKeys[2]}${SP}${props.connection.id}`,
               title: name,
-              otitle: name
+              otitle: name,
+              sizeK: el.size_k,
+              sizeLabel: formatTableSize(el.size_k)
             }
           })
         }
@@ -459,27 +497,31 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   const tableMenuItems: MenuProps['items'] = useMemo(
     () => [
       {
+        label: 'Edit columns',
+        key: TableMenu.EDITCOLUMNS
+      },
+      {
         label: 'Edit indexs',
-        key: 10
+        key: TableMenu.EDITINDEX
       },
       {
         label: 'Edit Foreign Keys',
-        key: 11
+        key: TableMenu.EDITFOREIGNKEY
       },
       {
         label: 'Show DDL',
-        key: 30
+        key: TableMenu.SHOWDDL
       },
       {
         type: 'divider'
       },
       {
         label: 'Drop',
-        key: 20
+        key: TableMenu.DROPTABLE
       },
       {
         label: 'Truncate table',
-        key: 21
+        key: TableMenu.TRUNCATE
       }
     ],
     []
@@ -734,7 +776,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
     const keys = nodeData.key.split(SP)
     console.log('keys: ', keys)
 
-    if (+e.key === TableMenu.EDITINDEX) {
+    if (+e.key === TableMenu.EDITCOLUMNS) {
+      editConnection(nodeData)
+    } else if (+e.key === TableMenu.EDITINDEX) {
       props.getTableDataByName({
         id: keys[4],
         tableName: keys[1],
@@ -917,6 +961,11 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   const titleRender = useCallback(
     (nodeData) => {
       const nodeType = getNodeType(nodeData.key)
+      const isTableNode = nodeType === 'table'
+      const sizeInfo =
+        isTableNode && nodeData.sizeLabel ? (
+          <span className="treeMeta treeMetaInline">{nodeData.sizeLabel}</span>
+        ) : null
       let editButtons
       if (!['schema', 'schemas'].includes(nodeType)) {
         let delButton
@@ -934,7 +983,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
         }
 
         editButtons = (
-          <Space className="treeBtn">
+          <Space className={`treeBtn ${isTableNode ? 'treeBtnInline' : ''}`.trim()}>
             {delButton}
             <EditOutlined
               onClick={(e) => {
@@ -947,46 +996,35 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
       }
 
       let item = (
-        <div className="treeTitle">
-          <span style={{ marginRight: 10, flex: 1 }}>{nodeData.title}</span>
-          {editButtons}
+        <div className={`treeTitle ${isTableNode ? 'treeTitleTable' : ''}`.trim()}>
+          <span className="treeTitleText">
+            <span className="treeTitleName">{nodeData.title}</span>
+            {sizeInfo}
+            {isTableNode ? editButtons : null}
+          </span>
+          {isTableNode ? null : <div className="treeRight">{editButtons}</div>}
         </div>
       )
       if (nodeType === 'connection') {
         item = (
-          <div>
-            <Dropdown
-              menu={{
-                items:
-                  props.connection.config.dialect === 'postgres'
-                    ? items
-                    : [
-                        ...items,
-                        {
-                          label: 'Create table',
-                          key: SliderRightMenu.CREATETABLE
-                        }
-                      ],
-                onClick: (e) => rightMenuHandler(e, nodeData)
-              }}
-              trigger={['contextMenu']}
-            >
-              {item}
-            </Dropdown>
-
-            <div
-              onClick={(e) => {
-                e.stopPropagation()
-              }}
-            >
-              <input
-                ref={selectSqlFile}
-                type="file"
-                style={{ display: 'none' }}
-                onChange={selectFile}
-              />
-            </div>
-          </div>
+          <Dropdown
+            menu={{
+              items:
+                props.connection.config.dialect === 'postgres'
+                  ? items
+                  : [
+                      ...items,
+                      {
+                        label: 'Create table',
+                        key: SliderRightMenu.CREATETABLE
+                      }
+                    ],
+              onClick: (e) => rightMenuHandler(e, nodeData)
+            }}
+            trigger={['contextMenu']}
+          >
+            {item}
+          </Dropdown>
         )
       } else if (nodeType === 'schemas') {
         item = (
@@ -1025,7 +1063,7 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
           </Dropdown>
         )
       }
-      return <div>{item}</div>
+      return item
     },
     [items, schemaAlongItems, schemasItems, roleItems, tableMenuItems, props.connection]
   )
@@ -1129,7 +1167,14 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
   return (
     <div>
+      <input
+        ref={selectSqlFile}
+        type="file"
+        style={{ display: 'none' }}
+        onChange={selectFile}
+      />
       <Tree
+        className="connectionTree"
         showLine
         showIcon
         blockNode

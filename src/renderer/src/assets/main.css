@@ -27,11 +27,56 @@ body,
   width: 100%;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+
+  .treeTitleText {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .treeTitleName {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .treeRight {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .treeMeta {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .treeMetaInline {
+    margin-left: 4ch;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 
   .treeBtn {
     display: none;
-    margin-left: 8px;
   }
+
+  .treeBtnInline {
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+}
+
+.treeTitleTable {
+  justify-content: flex-start;
 }
 
 /* 整行 hover 时显示按钮 */
@@ -39,8 +84,26 @@ body,
   display: flex !important;
 }
 
-.ant-tree-title {
-  display: inline-block;
+.connectionTree .ant-tree-node-content-wrapper {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.connectionTree .ant-tree-iconEle {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.connectionTree .ant-tree-title {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .cellHover {

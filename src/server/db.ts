@@ -121,7 +121,27 @@ async function getColums(data) {
 
 //select oid from pg_class where relname='active_lock_user' //可以查出tabelId
 async function getTables({ id, schema = 'public', config }) {
-  const sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
+  let sql = `select table_name from information_schema.tables where table_schema='${schema}' LIMIT 1000`
+
+  if (!isMysql({ id, config })) {
+    sql = `
+      select
+        table_name,
+        case
+          when table_type = 'BASE TABLE' then coalesce(
+            ceil(
+              pg_total_relation_size(to_regclass(format('%I.%I', table_schema, table_name))) / 1024.0
+            ),
+            0
+          )::integer
+          else null
+        end as size_k
+      from information_schema.tables
+      where table_schema='${schema}'
+      LIMIT 1000
+    `
+  }
+
   const tables = await query({ id, sql, config })
 
   return _.sortBy(tables, ['table_name', 'TABLE_NAME'])
