@@ -574,6 +574,13 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
   const items: MenuProps['items'] = useMemo(
     () => [
       {
+        label: 'Edit Connection',
+        key: SliderRightMenu.EDITCONNECTION
+      },
+      {
+        type: 'divider'
+      },
+      {
         label: 'Create Database',
         key: SliderRightMenu.CREATEDB
       },
@@ -865,7 +872,9 @@ const ConnectionItem: React.FC<CustomProps> = (props) => {
 
     console.log('right node data: ', nodeData)
 
-    if (+e.key === SliderRightMenu.CREATEDB) {
+    if (+e.key === SliderRightMenu.EDITCONNECTION) {
+      editConnection(nodeData)
+    } else if (+e.key === SliderRightMenu.CREATEDB) {
       toggleForm('database', true)
     } else if (+e.key === SliderRightMenu.BACKUP) {
       window.api

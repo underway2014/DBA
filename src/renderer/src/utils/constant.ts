@@ -27,6 +27,7 @@ export const LogAction = {
 }
 
 export const SliderRightMenu = {
+  EDITCONNECTION: 5,
   CREATEDB: 10,
   BACKUP: 20,
   RESTORESTRUCE: 30,
